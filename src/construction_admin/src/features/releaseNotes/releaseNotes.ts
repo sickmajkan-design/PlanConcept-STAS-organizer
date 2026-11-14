@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-14.60';
+export const RELEASE_ID = '2026-11-14.61';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -52,7 +52,7 @@ export const releaseSections: ReleaseSection[] = [
   {
     id: 'docker1114',
     titleKey: 'releaseNotes.docker1114.title',
-    itemKeys: ['releaseNotes.docker1114.card', 'releaseNotes.docker1114.cert', 'releaseNotes.docker1114.errors', 'releaseNotes.docker1114.releases', 'releaseNotes.docker1114.metrics', 'releaseNotes.docker1114.security'],
+    itemKeys: ['releaseNotes.docker1114.card', 'releaseNotes.docker1114.cert', 'releaseNotes.docker1114.errors', 'releaseNotes.docker1114.releases', 'releaseNotes.docker1114.metrics', 'releaseNotes.docker1114.security', 'releaseNotes.docker1114.look'],
     audience: (user) => isSuperAdmin(user),
   },
 ];

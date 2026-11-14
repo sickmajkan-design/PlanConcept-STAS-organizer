@@ -1,9 +1,10 @@
-import { Alert, Box, Button, Card, CardContent, Stack, Switch, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { systemApi, type ServerAlertKey, type ServerAlertSetting } from '../../api/system';
 import { useT } from '../../i18n/useI18n';
 import { formatDateTime } from '../../utils/formatting';
+import { IosSwitch, Panel } from './serverUi';
 
 const KEY = ['system', 'alerts'] as const;
 
@@ -30,71 +31,58 @@ export function ServerAlertsCard() {
     save.mutate({ key: row.key, emailEnabled: row.emailEnabled, pushEnabled: row.pushEnabled, [channel]: !row[channel] });
 
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 0.5 }}>
-          {t('serverAlerts.title')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {t('serverAlerts.description')}
-        </Typography>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Table size="small" aria-label={t('serverAlerts.title')}>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('serverAlerts.event')}</TableCell>
-                <TableCell align="center">{t('serverAlerts.email')}</TableCell>
-                <TableCell align="center">{t('serverAlerts.push')}</TableCell>
-                <TableCell>{t('serverAlerts.lastSent')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row) => (
-                <TableRow key={row.key}>
-                  <TableCell>
-                    {t(`serverAlerts.kind.${row.key}`)}
-                    <Typography variant="caption" color="text.secondary" component="div">
-                      {t(`serverAlerts.when.${row.key}`)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Switch
-                      size="small"
-                      checked={row.emailEnabled}
-                      onChange={() => toggle(row, 'emailEnabled')}
-                      slotProps={{ input: { 'aria-label': `${t(`serverAlerts.kind.${row.key}`)}: ${t('serverAlerts.email')}` } }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Switch
-                      size="small"
-                      checked={row.pushEnabled}
-                      onChange={() => toggle(row, 'pushEnabled')}
-                      slotProps={{ input: { 'aria-label': `${t(`serverAlerts.kind.${row.key}`)}: ${t('serverAlerts.push')}` } }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.lastSentAtUtc ? formatDateTime(row.lastSentAtUtc) : '—'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
-        <Stack direction="row" sx={{ mt: 1.5, gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Button size="small" variant="outlined" onClick={() => test.mutate()} disabled={test.isPending}>
-            {t('serverAlerts.test')}
-          </Button>
+    <Panel
+      title={t('serverAlerts.title')}
+      description={t('serverAlerts.description')}
+      action={
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5 }}>
           {test.isSuccess && (
             <Typography variant="caption" color="text.secondary">
               {t('serverAlerts.testSent')}
             </Typography>
           )}
+          <Button variant="outlined" onClick={() => test.mutate()} disabled={test.isPending} sx={{ borderRadius: 999, px: 2.5 }}>
+            {t('serverAlerts.test')}
+          </Button>
         </Stack>
-        {(save.isError || test.isError) && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            {t('serverAlerts.failed')}
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+      }
+    >
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', columnGap: 6 }}>
+        {data.map((row) => (
+          <Stack key={row.key} data-row direction="row" sx={{ alignItems: 'center', gap: 2, py: 1.75, flexWrap: 'wrap' }}>
+            <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{t(`serverAlerts.kind.${row.key}`)}</Typography>
+              <Typography variant="caption" color="text.secondary" component="div">
+                {t(`serverAlerts.when.${row.key}`)}
+                {row.lastSentAtUtc ? ` · ${t('serverAlerts.lastSent')}: ${formatDateTime(row.lastSentAtUtc)}` : ''}
+              </Typography>
+            </Box>
+            <Stack direction="row" sx={{ alignItems: 'center', gap: 1.25 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                {t('serverAlerts.email')}
+              </Typography>
+              <IosSwitch
+                checked={row.emailEnabled}
+                onChange={() => toggle(row, 'emailEnabled')}
+                slotProps={{ input: { 'aria-label': `${t(`serverAlerts.kind.${row.key}`)}: ${t('serverAlerts.email')}` } }}
+              />
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', ml: 0.5 }}>
+                {t('serverAlerts.push')}
+              </Typography>
+              <IosSwitch
+                checked={row.pushEnabled}
+                onChange={() => toggle(row, 'pushEnabled')}
+                slotProps={{ input: { 'aria-label': `${t(`serverAlerts.kind.${row.key}`)}: ${t('serverAlerts.push')}` } }}
+              />
+            </Stack>
+          </Stack>
+        ))}
+      </Box>
+      {(save.isError || test.isError) && (
+        <Alert severity="error" sx={{ mt: 1 }}>
+          {t('serverAlerts.failed')}
+        </Alert>
+      )}
+    </Panel>
   );
 }

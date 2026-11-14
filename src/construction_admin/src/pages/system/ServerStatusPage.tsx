@@ -1,5 +1,9 @@
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import PriorityHighRounded from '@mui/icons-material/PriorityHighRounded';
 import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
-import { Alert, Box, Button, Card, CardContent, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import TaskAltRounded from '@mui/icons-material/TaskAltRounded';
+import { Box, Button, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 
@@ -13,16 +17,19 @@ import { formatDuration } from '../../features/system/formatDuration';
 import { formatSize } from '../../features/system/formatSize';
 import { serverAlerts, worstTone, type AlertTone } from '../../features/system/serverStatusAlerts';
 import { ServerAlertsCard } from '../../features/system/ServerAlertsCard';
-import { ServerErrorsCard } from '../../features/system/ServerErrorsCard';
+import { ServerErrorsCard, ServerErrorsTile } from '../../features/system/ServerErrorsCard';
 import { ServerMetricsCard } from '../../features/system/ServerMetricsCard';
-import { StorageCard } from '../../features/system/StorageCard';
+import { MetricTiles, StatusHero } from '../../features/system/ServerOverview';
+import { containerUptime } from '../../features/system/overviewMath';
+import { BigNumber, Panel, Ring, StatusDot } from '../../features/system/serverUi';
 
 /** How often the page asks again. Short enough to watch a deploy or a spike, long enough to cost nothing. */
 const REFRESH_MS = 30_000;
 
+/** One line of a list: the label quiet on the left, the value firmer on the right, a hairline above all but the first. */
 function Row({ label, value, tone }: { label: string; value: ReactNode; tone?: AlertTone }) {
   return (
-    <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2, py: 0.5 }}>
+    <Stack data-row direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2, py: 1.25 }}>
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
@@ -38,16 +45,7 @@ function Row({ label, value, tone }: { label: string; value: ReactNode; tone?: A
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 1 }}>
-          {title}
-        </Typography>
-        {children}
-      </CardContent>
-    </Card>
-  );
+  return <Panel title={title}>{children}</Panel>;
 }
 
 function okOrNot(ok: boolean, t: ReturnType<typeof useT>) {
@@ -91,48 +89,33 @@ export function ServerStatusPage() {
       {error && !data && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {data && (
-        <>
-          <Alert severity={tone ?? 'success'} sx={{ mb: 2 }} data-testid="status-summary">
-            {tone === null ? (
-              t('serverStatus.allWell')
-            ) : (
-              <Stack component="ul" sx={{ m: 0, pl: 2 }}>
-                {alerts.map((alert) => (
-                  <li key={alert.key}>{t(`serverStatus.alert.${alert.key}`)}</li>
-                ))}
-              </Stack>
-            )}
-          </Alert>
-
-          <StorageCard />
+        <Stack sx={{ gap: 2 }}>
+          <StatusHero status={data} alerts={alerts} tone={tone} />
+          <MetricTiles status={data} />
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <UptimeSection status={data} />
+            <Grid size={{ xs: 12, lg: 8 }}>
+              <ServerMetricsCard />
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, lg: 4 }}>
               <BackupsSection status={data} />
             </Grid>
-            <Grid size={12}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <DockerSection status={data} />
             </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ReleasesSection status={data} />
+            </Grid>
             {data.docker.security.length > 0 && (
-              <Grid size={12}>
+              <Grid size={{ xs: 12, lg: 8 }}>
                 <SecuritySection status={data} />
               </Grid>
             )}
-            {data.docker.releases.length > 0 && (
-              <Grid size={12}>
-                <ReleasesSection status={data} />
-              </Grid>
-            )}
-            {data.docker.certificate && (
-              <Grid size={12}>
-                <CertificateSection status={data} />
-              </Grid>
-            )}
-            <Grid size={12}>
-              <ServerMetricsCard />
+            <Grid size={{ xs: 12, lg: data.docker.security.length > 0 ? 4 : 12 }}>
+              <Stack sx={{ gap: 2 }}>
+                {data.docker.certificate && <CertificateSection status={data} />}
+                <ServerErrorsTile />
+              </Stack>
             </Grid>
             <Grid size={12}>
               <ServerErrorsCard />
@@ -140,6 +123,12 @@ export function ServerStatusPage() {
             <Grid size={12}>
               <ServerAlertsCard />
             </Grid>
+          </Grid>
+
+          <Typography component="h2" sx={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', mt: 2 }}>
+            {t('serverStatus.details')}
+          </Typography>
+          <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 6 }}>
               <HostSection status={data} />
             </Grid>
@@ -152,8 +141,11 @@ export function ServerStatusPage() {
             <Grid size={{ xs: 12, md: 6 }}>
               <ServicesSection status={data} />
             </Grid>
+            <Grid size={12}>
+              <UptimeSection status={data} />
+            </Grid>
           </Grid>
-        </>
+        </Stack>
       )}
     </Box>
   );
@@ -162,33 +154,79 @@ export function ServerStatusPage() {
 function SecuritySection({ status }: { status: ServerStatus }) {
   const t = useT();
   const { security } = status.docker;
-  const tone = { ok: 'success', warn: 'warning', info: 'default' } as const;
-  const label = { ok: t('serverSecurity.ok'), warn: t('serverSecurity.warn'), info: t('serverSecurity.info') } as const;
+  const needs = security.filter((check) => check.status !== 'ok');
+  const fine = security.filter((check) => check.status === 'ok');
 
   return (
-    <Section title={t('serverSecurity.title')}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {t('serverSecurity.description')}
-      </Typography>
-      {security.map((check, index) => (
-        <Box key={check.key} sx={{ py: 0.75, borderTop: index === 0 ? 0 : 1, borderColor: 'divider' }}>
-          <Stack direction="row" sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 220 }}>
-              {t(`serverSecurity.${check.key}.title`)}
-            </Typography>
-            <Chip size="small" color={tone[check.status]} label={label[check.status]} />
-            <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-              {t(`serverSecurity.${check.key}.${check.status}` as MessageKey, { value: check.value, extra: check.extra })}
-            </Typography>
+    <Panel title={t('serverSecurity.title')} description={t('serverSecurity.description')}>
+      {needs.map((check) => {
+        const warn = check.status === 'warn';
+
+        return (
+          <Stack key={check.key} data-row direction="row" sx={{ gap: 2, py: 2 }}>
+            <Box
+              sx={(theme) => ({
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: warn ? alpha(theme.palette.warning.main, 0.16) : alpha(theme.palette.text.primary, 0.06),
+                color: warn ? 'warning.main' : 'text.secondary',
+              })}
+            >
+              {warn ? <PriorityHighRounded sx={{ fontSize: 18 }} /> : <InfoOutlined sx={{ fontSize: 18 }} />}
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em' }}>{t(`serverSecurity.${check.key}.title`)}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, lineHeight: 1.4, overflowWrap: 'anywhere' }}>
+                {t(`serverSecurity.${check.key}.${check.status}` as MessageKey, { value: check.value, extra: check.extra })}
+              </Typography>
+              {warn && (
+                <Box
+                  sx={(theme) => ({
+                    mt: 1,
+                    display: 'inline-block',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    fontSize: 13,
+                    fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+                    bgcolor: alpha(theme.palette.text.primary, 0.06),
+                    borderRadius: '10px',
+                    px: 1.5,
+                    py: 1,
+                    overflowWrap: 'anywhere',
+                  })}
+                >
+                  {t(`serverSecurity.${check.key}.fix` as MessageKey)}
+                </Box>
+              )}
+            </Box>
           </Stack>
-          {check.status === 'warn' && (
-            <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
-              {t(`serverSecurity.${check.key}.fix` as MessageKey)}
-            </Typography>
-          )}
+        );
+      })}
+      {fine.length > 0 && (
+        <Box data-row sx={{ pt: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {t('serverSecurity.fineSummary', { count: fine.length })}
+          </Typography>
+          <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+            {fine.map((check) => (
+              <Chip
+                key={check.key}
+                size="small"
+                variant="outlined"
+                icon={<TaskAltRounded sx={{ fontSize: 16 }} />}
+                label={t(`serverSecurity.${check.key}.title`)}
+                sx={{ '& .MuiChip-icon': { color: 'success.main' } }}
+              />
+            ))}
+          </Stack>
         </Box>
-      ))}
-    </Section>
+      )}
+    </Panel>
   );
 }
 
@@ -213,41 +251,39 @@ function ReleasesSection({ status }: { status: ServerStatus }) {
   };
 
   return (
-    <Section title={t('serverStatus.releases')}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {t('serverStatus.releasesHint')}
-      </Typography>
+    <Panel title={t('serverStatus.releases')} description={t('serverStatus.releasesHint')}>
       {releases.map((release, index) => {
         const newer = running.migrations - release.migrations;
 
         return (
-          <Box key={release.commit} sx={{ py: 0.75, borderTop: index === 0 ? 0 : 1, borderColor: 'divider' }}>
-            <Stack direction="row" sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
+          <Box key={release.commit} data-row sx={{ py: 1.5 }}>
+            <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}>
                 {release.commit.slice(0, 7)}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
                 {formatDateTime(release.seenAtUtc)}
               </Typography>
-              <Chip size="small" color={index === 0 ? 'success' : 'default'} label={index === 0 ? t('serverStatus.releaseActive') : t('serverStatus.releaseReady')} />
-              {index > 0 && (
-                <Button size="small" onClick={() => copy(release.commit)}>
+              {index === 0 ? (
+                <Chip size="small" color="success" label={t('serverStatus.releaseActive')} />
+              ) : (
+                <Button size="small" variant="outlined" onClick={() => copy(release.commit)} sx={{ borderRadius: 999, px: 2 }}>
                   {copied === release.commit ? t('serverStatus.releaseCopied') : t('serverStatus.releaseCopy')}
                 </Button>
               )}
             </Stack>
             {index > 0 && newer > 0 && (
-              <Typography variant="caption" color="warning.main" component="div">
+              <Typography variant="caption" color="warning.main" component="div" sx={{ mt: 0.5 }}>
                 {t('serverStatus.releaseMigrations', { count: newer })}
               </Typography>
             )}
           </Box>
         );
       })}
-      <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }}>
+      <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1.5, mb: 0 }}>
         {t('serverStatus.releaseBack')} <code>{ROLLBACK_SCRIPT} latest</code>
       </Typography>
-    </Section>
+    </Panel>
   );
 }
 
@@ -260,17 +296,30 @@ function CertificateSection({ status }: { status: ServerStatus }) {
   }
 
   const days = Math.floor((Date.parse(certificate.notAfterUtc) - Date.now()) / 86_400_000);
+  const tone = days < 7 ? 'error' : days < 14 ? 'warning' : 'success';
 
   return (
-    <Section title={t('serverStatus.certificate')}>
-      <Row
-        label={t('serverStatus.certificateExpires')}
-        value={`${formatDateTime(certificate.notAfterUtc)} · ${days < 0 ? t('serverStatus.certificateExpired') : t('serverStatus.certificateDays', { days })}`}
-        tone={days < 7 ? 'error' : days < 14 ? 'warning' : undefined}
-      />
-      {certificate.issuer && <Row label={t('serverStatus.certificateIssuer')} value={certificate.issuer} />}
-    </Section>
+    <Panel fill={false}>
+      <Stack direction="row" sx={{ alignItems: 'center', gap: 2.5 }}>
+        <Ring percent={Math.max(0, Math.min(100, (days / 90) * 100))} tone={tone} label={t('serverStatus.certificate')} size={84} />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: 15, fontWeight: 600, color: 'text.secondary' }}>{t('serverStatus.certificate')}</Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <BigNumber size={34}>{days < 0 ? t('serverStatus.certificateExpired') : `${days} ${t('serverStatus.daysShort')}`}</BigNumber>
+          </Box>
+          <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.75 }}>
+            {t('serverStatus.certificateUntil', { date: formatDateTime(certificate.notAfterUtc) })}
+            {certificate.issuer ? ` · ${certificate.issuer}` : ''}
+          </Typography>
+        </Box>
+      </Stack>
+    </Panel>
   );
+}
+
+/** The part of a container's name a person recognises: `construction-api-1` is `api`. */
+function shortName(name: string): string {
+  return name.replace(/^construction[-_]/, '').replace(/[-_]\d+$/, '');
 }
 
 function DockerSection({ status }: { status: ServerStatus }) {
@@ -278,37 +327,46 @@ function DockerSection({ status }: { status: ServerStatus }) {
   const { known, updatedAtUtc, containers, images, lastPrune } = status.docker;
 
   return (
-    <Section title={t('serverStatus.docker')}>
-      {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.dockerNone')}</Typography>}
+    <Panel title={t('serverStatus.docker')}>
+      {!known && (
+        <Typography variant="body2" color="text.secondary">
+          {t('serverStatus.dockerNone')}
+        </Typography>
+      )}
       {known && (
         <>
           {containers.map((container) => (
-            <Row
-              key={container.name}
-              label={`${container.name} · ${container.image}`}
-              value={
-                <Stack direction="row" sx={{ gap: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-                  {container.status}
-                  <Chip size="small" color={container.state === 'running' ? 'success' : 'error'} label={container.state} />
-                </Stack>
-              }
-            />
+            <Stack key={container.name} data-row direction="row" sx={{ alignItems: 'center', gap: 1.5, py: 1.5 }}>
+              <StatusDot tone={container.state === 'running' ? 'success' : 'error'} size={10} />
+              <Typography sx={{ fontSize: 16, fontWeight: 500, flexGrow: 1, minWidth: 0 }}>{shortName(container.name)}</Typography>
+              <Typography variant="caption" sx={{ fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace', color: 'text.secondary' }}>
+                {container.image.split(':').pop()?.slice(0, 12)}
+              </Typography>
+              <Typography variant="body2" color={container.state === 'running' ? 'text.secondary' : 'error.main'} sx={{ minWidth: 70, textAlign: 'right' }}>
+                {container.state === 'running' ? containerUptime(container.status) : container.state}
+              </Typography>
+            </Stack>
           ))}
-          {images && (
-            <Row
-              label={t('serverStatus.dockerImages')}
-              value={t('serverStatus.dockerImagesValue', { total: images.total, active: images.active, size: images.size, reclaimable: images.reclaimable })}
-            />
-          )}
-          {lastPrune && <Row label={t('serverStatus.dockerPrune')} value={lastPrune} />}
-          {updatedAtUtc && (
-            <Typography variant="caption" color="text.secondary">
-              {t('serverStatus.dockerUpdated', { time: formatDateTime(updatedAtUtc) })}
-            </Typography>
-          )}
+          <Box sx={{ mt: 1.5 }}>
+            {images && (
+              <Typography variant="caption" color="text.secondary" component="div">
+                {t('serverStatus.dockerImagesValue', { total: images.total, active: images.active, size: images.size, reclaimable: images.reclaimable })}
+              </Typography>
+            )}
+            {lastPrune && (
+              <Typography variant="caption" color="text.secondary" component="div">
+                {t('serverStatus.dockerPrune')}: {lastPrune}
+              </Typography>
+            )}
+            {updatedAtUtc && (
+              <Typography variant="caption" color="text.secondary" component="div">
+                {t('serverStatus.dockerUpdated', { time: formatDateTime(updatedAtUtc) })}
+              </Typography>
+            )}
+          </Box>
         </>
       )}
-    </Section>
+    </Panel>
   );
 }
 
@@ -354,37 +412,46 @@ function BackupsSection({ status }: { status: ServerStatus }) {
   const t = useT();
   const { known, items, restoreCheckedAtUtc } = status.backups;
   const newest = items[0];
-  const yes = (ok: boolean) => <Chip size="small" color={ok ? 'success' : 'warning'} label={ok ? t('serverStatus.backupYes') : t('serverStatus.backupNo')} />;
 
   return (
-    <Section title={t('serverStatus.backups')}>
+    <Panel title={t('serverStatus.backups')}>
       {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.backupsHidden')}</Typography>}
       {known && !newest && <Typography variant="body2" color="text.secondary">{t('serverStatus.backupsNone')}</Typography>}
       {known && newest && (
         <>
-          <Row label={t('serverStatus.backupLast')} value={`${formatDateTime(newest.takenAtUtc)} · ${formatSize(newest.sizeBytes)}`} />
-          <Row label={t('serverStatus.backupOffsite')} value={yes(newest.offsite)} />
+          <Box sx={{ mb: 1.5 }}>
+            <BigNumber size={28}>{formatDateTime(newest.takenAtUtc)}</BigNumber>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+              {t('serverStatus.backupLast')} · {formatSize(newest.sizeBytes)}
+            </Typography>
+          </Box>
+          <Stack data-row direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2, py: 1.25 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('serverStatus.backupOffsite')}
+            </Typography>
+            <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+              <StatusDot tone={newest.offsite ? 'success' : 'warning'} />
+              <Typography variant="body2" sx={{ fontWeight: 500, color: newest.offsite ? 'text.primary' : 'warning.main' }}>
+                {newest.offsite ? t('serverStatus.backupYes') : t('serverStatus.backupServerOnly')}
+              </Typography>
+            </Stack>
+          </Stack>
           <Row
             label={t('serverStatus.backupRestore')}
             value={restoreCheckedAtUtc ? formatDateTime(restoreCheckedAtUtc) : t('serverStatus.backupNever')}
           />
-          <Box sx={{ mt: 1 }}>
-            {items.slice(0, 5).map((item) => (
-              <Row
-                key={item.name}
-                label={`${formatDateTime(item.takenAtUtc)}${item.hasDocuments ? '' : ` (${t('serverStatus.backupNoDocs')})`}`}
-                value={
-                  <Stack direction="row" sx={{ gap: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-                    {formatSize(item.sizeBytes)}
-                    {yes(item.offsite)}
-                  </Stack>
-                }
-              />
+          <Box sx={{ mt: 1.5 }}>
+            {items.slice(1, 4).map((item) => (
+              <Typography key={item.name} variant="caption" color="text.secondary" component="div">
+                {formatDateTime(item.takenAtUtc)} · {formatSize(item.sizeBytes)}
+                {item.hasDocuments ? '' : ` (${t('serverStatus.backupNoDocs')})`}
+                {item.offsite ? '' : ` · ${t('serverStatus.backupServerOnly')}`}
+              </Typography>
             ))}
           </Box>
         </>
       )}
-    </Section>
+    </Panel>
   );
 }
 

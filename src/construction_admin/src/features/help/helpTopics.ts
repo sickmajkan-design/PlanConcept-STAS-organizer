@@ -306,6 +306,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'Jedna stranica koja pokazuje šta se trenutno dešava sa serverom: računar, aplikacija, baza i servisi. Osvježava se sama svakih 30 sekundi. Vidi je samo Super Admin.',
         steps: [
+          'Raspored: gore je jedna rečenica o stanju s oznakama za bazu, antivirus, red poruka i sigurnost, pa četiri pločice (procesor, memorija, disk, dostupnost). Ispod su grafikon i rezervne kopije, kontejneri i izdanja, sigurnost, certifikat i obavještenja; tehnički detalji su na dnu.',
           'Otvorite je kroz Ctrl+K (upišite server) ili dugmetom Stanje servera na kartici Prostor na serveru.',
           'Na vrhu piše Sve je u redu, ili spisak onoga što traži pažnju (disk, memorija, opterećenje, veze prema bazi, antivirus, poruke koje se ne šalju).',
           'Računar: koliko radi bez prekida, opterećenje u posljednjih 1, 5 i 15 minuta prema broju jezgara, slobodna memorija i swap.',
@@ -338,6 +339,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'One page that shows what is happening on the server right now: the machine, the application, the database and the services. It refreshes by itself every 30 seconds. Only the Super Admin sees it.',
         steps: [
+          'Layout: at the top one sentence about the state with markers for the database, antivirus, message queue and security, then four tiles (processor, memory, disk, availability). Below are the chart and backups, containers and releases, security, certificate and notices; the technical details are at the bottom.',
           'Open it with Ctrl+K (type server) or with the Server status button on the Server disk space card.',
           'The top says All is well, or lists what needs attention (disk, memory, load, database connections, antivirus, messages that are not being sent).',
           'Machine: how long it has been running, the load of the last 1, 5 and 15 minutes against the number of cores, free memory and swap.',
