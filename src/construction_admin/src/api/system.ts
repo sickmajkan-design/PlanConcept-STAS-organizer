@@ -157,6 +157,22 @@ export interface ServerStatus {
   storage: StorageStatus;
 }
 
+/** One hour of the load charts. Percentages; load is per core and can pass 100. */
+export interface MetricPoint {
+  atUtc: string;
+  loadPercent: number;
+  memoryPercent: number;
+  diskPercent: number;
+}
+
+export interface ServerMetrics {
+  known: boolean;
+  /** Oldest first. */
+  points: MetricPoint[];
+  diskGrowthBytesPerDay: number | null;
+  diskDaysLeft: number | null;
+}
+
 /** One kind of unexpected server error over the last seven days. Counts only, never a message. */
 export interface ServerErrorGroup {
   exceptionType: string;
@@ -187,6 +203,7 @@ export interface ServerAlertSetting {
 }
 
 export const systemApi = {
+  metrics: () => request<ServerMetrics>({ method: 'GET', url: '/api/v1/system/metrics' }),
   errors: () => request<ServerErrorGroup[]>({ method: 'GET', url: '/api/v1/system/errors' }),
   alerts: () => request<ServerAlertSetting[]>({ method: 'GET', url: '/api/v1/system/alerts' }),
   setAlert: (key: ServerAlertKey, channels: { emailEnabled: boolean; pushEnabled: boolean }) =>

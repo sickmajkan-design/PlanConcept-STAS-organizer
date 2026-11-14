@@ -78,6 +78,9 @@ public class DockerStatusDto
 public interface IDockerStatusReader
 {
     DockerStatusDto Read();
+
+    /// <summary>The raw lines of <c>metrics.log</c>, or null when the host script has not written it.</summary>
+    string? ReadMetricsLog();
 }
 
 public static class DockerStatusParser

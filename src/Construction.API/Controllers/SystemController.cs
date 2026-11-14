@@ -28,6 +28,15 @@ public class SystemController : ApiControllerBase
         return Ok(await Mediator.Send(new GetServerStatusQuery(), cancellationToken));
     }
 
+    /// <summary>Processor load, memory and disk of the last seven days, one point per hour, and the disk's trend.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/metrics")]
+    [HttpGet("/api/system/metrics")]
+    [ProducesResponseType(typeof(ServerMetricsDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServerMetricsDto>> Metrics(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetServerMetricsQuery(), cancellationToken));
+    }
+
     /// <summary>Unexpected server errors of the last seven days, grouped by kind. Counts only, no messages.</summary>
     [HttpGet("/api/v{version:apiVersion}/system/errors")]
     [HttpGet("/api/system/errors")]

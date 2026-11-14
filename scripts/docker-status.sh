@@ -25,6 +25,14 @@ if [ -n "$domain" ]; then
     | openssl x509 -noout -enddate -issuer 2>/dev/null || true)"
   [ -n "$tls" ] && printf '%s\n' "$tls" | put tls.txt
 fi
+# One sample for the load charts: time | 1-minute load | cores | memory used % | disk used %. Seven days at one per five
+# minutes is about 2000 lines; the file is cut to the last 2100.
+metrics="$dir/metrics.log"
+read -r load1 _ < /proc/loadavg
+mem="$(awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{if (t>0) printf "%d", (t-a)*100/t}' /proc/meminfo)"
+disk="$(df --output=pcent / | tail -1 | tr -dc 0-9)"
+printf '%s|%s|%s|%s|%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$load1" "$(nproc)" "${mem:-0}" "${disk:-0}" >> "$metrics"
+tail -n 2100 "$metrics" > "$metrics.new" && mv -f "$metrics.new" "$metrics"
 # Which release the API container runs, written down only when it changes (time | commit | database migrations applied),
 # so the page can list the releases that were live and how many database changes each had. Kept to the last 50.
 rev="$(docker inspect construction-api-1 --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' 2>/dev/null || true)"
