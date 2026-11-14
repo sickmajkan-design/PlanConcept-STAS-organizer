@@ -22,7 +22,8 @@ export interface ServerAlert {
     | 'backupNotOffsite'
     | 'restoreNotChecked'
     | 'containerDown'
-    | 'dockerStale';
+    | 'dockerStale'
+    | 'certificateExpiring';
   tone: AlertTone;
 }
 
@@ -89,6 +90,13 @@ export function serverAlerts(status: ServerStatus, now: number = Date.now()): Se
     if (status.docker.containers.some((c) => c.state !== 'running')) alerts.push({ key: 'containerDown', tone: 'error' });
     const updated = status.docker.updatedAtUtc ? Date.parse(status.docker.updatedAtUtc) : null;
     if (updated !== null && now - updated > 20 * MINUTE) alerts.push({ key: 'dockerStale', tone: 'warning' });
+  }
+
+  // Under two weeks is "renew it" (Caddy normally does, a month ahead); under one week, or past, it is urgent.
+  if (status.docker.certificate) {
+    const left = Date.parse(status.docker.certificate.notAfterUtc) - now;
+    if (left < 7 * DAY) alerts.push({ key: 'certificateExpiring', tone: 'error' });
+    else if (left < 14 * DAY) alerts.push({ key: 'certificateExpiring', tone: 'warning' });
   }
 
   return alerts;

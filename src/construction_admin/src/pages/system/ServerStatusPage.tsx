@@ -113,6 +113,11 @@ export function ServerStatusPage() {
             <Grid size={12}>
               <DockerSection status={data} />
             </Grid>
+            {data.docker.certificate && (
+              <Grid size={12}>
+                <CertificateSection status={data} />
+              </Grid>
+            )}
             <Grid size={12}>
               <ServerAlertsCard />
             </Grid>
@@ -132,6 +137,28 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+function CertificateSection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const certificate = status.docker.certificate;
+
+  if (!certificate) {
+    return null;
+  }
+
+  const days = Math.floor((Date.parse(certificate.notAfterUtc) - Date.now()) / 86_400_000);
+
+  return (
+    <Section title={t('serverStatus.certificate')}>
+      <Row
+        label={t('serverStatus.certificateExpires')}
+        value={`${formatDateTime(certificate.notAfterUtc)} · ${days < 0 ? t('serverStatus.certificateExpired') : t('serverStatus.certificateDays', { days })}`}
+        tone={days < 7 ? 'error' : days < 14 ? 'warning' : undefined}
+      />
+      {certificate.issuer && <Row label={t('serverStatus.certificateIssuer')} value={certificate.issuer} />}
+    </Section>
   );
 }
 

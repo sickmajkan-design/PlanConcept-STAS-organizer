@@ -138,6 +138,8 @@ export interface DockerStatus {
   containers: Container[];
   images: { total: number; active: number; size: string; reclaimable: string } | null;
   lastPrune: string | null;
+  /** The HTTPS certificate the proxy serves; null until the host script has read it. */
+  certificate: { notAfterUtc: string; issuer: string } | null;
 }
 
 /** The whole picture of the server, in one request, for the Super Admin's status page. */
@@ -160,6 +162,7 @@ export type ServerAlertKey =
   | 'backupOld'
   | 'scannerDown'
   | 'outboxAbandoned'
+  | 'certificate'
   | 'restoreNotChecked';
 
 /** Where one kind of server trouble is announced. Push is the in-app notice and the phone push together. */

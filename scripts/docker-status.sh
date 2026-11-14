@@ -18,5 +18,12 @@ put() { # put <name>: stdin becomes the file, replaced in one step so the API ne
 
 docker system df --format '{{json .}}' | put df.jsonl
 tail -n 1 /var/log/construction-prune.log 2>/dev/null | put prune.txt || true
+# The certificate the proxy is serving right now (end date and issuer), from the proxy itself rather than from its files.
+domain="$(grep -E '^DOMAIN=' "${DEPLOY_ENV:-/opt/construction/deploy/.env}" 2>/dev/null | cut -d= -f2- || true)"
+if [ -n "$domain" ]; then
+  tls="$(echo | timeout 10 openssl s_client -connect 127.0.0.1:443 -servername "$domain" 2>/dev/null \
+    | openssl x509 -noout -enddate -issuer 2>/dev/null || true)"
+  [ -n "$tls" ] && printf '%s\n' "$tls" | put tls.txt
+fi
 # Last, because its modified time is the "updated at" the page shows.
 docker ps -a --format '{{json .}}' | put containers.jsonl

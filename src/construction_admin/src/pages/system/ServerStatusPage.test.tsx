@@ -17,7 +17,7 @@ const MB = 1024 * 1024;
 
 const status = (over: Partial<ServerStatus> = {}): ServerStatus => ({
   atUtc: '2026-11-13T22:00:00Z',
-  docker: { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null },
+  docker: { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null, certificate: null },
   backups: { known: false, items: [], restoreCheckedAtUtc: null },
   uptime: { known: false, sinceUtc: null, windowDays: 30, availabilityPercent: 100, downSeconds: 0, outages: [] },
   host: {

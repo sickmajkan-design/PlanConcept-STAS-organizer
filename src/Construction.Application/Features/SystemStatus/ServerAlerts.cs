@@ -20,10 +20,11 @@ public static class ServerAlertKeys
     public const string RestoreNotChecked = "restoreNotChecked";
     public const string ScannerDown = "scannerDown";
     public const string OutboxAbandoned = "outboxAbandoned";
+    public const string Certificate = "certificate";
 
     /// <summary>In the order the settings are shown.</summary>
     public static readonly string[] All =
-        [Disk, Outage, BackupMissing, BackupOld, ScannerDown, OutboxAbandoned, RestoreNotChecked];
+        [Disk, Outage, BackupMissing, BackupOld, ScannerDown, OutboxAbandoned, Certificate, RestoreNotChecked];
 
     /// <summary>
     /// What a kind does before anybody changes it. The restore rehearsal is off: until the first Sunday it has never run,
@@ -32,7 +33,7 @@ public static class ServerAlertKeys
     public static (bool Email, bool Push) Default(string key) => key switch
     {
         Disk or Outage => (true, true),
-        BackupMissing or BackupOld or ScannerDown => (true, false),
+        BackupMissing or BackupOld or ScannerDown or Certificate => (true, false),
         OutboxAbandoned => (false, true),
         _ => (false, false),
     };
@@ -45,7 +46,12 @@ public static class ServerAlertPolicy
     /// <summary>While a problem lasts it is repeated this often, not more.</summary>
     public static readonly TimeSpan Cooldown = TimeSpan.FromHours(6);
 
-    public static bool CooldownPassed(DateTime? lastSentAt, DateTime now) => lastSentAt is null || now - lastSentAt.Value >= Cooldown;
+    public static bool CooldownPassed(DateTime? lastSentAt, DateTime now) => CooldownPassed(lastSentAt, now, Cooldown);
+
+    public static bool CooldownPassed(DateTime? lastSentAt, DateTime now, TimeSpan cooldown) => lastSentAt is null || now - lastSentAt.Value >= cooldown;
+
+    /// <summary>A certificate is a problem for two weeks, so it is mentioned once a day, not four times.</summary>
+    public static TimeSpan CooldownFor(string key) => key == ServerAlertKeys.Certificate ? TimeSpan.FromHours(24) : Cooldown;
 }
 
 /// <summary>Delivers a server notice to the Super Admins through the channels chosen for its kind.</summary>
@@ -92,7 +98,7 @@ public class ServerAlertSender
         var setting = await GetOrCreateAsync(key, cancellationToken);
         var now = _clock.UtcNow;
 
-        if ((!setting.EmailEnabled && !setting.PushEnabled) || (!bypassCooldown && !ServerAlertPolicy.CooldownPassed(setting.LastSentAt, now)))
+        if ((!setting.EmailEnabled && !setting.PushEnabled) || (!bypassCooldown && !ServerAlertPolicy.CooldownPassed(setting.LastSentAt, now, ServerAlertPolicy.CooldownFor(key))))
         {
             await _context.SaveChangesAsync(cancellationToken);
             return 0;
@@ -256,6 +262,7 @@ public class SendServerAlertsCommandHandler : IRequestHandler<SendServerAlertsCo
 {
     private readonly IApplicationDbContext _context;
     private readonly IBackupCatalog _backups;
+    private readonly IDockerStatusReader _docker;
     private readonly IVirusScanner _scanner;
     private readonly ServerAlertSender _sender;
     private readonly IDateTimeProvider _clock;
@@ -263,12 +270,14 @@ public class SendServerAlertsCommandHandler : IRequestHandler<SendServerAlertsCo
     public SendServerAlertsCommandHandler(
         IApplicationDbContext context,
         IBackupCatalog backups,
+        IDockerStatusReader docker,
         IVirusScanner scanner,
         ServerAlertSender sender,
         IDateTimeProvider clock)
     {
         _context = context;
         _backups = backups;
+        _docker = docker;
         _scanner = scanner;
         _sender = sender;
         _clock = clock;
@@ -307,6 +316,19 @@ public class SendServerAlertsCommandHandler : IRequestHandler<SendServerAlertsCo
         {
             sent += await _sender.SendAsync(ServerAlertKeys.ScannerDown, "Antivirus ne radi",
                 "Antivirus servis ne odgovara, pa je slanje dokumenata zaustavljeno dok se ne vrati.", cancellationToken);
+        }
+
+        if (_docker.Read().Certificate is { } certificate && certificate.NotAfterUtc - now < TimeSpan.FromDays(14))
+        {
+            var days = (int)Math.Floor((certificate.NotAfterUtc - now).TotalDays);
+
+            sent += await _sender.SendAsync(
+                ServerAlertKeys.Certificate,
+                days < 0 ? "HTTPS certifikat je istekao" : "HTTPS certifikat uskoro ističe",
+                days < 0
+                    ? $"Certifikat je istekao {certificate.NotAfterUtc:dd.MM.yyyy.}, pa se aplikacija ne može otvoriti bez upozorenja u pregledniku. Provjerite Caddy."
+                    : $"Certifikat ističe za {days} dana ({certificate.NotAfterUtc:dd.MM.yyyy.}). Caddy ga obično obnavlja sam; ako se ovo ponavlja, provjerite Caddy.",
+                cancellationToken);
         }
 
         var abandonedSince = now.AddHours(-24);

@@ -28,7 +28,8 @@ public sealed class DockerStatusReader : IDockerStatusReader
                 File.ReadAllText(containers),
                 ReadOrNull("df.jsonl"),
                 ReadOrNull("prune.txt"),
-                File.GetLastWriteTimeUtc(containers));
+                File.GetLastWriteTimeUtc(containers),
+                ReadOrNull("tls.txt"));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

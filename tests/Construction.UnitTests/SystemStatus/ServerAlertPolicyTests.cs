@@ -22,6 +22,14 @@ public class ServerAlertPolicyTests
     }
 
     [Fact]
+    public void A_certificate_is_repeated_once_a_day_and_the_rest_every_six_hours()
+    {
+        Assert.Equal(TimeSpan.FromHours(24), ServerAlertPolicy.CooldownFor(ServerAlertKeys.Certificate));
+        Assert.Equal(TimeSpan.FromHours(6), ServerAlertPolicy.CooldownFor(ServerAlertKeys.Disk));
+        Assert.False(ServerAlertPolicy.CooldownPassed(Now.AddHours(-10), Now, ServerAlertPolicy.CooldownFor(ServerAlertKeys.Certificate)));
+    }
+
+    [Fact]
     public void Every_kind_is_known_once()
     {
         Assert.Equal(ServerAlertKeys.All.Length, ServerAlertKeys.All.Distinct().Count());

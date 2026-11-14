@@ -30,6 +30,19 @@ public class DockerStatusParserTests
     }
 
     [Fact]
+    public void The_certificate_end_date_and_issuer_are_read_including_a_one_digit_day()
+    {
+        var certificate = DockerStatusParser.ParseCertificate(
+            "notAfter=Jan  5 12:30:00 2027 GMT\nissuer=C = US, O = Let's Encrypt, CN = R11\n");
+
+        Assert.NotNull(certificate);
+        Assert.Equal(new DateTime(2027, 1, 5, 12, 30, 0, DateTimeKind.Utc), certificate.NotAfterUtc);
+        Assert.Equal("Let's Encrypt", certificate.Issuer);
+        Assert.Null(DockerStatusParser.ParseCertificate("notAfter=nonsense"));
+        Assert.Null(DockerStatusParser.ParseCertificate(null));
+    }
+
+    [Fact]
     public void A_broken_line_is_skipped_and_a_missing_summary_is_allowed()
     {
         var status = DockerStatusParser.Parse("{\"Names\":\"a\",\"State\":\"running\"}\n{ half a line", null, "  ", At);
