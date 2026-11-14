@@ -4044,6 +4044,40 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("scheduled_report_subscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ServerAlertSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EmailEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime?>("LastSentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("PushEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("server_alert_settings", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.ServiceHeartbeat", b =>
                 {
                     b.Property<Guid>("Id")

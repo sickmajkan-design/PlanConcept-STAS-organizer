@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canAdministerAccounts, canViewDirectory, isSuperAdmin } from '../../auth/authHelpers';
+import { canAdministerAccounts, isSuperAdmin } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-14.53';
+export const RELEASE_ID = '2026-11-14.54';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,19 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'security1113',
-    titleKey: 'releaseNotes.security1113.title',
-    itemKeys: [
-      'releaseNotes.security1113.upload',
-      'releaseNotes.security1113.preview',
-      'releaseNotes.security1113.password',
-      'releaseNotes.security1113.search',
-      'releaseNotes.security1113.files',
-      'releaseNotes.security1113.quota',
-    ],
-    audience: (user) => canViewDirectory(user),
-  },
   {
     id: 'disk1113',
     titleKey: 'releaseNotes.disk1113.title',
@@ -60,6 +47,12 @@ export const releaseSections: ReleaseSection[] = [
     id: 'uptime1114',
     titleKey: 'releaseNotes.uptime1114.title',
     itemKeys: ['releaseNotes.uptime1114.card'],
+    audience: (user) => isSuperAdmin(user),
+  },
+  {
+    id: 'notices1114',
+    titleKey: 'releaseNotes.notices1114.title',
+    itemKeys: ['releaseNotes.notices1114.card'],
     audience: (user) => isSuperAdmin(user),
   },
 ];

@@ -42,6 +42,7 @@ public static class DependencyInjection
         // Scoped, because enqueuing joins the caller's unit of work: the
         // message commits with the operation that caused it or not at all.
         services.AddScoped<IOutbox, OutboxWriter>();
+        services.AddScoped<Features.SystemStatus.ServerAlertSender>();
 
         return services;
     }

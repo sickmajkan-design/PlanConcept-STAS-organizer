@@ -28,6 +28,35 @@ public class SystemController : ApiControllerBase
         return Ok(await Mediator.Send(new GetServerStatusQuery(), cancellationToken));
     }
 
+    /// <summary>Where each kind of server trouble is announced (e-mail, push) and when it last was.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/alerts")]
+    [HttpGet("/api/system/alerts")]
+    [ProducesResponseType(typeof(List<ServerAlertSettingDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ServerAlertSettingDto>>> Alerts(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetServerAlertSettingsQuery(), cancellationToken));
+    }
+
+    /// <summary>Chooses the channels for one kind of server trouble.</summary>
+    [HttpPut("/api/v{version:apiVersion}/system/alerts/{key}")]
+    [HttpPut("/api/system/alerts/{key}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateAlert(string key, [FromBody] UpdateServerAlertRequest request, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new UpdateServerAlertSettingCommand(key, request.EmailEnabled, request.PushEnabled), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Sends one test notice to the signed-in Super Admin, by e-mail and push.</summary>
+    [HttpPost("/api/v{version:apiVersion}/system/alerts/test")]
+    [HttpPost("/api/system/alerts/test")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> TestAlert(CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new SendTestServerAlertCommand(), cancellationToken);
+        return NoContent();
+    }
+
     /// <summary>What could be cleaned off the server: files nothing points at, documents of deleted records, traces.</summary>
     [HttpGet("/api/v{version:apiVersion}/system/storage/cleanup")]
     [HttpGet("/api/system/storage/cleanup")]
@@ -47,6 +76,14 @@ public class SystemController : ApiControllerBase
     {
         return Ok(await Mediator.Send(new RunStorageCleanupCommand(request.Kind), cancellationToken));
     }
+}
+
+/// <summary>The channels chosen for one kind of server trouble.</summary>
+public class UpdateServerAlertRequest
+{
+    public bool EmailEnabled { get; init; }
+
+    public bool PushEnabled { get; init; }
 }
 
 /// <summary>Which kind of leftover to remove.</summary>

@@ -11,6 +11,7 @@ import { formatDateTime } from '../../utils/formatting';
 import { formatDuration } from '../../features/system/formatDuration';
 import { formatSize } from '../../features/system/formatSize';
 import { serverAlerts, worstTone, type AlertTone } from '../../features/system/serverStatusAlerts';
+import { ServerAlertsCard } from '../../features/system/ServerAlertsCard';
 import { StorageCard } from '../../features/system/StorageCard';
 
 /** How often the page asks again. Short enough to watch a deploy or a spike, long enough to cost nothing. */
@@ -108,6 +109,9 @@ export function ServerStatusPage() {
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <BackupsSection status={data} />
+            </Grid>
+            <Grid size={12}>
+              <ServerAlertsCard />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <HostSection status={data} />

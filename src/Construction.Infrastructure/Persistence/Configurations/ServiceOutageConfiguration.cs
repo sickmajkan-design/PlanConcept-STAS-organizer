@@ -22,3 +22,14 @@ public class ServiceHeartbeatConfiguration : IEntityTypeConfiguration<ServiceHea
         builder.HasKey(h => h.Id);
     }
 }
+
+public class ServerAlertSettingConfiguration : IEntityTypeConfiguration<ServerAlertSetting>
+{
+    public void Configure(EntityTypeBuilder<ServerAlertSetting> builder)
+    {
+        builder.ToTable("server_alert_settings");
+        builder.HasKey(s => s.Id);
+        builder.Property(s => s.Key).HasMaxLength(40).IsRequired();
+        builder.HasIndex(s => s.Key).IsUnique();
+    }
+}

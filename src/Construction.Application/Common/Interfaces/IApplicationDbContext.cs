@@ -17,6 +17,8 @@ public interface IApplicationDbContext
 
     DbSet<ServiceHeartbeat> ServiceHeartbeats { get; }
 
+    DbSet<ServerAlertSetting> ServerAlertSettings { get; }
+
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
     DbSet<MfaRecoveryCode> MfaRecoveryCodes { get; }

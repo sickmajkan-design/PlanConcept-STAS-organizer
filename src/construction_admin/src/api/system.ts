@@ -135,7 +135,28 @@ export interface ServerStatus {
   storage: StorageStatus;
 }
 
+export type ServerAlertKey =
+  | 'disk'
+  | 'outage'
+  | 'backupMissing'
+  | 'backupOld'
+  | 'scannerDown'
+  | 'outboxAbandoned'
+  | 'restoreNotChecked';
+
+/** Where one kind of server trouble is announced. Push is the in-app notice and the phone push together. */
+export interface ServerAlertSetting {
+  key: ServerAlertKey;
+  emailEnabled: boolean;
+  pushEnabled: boolean;
+  lastSentAtUtc: string | null;
+}
+
 export const systemApi = {
+  alerts: () => request<ServerAlertSetting[]>({ method: 'GET', url: '/api/v1/system/alerts' }),
+  setAlert: (key: ServerAlertKey, channels: { emailEnabled: boolean; pushEnabled: boolean }) =>
+    request<void>({ method: 'PUT', url: `/api/v1/system/alerts/${key}`, data: channels }),
+  testAlert: () => request<void>({ method: 'POST', url: '/api/v1/system/alerts/test' }),
   storage: () => request<StorageStatus>({ method: 'GET', url: '/api/v1/system/storage' }),
   status: () => request<ServerStatus>({ method: 'GET', url: '/api/v1/system/status' }),
   cleanupScan: () => request<StorageCleanupScan>({ method: 'GET', url: '/api/v1/system/storage/cleanup' }),

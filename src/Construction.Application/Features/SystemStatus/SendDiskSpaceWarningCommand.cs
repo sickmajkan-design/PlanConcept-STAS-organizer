@@ -22,18 +22,18 @@ public class SendDiskSpaceWarningCommandHandler : IRequestHandler<SendDiskSpaceW
 
     private readonly IApplicationDbContext _context;
     private readonly IDiskSpace _disk;
-    private readonly INotificationService _notifications;
+    private readonly ServerAlertSender _sender;
     private readonly IDateTimeProvider _clock;
 
     public SendDiskSpaceWarningCommandHandler(
         IApplicationDbContext context,
         IDiskSpace disk,
-        INotificationService notifications,
+        ServerAlertSender sender,
         IDateTimeProvider clock)
     {
         _context = context;
         _disk = disk;
-        _notifications = notifications;
+        _sender = sender;
         _clock = clock;
     }
 
@@ -67,11 +67,7 @@ public class SendDiskSpaceWarningCommandHandler : IRequestHandler<SendDiskSpaceW
                 ? "Ako se disk napuni, prestaju slanje dokumenata i rad baze. Očistite prostor ili povećajte disk odmah."
                 : "Očistite stare Docker slike i nepotrebne datoteke ili povećajte disk prije nego se napuni.");
 
-        return await _notifications.NotifyUsersAsync(
-            recipients,
-            NotificationType.GeneralAnnouncement,
-            title,
-            body,
-            cancellationToken: cancellationToken);
+        // Its own 20-hour rule above decides when; the channels (push, e-mail) are the Super Admin's choice.
+        return await _sender.SendAsync(ServerAlertKeys.Disk, title, body, cancellationToken, recipients, bypassCooldown: true);
     }
 }
