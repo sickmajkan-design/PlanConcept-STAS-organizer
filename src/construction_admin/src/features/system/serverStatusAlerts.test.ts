@@ -14,7 +14,7 @@ const healthy = (): ServerStatus => ({
     items: [{ name: 'construction-20260813T020000Z.dump', takenAtUtc: new Date().toISOString(), sizeBytes: 1000, hasDocuments: true, offsite: true }],
     restoreCheckedAtUtc: new Date().toISOString(),
   },
-  docker: { known: true, updatedAtUtc: new Date().toISOString(), containers: [{ name: 'api', image: 'api:latest', state: 'running', status: 'Up 3 days' }], images: null, lastPrune: null, certificate: { notAfterUtc: new Date(Date.now() + 60 * 86_400_000).toISOString(), issuer: "Let's Encrypt" } },
+  docker: { known: true, updatedAtUtc: new Date().toISOString(), containers: [{ name: 'api', image: 'api:latest', state: 'running', status: 'Up 3 days' }], images: null, lastPrune: null, certificate: { notAfterUtc: new Date(Date.now() + 60 * 86_400_000).toISOString(), issuer: "Let's Encrypt" }, releases: [] },
   uptime: { known: true, sinceUtc: '2026-11-01T00:00:00Z', windowDays: 30, availabilityPercent: 100, downSeconds: 0, outages: [] },
   host: {
     known: true,
@@ -183,7 +183,7 @@ describe('serverAlerts', () => {
     expect(keys(stale)).toEqual(['dockerStale']);
 
     const absent = healthy();
-    absent.docker = { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null, certificate: null };
+    absent.docker = { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null, certificate: null, releases: [] };
     expect(keys(absent)).toEqual([]);
   });
 

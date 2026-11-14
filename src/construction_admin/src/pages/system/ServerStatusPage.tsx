@@ -1,7 +1,7 @@
 import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
-import { Alert, Box, Card, CardContent, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { systemApi, type ServerStatus } from '../../api/system';
 import { ErrorState } from '../../components/ErrorState';
@@ -114,6 +114,11 @@ export function ServerStatusPage() {
             <Grid size={12}>
               <DockerSection status={data} />
             </Grid>
+            {data.docker.releases.length > 0 && (
+              <Grid size={12}>
+                <ReleasesSection status={data} />
+              </Grid>
+            )}
             {data.docker.certificate && (
               <Grid size={12}>
                 <CertificateSection status={data} />
@@ -141,6 +146,65 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+const ROLLBACK_SCRIPT = '/opt/construction/scripts/rollback.sh';
+
+function ReleasesSection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const [copied, setCopied] = useState<string | null>(null);
+  const { releases } = status.docker;
+  const running = releases[0];
+
+  if (!running) {
+    return null;
+  }
+
+  const copy = (commit: string) => {
+    // Needs a secure page and a click; when the browser refuses, the command is still on screen to select.
+    void navigator.clipboard?.writeText(`${ROLLBACK_SCRIPT} ${commit}`).then(
+      () => setCopied(commit),
+      () => setCopied(null),
+    );
+  };
+
+  return (
+    <Section title={t('serverStatus.releases')}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        {t('serverStatus.releasesHint')}
+      </Typography>
+      {releases.map((release, index) => {
+        const newer = running.migrations - release.migrations;
+
+        return (
+          <Box key={release.commit} sx={{ py: 0.75, borderTop: index === 0 ? 0 : 1, borderColor: 'divider' }}>
+            <Stack direction="row" sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 500 }}>
+                {release.commit.slice(0, 7)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {formatDateTime(release.seenAtUtc)}
+              </Typography>
+              <Chip size="small" color={index === 0 ? 'success' : 'default'} label={index === 0 ? t('serverStatus.releaseActive') : t('serverStatus.releaseReady')} />
+              {index > 0 && (
+                <Button size="small" onClick={() => copy(release.commit)}>
+                  {copied === release.commit ? t('serverStatus.releaseCopied') : t('serverStatus.releaseCopy')}
+                </Button>
+              )}
+            </Stack>
+            {index > 0 && newer > 0 && (
+              <Typography variant="caption" color="warning.main" component="div">
+                {t('serverStatus.releaseMigrations', { count: newer })}
+              </Typography>
+            )}
+          </Box>
+        );
+      })}
+      <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }}>
+        {t('serverStatus.releaseBack')} <code>{ROLLBACK_SCRIPT} latest</code>
+      </Typography>
+    </Section>
   );
 }
 

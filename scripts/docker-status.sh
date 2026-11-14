@@ -25,5 +25,14 @@ if [ -n "$domain" ]; then
     | openssl x509 -noout -enddate -issuer 2>/dev/null || true)"
   [ -n "$tls" ] && printf '%s\n' "$tls" | put tls.txt
 fi
+# Which release the API container runs, written down only when it changes (time | commit | database migrations applied),
+# so the page can list the releases that were live and how many database changes each had. Kept to the last 50.
+rev="$(docker inspect construction-api-1 --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' 2>/dev/null || true)"
+log="$dir/releases.log"
+if [ -n "$rev" ] && [ "$(tail -n 1 "$log" 2>/dev/null | cut -d'|' -f2)" != "$rev" ]; then
+  mig="$(docker exec construction-postgres-1 psql -U postgres -d construction -tAc 'select count(*) from "__EFMigrationsHistory"' 2>/dev/null | tr -d ' ' || true)"
+  printf '%s|%s|%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$rev" "${mig:-0}" >> "$log"
+  tail -n 50 "$log" > "$log.new" && mv -f "$log.new" "$log"
+fi
 # Last, because its modified time is the "updated at" the page shows.
 docker ps -a --format '{{json .}}' | put containers.jsonl

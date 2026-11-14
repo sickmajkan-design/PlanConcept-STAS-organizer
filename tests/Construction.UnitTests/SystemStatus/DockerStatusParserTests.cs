@@ -43,6 +43,34 @@ public class DockerStatusParserTests
     }
 
     [Fact]
+    public void Releases_are_listed_newest_first_one_per_commit_and_a_bad_line_is_ignored()
+    {
+        var a = new string('a', 40);
+        var b = new string('b', 40);
+        var log =
+            $"2026-11-10T10:00:00Z|{a}|118\n" +
+            $"2026-11-12T10:00:00Z|{b}|119\n" +
+            "garbage\n" +
+            "2026-11-13T10:00:00Z|nothex|120\n" +
+            $"2026-11-14T10:00:00Z|{a}|118\n";
+
+        var releases = DockerStatusParser.ParseReleases(log);
+
+        Assert.Equal([a, b], releases.Select(r => r.Commit));
+        Assert.Equal(new DateTime(2026, 11, 14, 10, 0, 0, DateTimeKind.Utc), releases[0].SeenAtUtc);
+        Assert.Equal(119, releases[1].Migrations);
+        Assert.Empty(DockerStatusParser.ParseReleases(null));
+    }
+
+    [Fact]
+    public void Only_the_five_newest_releases_are_kept()
+    {
+        var log = string.Join("\n", Enumerable.Range(1, 8).Select(i => $"2026-11-{i:00}T10:00:00Z|{new string((char)('a' + i), 40)}|1"));
+
+        Assert.Equal(5, DockerStatusParser.ParseReleases(log).Count);
+    }
+
+    [Fact]
     public void A_broken_line_is_skipped_and_a_missing_summary_is_allowed()
     {
         var status = DockerStatusParser.Parse("{\"Names\":\"a\",\"State\":\"running\"}\n{ half a line", null, "  ", At);

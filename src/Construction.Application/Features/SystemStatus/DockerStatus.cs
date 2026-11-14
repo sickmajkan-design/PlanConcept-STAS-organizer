@@ -25,6 +25,19 @@ public class CertificateDto
     public string Issuer { get; init; } = string.Empty;
 }
 
+/// <summary>A release that was running on the server: the commit it was built from and how far the database was.</summary>
+public class ReleaseDto
+{
+    /// <summary>When the host script first saw it running (the most recent time, if it ran more than once).</summary>
+    public DateTime SeenAtUtc { get; init; }
+
+    /// <summary>The full commit hash; the images are tagged <c>sha-&lt;commit&gt;</c>.</summary>
+    public string Commit { get; init; } = string.Empty;
+
+    /// <summary>Database migrations applied when it started.</summary>
+    public int Migrations { get; init; }
+}
+
 /// <summary>Docker's own summary of the images on the host, as text ("16.8GB (98%)").</summary>
 public class DockerImagesDto
 {
@@ -56,6 +69,9 @@ public class DockerStatusDto
 
     /// <summary>Null until the script has read it (no domain configured, or no openssl on the host).</summary>
     public CertificateDto? Certificate { get; init; }
+
+    /// <summary>Newest first, one row per commit, at most five. The first is the one running.</summary>
+    public List<ReleaseDto> Releases { get; init; } = [];
 }
 
 /// <summary>Reads what <c>scripts/docker-status.sh</c> left behind.</summary>
@@ -67,7 +83,7 @@ public interface IDockerStatusReader
 public static class DockerStatusParser
 {
     /// <summary>Parses the JSON-lines files the script writes. A line that is not JSON is skipped, not fatal.</summary>
-    public static DockerStatusDto Parse(string containersJsonl, string? dfJsonl, string? prune, DateTime updatedAtUtc, string? tls = null)
+    public static DockerStatusDto Parse(string containersJsonl, string? dfJsonl, string? prune, DateTime updatedAtUtc, string? tls = null, string? releasesLog = null)
     {
         var containers = new List<ContainerDto>();
 
@@ -106,7 +122,34 @@ public static class DockerStatusParser
             Images = images,
             LastPrune = string.IsNullOrWhiteSpace(prune) ? null : prune.Trim(),
             Certificate = ParseCertificate(tls),
+            Releases = ParseReleases(releasesLog),
         };
+    }
+
+    /// <summary>Reads <c>time|commit|migrations</c> lines (oldest first) into newest-first rows, one per commit.</summary>
+    public static List<ReleaseDto> ParseReleases(string? log)
+    {
+        var rows = new List<ReleaseDto>();
+
+        foreach (var line in (log ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = line.Split('|');
+
+            if (parts.Length >= 2
+                && DateTime.TryParse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var at)
+                && Regex.IsMatch(parts[1], "^[0-9a-f]{40}$"))
+            {
+                rows.Add(new ReleaseDto
+                {
+                    SeenAtUtc = at,
+                    Commit = parts[1],
+                    Migrations = parts.Length > 2 && int.TryParse(parts[2], out var migrations) ? migrations : 0,
+                });
+            }
+        }
+
+        // A release that came back after a rollback is one row, at its latest time.
+        return rows.AsEnumerable().Reverse().DistinctBy(r => r.Commit).Take(5).ToList();
     }
 
     /// <summary>Reads the two lines <c>openssl x509 -enddate -issuer</c> prints. Null when the end date is not there or not a date.</summary>

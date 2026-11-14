@@ -97,4 +97,6 @@ printf '*/5 * * * * root /opt/construction/scripts/docker-status.sh\n' > /etc/cr
 chmod 644 /etc/cron.d/construction-docker-status
 ```
 
+Isti skript upisuje i istoriju izdanja za karticu Izdanja. Za povratak na prethodno izdanje na serveru treba i skript `rollback.sh`: kopirajte `scripts/rollback.sh` u `/opt/construction/scripts/` i dajte mu pravo izvršavanja (`chmod +x`). Komandu za svako izdanje daje kartica Izdanja (dugme Kopiraj komandu).
+
 Skript samo čita (`docker ps`, `docker system df`) i piše tri male datoteke, pa praktično ne opterećuje server. Ako se kartica ne osvježava duže od 20 minuta, na vrhu stranice piše upozorenje; provjerite da li postoji `/etc/cron.d/construction-docker-status`.

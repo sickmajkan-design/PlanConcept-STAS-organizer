@@ -140,6 +140,8 @@ export interface DockerStatus {
   lastPrune: string | null;
   /** The HTTPS certificate the proxy serves; null until the host script has read it. */
   certificate: { notAfterUtc: string; issuer: string } | null;
+  /** Newest first, one per commit, at most five; the first is running. */
+  releases: { seenAtUtc: string; commit: string; migrations: number }[];
 }
 
 /** The whole picture of the server, in one request, for the Super Admin's status page. */
