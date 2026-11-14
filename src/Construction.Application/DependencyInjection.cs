@@ -44,6 +44,9 @@ public static class DependencyInjection
         services.AddScoped<IOutbox, OutboxWriter>();
         services.AddScoped<Features.SystemStatus.ServerAlertSender>();
 
+        // One for the whole process: it collects errors from every request until the next flush.
+        services.AddSingleton<Features.SystemStatus.ServerErrorBuffer>();
+
         return services;
     }
 }

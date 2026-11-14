@@ -19,6 +19,8 @@ public sealed class TestScope : IDisposable
         _scope = scope;
     }
 
+    public T Get<T>() where T : notnull => _scope.ServiceProvider.GetRequiredService<T>();
+
     public IMediator Mediator => _scope.ServiceProvider.GetRequiredService<IMediator>();
 
     public ApplicationDbContext Db => _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

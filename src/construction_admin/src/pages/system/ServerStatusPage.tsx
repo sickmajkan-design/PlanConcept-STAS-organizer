@@ -12,6 +12,7 @@ import { formatDuration } from '../../features/system/formatDuration';
 import { formatSize } from '../../features/system/formatSize';
 import { serverAlerts, worstTone, type AlertTone } from '../../features/system/serverStatusAlerts';
 import { ServerAlertsCard } from '../../features/system/ServerAlertsCard';
+import { ServerErrorsCard } from '../../features/system/ServerErrorsCard';
 import { StorageCard } from '../../features/system/StorageCard';
 
 /** How often the page asks again. Short enough to watch a deploy or a spike, long enough to cost nothing. */
@@ -118,6 +119,9 @@ export function ServerStatusPage() {
                 <CertificateSection status={data} />
               </Grid>
             )}
+            <Grid size={12}>
+              <ServerErrorsCard />
+            </Grid>
             <Grid size={12}>
               <ServerAlertsCard />
             </Grid>

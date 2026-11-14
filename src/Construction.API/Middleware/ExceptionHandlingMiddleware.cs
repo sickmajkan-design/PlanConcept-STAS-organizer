@@ -1,4 +1,6 @@
+using System.Reflection;
 using Construction.Application.Common.Exceptions;
+using Construction.Application.Features.SystemStatus;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Construction.API.Middleware;
@@ -12,14 +14,24 @@ public class ExceptionHandlingMiddleware
     /// <summary>Non-standard but widely understood: the client closed the request.</summary>
     private const int ClientClosedRequest = 499;
 
+    /// <summary>The release the process is running, as the Server status page shows it.</summary>
+    private static readonly string Version =
+        (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown").Split('+')[0];
+
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly ServerErrorBuffer _errors;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, ServerErrorBuffer errors)
     {
         _next = next;
         _logger = logger;
+        _errors = errors;
     }
+
+    /// <summary>The route pattern, not the address: no ids, no query string.</summary>
+    private static string RouteOf(HttpContext context) =>
+        $"{context.Request.Method} {(context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? "(no route)"}";
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -125,6 +137,7 @@ public class ExceptionHandlingMiddleware
                 // worth finding in the logs, not just an expected "no" the
                 // client already understands.
                 _logger.LogWarning(exception, "External service call failed for {Path}", context.Request.Path);
+                _errors.Record(exception, RouteOf(context), Version, DateTime.UtcNow);
 
                 problemDetails = new ProblemDetails
                 {
@@ -155,6 +168,7 @@ public class ExceptionHandlingMiddleware
 
             default:
                 _logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
+                _errors.Record(exception, RouteOf(context), Version, DateTime.UtcNow);
 
                 problemDetails = new ProblemDetails
                 {

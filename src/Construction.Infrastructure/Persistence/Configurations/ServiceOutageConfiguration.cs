@@ -33,3 +33,19 @@ public class ServerAlertSettingConfiguration : IEntityTypeConfiguration<ServerAl
         builder.HasIndex(s => s.Key).IsUnique();
     }
 }
+
+public class ServerErrorConfiguration : IEntityTypeConfiguration<ServerError>
+{
+    public void Configure(EntityTypeBuilder<ServerError> builder)
+    {
+        builder.ToTable("server_errors");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Key).HasMaxLength(64).IsRequired();
+        builder.Property(e => e.ExceptionType).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Location).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Route).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Version).HasMaxLength(40).IsRequired();
+        builder.HasIndex(e => new { e.Key, e.Day }).IsUnique();
+        builder.HasIndex(e => e.Day);
+    }
+}

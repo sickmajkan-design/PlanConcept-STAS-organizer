@@ -101,6 +101,7 @@ try
     builder.Services.AddHostedService<CompanyTimeZoneService>();
     builder.Services.AddHostedService<UptimeService>();
     builder.Services.AddHostedService<ServerAlertService>();
+    builder.Services.AddHostedService<ServerErrorService>();
 
     // Sends what the request path queued. Nothing to claim first here either:
     // claiming a message moves it beyond its own lease, so a second worker

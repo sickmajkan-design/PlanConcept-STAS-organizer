@@ -28,6 +28,15 @@ public class SystemController : ApiControllerBase
         return Ok(await Mediator.Send(new GetServerStatusQuery(), cancellationToken));
     }
 
+    /// <summary>Unexpected server errors of the last seven days, grouped by kind. Counts only, no messages.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/errors")]
+    [HttpGet("/api/system/errors")]
+    [ProducesResponseType(typeof(List<ServerErrorDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ServerErrorDto>>> Errors(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetServerErrorsQuery(), cancellationToken));
+    }
+
     /// <summary>Where each kind of server trouble is announced (e-mail, push) and when it last was.</summary>
     [HttpGet("/api/v{version:apiVersion}/system/alerts")]
     [HttpGet("/api/system/alerts")]

@@ -155,6 +155,17 @@ export interface ServerStatus {
   storage: StorageStatus;
 }
 
+/** One kind of unexpected server error over the last seven days. Counts only, never a message. */
+export interface ServerErrorGroup {
+  exceptionType: string;
+  location: string;
+  route: string;
+  today: number;
+  total: number;
+  lastSeenAtUtc: string;
+  firstVersion: string;
+}
+
 export type ServerAlertKey =
   | 'disk'
   | 'outage'
@@ -174,6 +185,7 @@ export interface ServerAlertSetting {
 }
 
 export const systemApi = {
+  errors: () => request<ServerErrorGroup[]>({ method: 'GET', url: '/api/v1/system/errors' }),
   alerts: () => request<ServerAlertSetting[]>({ method: 'GET', url: '/api/v1/system/alerts' }),
   setAlert: (key: ServerAlertKey, channels: { emailEnabled: boolean; pushEnabled: boolean }) =>
     request<void>({ method: 'PUT', url: `/api/v1/system/alerts/${key}`, data: channels }),

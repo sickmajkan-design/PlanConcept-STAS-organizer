@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ServiceOutage> ServiceOutages => Set<ServiceOutage>();
     public DbSet<ServiceHeartbeat> ServiceHeartbeats => Set<ServiceHeartbeat>();
     public DbSet<ServerAlertSetting> ServerAlertSettings => Set<ServerAlertSetting>();
+    public DbSet<ServerError> ServerErrors => Set<ServerError>();
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 

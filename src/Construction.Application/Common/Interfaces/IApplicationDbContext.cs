@@ -19,6 +19,8 @@ public interface IApplicationDbContext
 
     DbSet<ServerAlertSetting> ServerAlertSettings { get; }
 
+    DbSet<ServerError> ServerErrors { get; }
+
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
     DbSet<MfaRecoveryCode> MfaRecoveryCodes { get; }
