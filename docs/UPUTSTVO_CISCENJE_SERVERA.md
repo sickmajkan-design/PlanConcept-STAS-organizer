@@ -86,3 +86,15 @@ Granice upozorenja: **malo** je ispod 20% ili 8 GB slobodno, **gotovo puno** isp
 - Sve ovo je isprobano na lokalnom okruženju i test serveru. Prije puštanja na pravi (LIVE) server isto treba proći na kopiji.
 - Brisanje je trajno. Prije većeg grupnog brisanja uvijek provjerite izabranu listu i veličinu u poruci.
 - Pravila i tehnički detalji su u `docs/SECURITY.md`, odjeljak *Cleaning the server*.
+
+## Stanje Docker-a na stranici Stanje servera
+
+Kartica Docker i izdanja prikazuje podatke koje upisuje skript `scripts/docker-status.sh`. Uključuje se jednom, na serveru:
+
+```
+cp scripts/docker-status.sh /opt/construction/scripts/ && chmod +x /opt/construction/scripts/docker-status.sh
+printf '*/5 * * * * root /opt/construction/scripts/docker-status.sh\n' > /etc/cron.d/construction-docker-status
+chmod 644 /etc/cron.d/construction-docker-status
+```
+
+Skript samo čita (`docker ps`, `docker system df`) i piše tri male datoteke, pa praktično ne opterećuje server. Ako se kartica ne osvježava duže od 20 minuta, na vrhu stranice piše upozorenje; provjerite da li postoji `/etc/cron.d/construction-docker-status`.

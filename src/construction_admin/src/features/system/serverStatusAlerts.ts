@@ -20,7 +20,9 @@ export interface ServerAlert {
     | 'backupMissing'
     | 'backupOld'
     | 'backupNotOffsite'
-    | 'restoreNotChecked';
+    | 'restoreNotChecked'
+    | 'containerDown'
+    | 'dockerStale';
   tone: AlertTone;
 }
 
@@ -80,6 +82,13 @@ export function serverAlerts(status: ServerStatus, now: number = Date.now()): Se
     if (!restoreCheckedAtUtc || now - Date.parse(restoreCheckedAtUtc) > 10 * DAY) {
       alerts.push({ key: 'restoreNotChecked', tone: 'warning' });
     }
+  }
+
+  // A container Docker says is not running, or a report the host has stopped refreshing (the cron job is gone).
+  if (status.docker.known) {
+    if (status.docker.containers.some((c) => c.state !== 'running')) alerts.push({ key: 'containerDown', tone: 'error' });
+    const updated = status.docker.updatedAtUtc ? Date.parse(status.docker.updatedAtUtc) : null;
+    if (updated !== null && now - updated > 20 * MINUTE) alerts.push({ key: 'dockerStale', tone: 'warning' });
   }
 
   return alerts;

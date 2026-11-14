@@ -123,11 +123,29 @@ export interface UptimeStatus {
   outages: Outage[];
 }
 
+export interface Container {
+  name: string;
+  image: string;
+  /** Docker's word: running, exited, restarting, paused, created, dead. */
+  state: string;
+  status: string;
+}
+
+/** What a script on the host wrote about Docker; the API never talks to Docker itself. */
+export interface DockerStatus {
+  known: boolean;
+  updatedAtUtc: string | null;
+  containers: Container[];
+  images: { total: number; active: number; size: string; reclaimable: string } | null;
+  lastPrune: string | null;
+}
+
 /** The whole picture of the server, in one request, for the Super Admin's status page. */
 export interface ServerStatus {
   atUtc: string;
   backups: BackupStatus;
   uptime: UptimeStatus;
+  docker: DockerStatus;
   host: HostStatus;
   application: ApplicationStatus;
   database: DatabaseStatus;

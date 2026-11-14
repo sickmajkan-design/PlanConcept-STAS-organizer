@@ -111,6 +111,9 @@ export function ServerStatusPage() {
               <BackupsSection status={data} />
             </Grid>
             <Grid size={12}>
+              <DockerSection status={data} />
+            </Grid>
+            <Grid size={12}>
               <ServerAlertsCard />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -129,6 +132,45 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+function DockerSection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const { known, updatedAtUtc, containers, images, lastPrune } = status.docker;
+
+  return (
+    <Section title={t('serverStatus.docker')}>
+      {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.dockerNone')}</Typography>}
+      {known && (
+        <>
+          {containers.map((container) => (
+            <Row
+              key={container.name}
+              label={`${container.name} · ${container.image}`}
+              value={
+                <Stack direction="row" sx={{ gap: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
+                  {container.status}
+                  <Chip size="small" color={container.state === 'running' ? 'success' : 'error'} label={container.state} />
+                </Stack>
+              }
+            />
+          ))}
+          {images && (
+            <Row
+              label={t('serverStatus.dockerImages')}
+              value={t('serverStatus.dockerImagesValue', { total: images.total, active: images.active, size: images.size, reclaimable: images.reclaimable })}
+            />
+          )}
+          {lastPrune && <Row label={t('serverStatus.dockerPrune')} value={lastPrune} />}
+          {updatedAtUtc && (
+            <Typography variant="caption" color="text.secondary">
+              {t('serverStatus.dockerUpdated', { time: formatDateTime(updatedAtUtc) })}
+            </Typography>
+          )}
+        </>
+      )}
+    </Section>
   );
 }
 

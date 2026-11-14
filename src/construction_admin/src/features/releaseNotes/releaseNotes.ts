@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-14.54';
+export const RELEASE_ID = '2026-11-14.55';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,12 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'disk1113',
-    titleKey: 'releaseNotes.disk1113.title',
-    itemKeys: ['releaseNotes.disk1113.watch', 'releaseNotes.disk1113.cleanup', 'releaseNotes.disk1113.status'],
-    audience: (user) => isSuperAdmin(user),
-  },
   {
     id: 'bulkdelete1113',
     titleKey: 'releaseNotes.bulkdelete1113.title',
@@ -53,6 +47,12 @@ export const releaseSections: ReleaseSection[] = [
     id: 'notices1114',
     titleKey: 'releaseNotes.notices1114.title',
     itemKeys: ['releaseNotes.notices1114.card'],
+    audience: (user) => isSuperAdmin(user),
+  },
+  {
+    id: 'docker1114',
+    titleKey: 'releaseNotes.docker1114.title',
+    itemKeys: ['releaseNotes.docker1114.card'],
     audience: (user) => isSuperAdmin(user),
   },
 ];

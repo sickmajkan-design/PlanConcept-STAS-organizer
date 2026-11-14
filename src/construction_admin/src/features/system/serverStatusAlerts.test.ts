@@ -14,6 +14,7 @@ const healthy = (): ServerStatus => ({
     items: [{ name: 'construction-20260813T020000Z.dump', takenAtUtc: new Date().toISOString(), sizeBytes: 1000, hasDocuments: true, offsite: true }],
     restoreCheckedAtUtc: new Date().toISOString(),
   },
+  docker: { known: true, updatedAtUtc: new Date().toISOString(), containers: [{ name: 'api', image: 'api:latest', state: 'running', status: 'Up 3 days' }], images: null, lastPrune: null },
   uptime: { known: true, sinceUtc: '2026-11-01T00:00:00Z', windowDays: 30, availabilityPercent: 100, downSeconds: 0, outages: [] },
   host: {
     known: true,
@@ -170,6 +171,20 @@ describe('serverAlerts', () => {
     const unseen = healthy();
     unseen.backups = { known: false, items: [], restoreCheckedAtUtc: null };
     expect(keys(unseen)).toEqual([]);
+  });
+
+  it('flags a container that is not running, and a Docker report the host has stopped refreshing', () => {
+    const down = healthy();
+    down.docker.containers[0].state = 'restarting';
+    expect(keys(down)).toEqual(['containerDown']);
+
+    const stale = healthy();
+    stale.docker.updatedAtUtc = new Date(Date.now() - 30 * 60_000).toISOString();
+    expect(keys(stale)).toEqual(['dockerStale']);
+
+    const absent = healthy();
+    absent.docker = { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null };
+    expect(keys(absent)).toEqual([]);
   });
 
   it('takes the worst tone of all that is wrong', () => {

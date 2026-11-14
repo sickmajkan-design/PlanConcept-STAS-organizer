@@ -170,6 +170,8 @@ public class ServerStatusDto
 
     public UptimeStatusDto Uptime { get; init; } = new();
 
+    public DockerStatusDto Docker { get; init; } = new();
+
     public HostStatusDto Host { get; init; } = new();
 
     public ApplicationStatusDto Application { get; init; } = new();
@@ -205,9 +207,11 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
     private readonly IDateTimeProvider _clock;
     private readonly ISender _sender;
     private readonly IBackupCatalog _backups;
+    private readonly IDockerStatusReader _docker;
 
     public GetServerStatusQueryHandler(
         IBackupCatalog backups,
+        IDockerStatusReader docker,
         IServerProbe probe,
         IApplicationDbContext context,
         IVirusScanner scanner,
@@ -216,6 +220,7 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         ISender sender)
     {
         _backups = backups;
+        _docker = docker;
         _probe = probe;
         _context = context;
         _scanner = scanner;
@@ -284,6 +289,7 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         {
             AtUtc = _clock.UtcNow,
             Backups = _backups.Read(),
+            Docker = _docker.Read(),
             Uptime = database.Reachable ? await ReadUptimeAsync(cancellationToken) : new UptimeStatusDto(),
             Host = _probe.ReadHost(),
             Application = _probe.ReadApplication(),
