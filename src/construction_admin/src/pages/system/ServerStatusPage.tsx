@@ -21,7 +21,7 @@ import { ServerErrorsCard, ServerErrorsTile } from '../../features/system/Server
 import { ServerMetricsCard } from '../../features/system/ServerMetricsCard';
 import { MetricTiles, StatusHero } from '../../features/system/ServerOverview';
 import { containerUptime } from '../../features/system/overviewMath';
-import { BigNumber, Panel, Ring, StatusDot } from '../../features/system/serverUi';
+import { BigNumber, Panel, Ring, StatusDot, type Tone } from '../../features/system/serverUi';
 
 /** How often the page asks again. Short enough to watch a deploy or a spike, long enough to cost nothing. */
 const REFRESH_MS = 30_000;
@@ -44,12 +44,59 @@ function Row({ label, value, tone }: { label: string; value: ReactNode; tone?: A
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return <Panel title={title}>{children}</Panel>;
+/** The one figure a detail card is about, large, with what it is underneath. */
+function Headline({ value, caption, tone }: { value: ReactNode; caption: string; tone?: Tone }) {
+  return (
+    <Box sx={{ mb: 1.5 }}>
+      <Box sx={{ color: tone ? `${tone}.main` : undefined }}>
+        <BigNumber size={34}>{value}</BigNumber>
+      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+        {caption}
+      </Typography>
+    </Box>
+  );
 }
 
-function okOrNot(ok: boolean, t: ReturnType<typeof useT>) {
-  return <Chip size="small" color={ok ? 'success' : 'error'} label={ok ? t('serverStatus.up') : t('serverStatus.down')} />;
+/** A small heading inside a card, above a group of rows. */
+function SubHeading({ children }: { children: ReactNode }) {
+  return (
+    <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary', mb: 0.5 }}>{children}</Typography>
+  );
+}
+
+/** A thin bar for a share: connections against their limit, a table against the largest one. */
+function MiniBar({ fraction, tone }: { fraction: number; tone: Tone | 'primary' }) {
+  return (
+    <Box sx={(theme) => ({ height: 6, borderRadius: 3, bgcolor: alpha(theme.palette.text.primary, 0.08), mt: 1, overflow: 'hidden' })}>
+      <Box
+        sx={{
+          height: '100%',
+          width: `${Math.max(2, Math.min(100, fraction * 100))}%`,
+          borderRadius: 3,
+          bgcolor: `${tone}.main`,
+          transition: 'width 500ms cubic-bezier(0.23, 1, 0.32, 1)',
+          '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+        }}
+      />
+    </Box>
+  );
+}
+
+/** "Radi" or "Ne radi" with a dot, instead of a coloured pill. */
+function StateText({ ok }: { ok: boolean }) {
+  const t = useT();
+
+  return (
+    <Stack direction="row" sx={{ alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+      <StatusDot tone={ok ? 'success' : 'error'} />
+      {ok ? t('serverStatus.up') : t('serverStatus.down')}
+    </Stack>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return <Panel title={title}>{children}</Panel>;
 }
 
 export function ServerStatusPage() {
@@ -128,7 +175,7 @@ export function ServerStatusPage() {
           <Typography component="h2" sx={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', mt: 2 }}>
             {t('serverStatus.details')}
           </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={2} sx={{ alignItems: 'flex-start' }}>
             <Grid size={{ xs: 12, md: 6 }}>
               <HostSection status={data} />
             </Grid>
@@ -372,38 +419,72 @@ function DockerSection({ status }: { status: ServerStatus }) {
 
 function UptimeSection({ status }: { status: ServerStatus }) {
   const t = useT();
+  const [copied, setCopied] = useState(false);
   const { known, sinceUtc, windowDays, availabilityPercent, downSeconds, outages } = status.uptime;
   // The address an outside monitor (UptimeRobot and the like) should call: it answers 200 while the database is reachable.
   const monitorUrl = `${window.location.origin}/health/ready`;
+
+  const copy = () => {
+    // Needs a secure page and a click; when the browser refuses, the address is still on screen to select.
+    void navigator.clipboard?.writeText(monitorUrl).then(
+      () => setCopied(true),
+      () => setCopied(false),
+    );
+  };
 
   return (
     <Section title={t('serverStatus.uptimeTitle')}>
       {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.uptimeNone')}</Typography>}
       {known && (
         <>
-          <Row
-            label={t('serverStatus.uptimeAvailability', { days: windowDays })}
+          <Headline
             value={`${availabilityPercent.toLocaleString('sr-Latn-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`}
+            caption={t('serverStatus.uptimeAvailability', { days: windowDays })}
             tone={availabilityPercent < 99 ? 'warning' : undefined}
           />
           <Row label={t('serverStatus.uptimeDown')} value={downSeconds > 0 ? formatDuration(downSeconds) : t('serverStatus.uptimeNoDown')} />
           {sinceUtc && <Row label={t('serverStatus.uptimeSince')} value={formatDateTime(sinceUtc)} />}
           {outages.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="caption" color="text.secondary">{t('serverStatus.uptimeOutages')}</Typography>
+            <Box sx={{ mt: 2 }}>
+              <SubHeading>{t('serverStatus.uptimeOutages')}</SubHeading>
               {outages.map((outage) => (
-                <Row key={outage.startedAtUtc} label={formatDateTime(outage.startedAtUtc)} value={formatDuration(outage.seconds)} />
+                <Stack key={outage.startedAtUtc} data-row direction="row" sx={{ alignItems: 'center', gap: 1.5, py: 1.25 }}>
+                  <StatusDot tone="warning" />
+                  <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                    {formatDateTime(outage.startedAtUtc)}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {formatDuration(outage.seconds)}
+                  </Typography>
+                </Stack>
               ))}
             </Box>
           )}
         </>
       )}
-      <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1.5 }}>
-        {t('serverStatus.uptimeMonitor')}
-      </Typography>
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }} data-testid="monitor-url">
-        {monitorUrl}
-      </Typography>
+      <Box sx={{ mt: 2.5 }}>
+        <SubHeading>{t('serverStatus.uptimeMonitor')}</SubHeading>
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Box
+            data-testid="monitor-url"
+            sx={(theme) => ({
+              fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+              fontSize: 13,
+              bgcolor: alpha(theme.palette.text.primary, 0.06),
+              borderRadius: '10px',
+              px: 1.5,
+              py: 1,
+              minWidth: 0,
+              overflowWrap: 'anywhere',
+            })}
+          >
+            {monitorUrl}
+          </Box>
+          <Button size="small" variant="outlined" onClick={copy} sx={{ borderRadius: 999, px: 2 }}>
+            {copied ? t('serverStatus.releaseCopied') : t('serverStatus.copyAddress')}
+          </Button>
+        </Stack>
+      </Box>
     </Section>
   );
 }
@@ -468,8 +549,8 @@ function HostSection({ status }: { status: ServerStatus }) {
 
   return (
     <Section title={t('serverStatus.host')}>
+      <Headline value={host.uptimeSeconds != null ? formatDuration(host.uptimeSeconds) : unknown} caption={t('serverStatus.uptime')} />
       <Row label={t('serverStatus.os')} value={host.os} />
-      <Row label={t('serverStatus.uptime')} value={host.uptimeSeconds != null ? formatDuration(host.uptimeSeconds) : unknown} />
       <Row label={t('serverStatus.cores')} value={host.cores} />
       <Row
         label={t('serverStatus.load')}
@@ -496,7 +577,7 @@ function HostSection({ status }: { status: ServerStatus }) {
         }
       />
       {!host.known && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1 }}>
           {t('serverStatus.hostUnknown')}
         </Typography>
       )}
@@ -510,7 +591,7 @@ function ApplicationSection({ status }: { status: ServerStatus }) {
 
   return (
     <Section title={t('serverStatus.application')}>
-      <Row label={t('serverStatus.version')} value={app.version} />
+      <Headline value={app.version} caption={t('serverStatus.version')} />
       <Row label={t('serverStatus.environment')} value={app.environment} />
       <Row label={t('serverStatus.runtime')} value={app.runtime} />
       <Row label={t('serverStatus.startedAt')} value={formatDateTime(app.startedAtUtc)} />
@@ -526,27 +607,50 @@ function DatabaseSection({ status }: { status: ServerStatus }) {
   const t = useT();
   const db = status.database;
   const used = db.maxConnections > 0 ? db.connections / db.maxConnections : 0;
+  const biggest = Math.max(1, ...db.largestTables.map((table) => table.bytes));
 
   return (
     <Section title={t('serverStatus.database')}>
-      <Row label={t('serverStatus.status')} value={okOrNot(db.reachable, t)} />
+      {db.reachable ? (
+        <Headline value={formatSize(db.sizeBytes)} caption={t('serverStatus.size')} />
+      ) : (
+        <Headline value={t('serverStatus.down')} caption={t('serverStatus.status')} tone="error" />
+      )}
+      <Row label={t('serverStatus.status')} value={<StateText ok={db.reachable} />} />
       {db.reachable && (
         <>
           <Row label={t('serverStatus.version')} value={db.version} />
-          <Row label={t('serverStatus.size')} value={formatSize(db.sizeBytes)} />
-          <Row
-            label={t('serverStatus.connections')}
-            value={t('serverStatus.connectionsValue', { used: db.connections, max: db.maxConnections, active: db.activeConnections })}
-            tone={used > 0.9 ? 'error' : used > 0.7 ? 'warning' : undefined}
-          />
+          <Box data-row sx={{ py: 1.25 }}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('serverStatus.connections')}
+              </Typography>
+              <Typography
+                variant="body2"
+                component="div"
+                sx={{ fontWeight: 500, textAlign: 'right', color: used > 0.9 ? 'error.main' : used > 0.7 ? 'warning.main' : undefined }}
+              >
+                {t('serverStatus.connectionsValue', { used: db.connections, max: db.maxConnections, active: db.activeConnections })}
+              </Typography>
+            </Stack>
+            <MiniBar fraction={used} tone={used > 0.9 ? 'error' : used > 0.7 ? 'warning' : 'success'} />
+          </Box>
           <Row label={t('serverStatus.cacheHit')} value={db.cacheHitPercent != null ? `${db.cacheHitPercent}%` : t('serverStatus.unknown')} />
           {db.largestTables.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                {t('serverStatus.largestTables')}
-              </Typography>
+            <Box sx={{ mt: 2 }}>
+              <SubHeading>{t('serverStatus.largestTables')}</SubHeading>
               {db.largestTables.map((table) => (
-                <Row key={table.name} label={table.name} value={formatSize(table.bytes)} />
+                <Box key={table.name} data-row sx={{ py: 1.25 }}>
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                      {table.name}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
+                      {formatSize(table.bytes)}
+                    </Typography>
+                  </Stack>
+                  <MiniBar fraction={table.bytes / biggest} tone="primary" />
+                </Box>
               ))}
             </Box>
           )}
@@ -559,15 +663,15 @@ function DatabaseSection({ status }: { status: ServerStatus }) {
 function ServicesSection({ status }: { status: ServerStatus }) {
   const t = useT();
   const services = status.services;
+  const allUp = status.database.reachable && (!services.virusScannerEnabled || services.virusScannerReachable) && services.outboxAbandoned === 0;
 
   return (
     <Section title={t('serverStatus.services')}>
-      <Row label={t('serverStatus.database')} value={okOrNot(status.database.reachable, t)} />
+      <Headline value={allUp ? t('serverStatus.up') : t('serverStatus.down')} caption={t('serverStatus.status')} tone={allUp ? 'success' : 'error'} />
+      <Row label={t('serverStatus.database')} value={<StateText ok={status.database.reachable} />} />
       <Row
         label={t('serverStatus.virusScanner')}
-        value={
-          services.virusScannerEnabled ? okOrNot(services.virusScannerReachable, t) : <Chip size="small" label={t('serverStatus.off')} />
-        }
+        value={services.virusScannerEnabled ? <StateText ok={services.virusScannerReachable} /> : t('serverStatus.off')}
       />
       <Row
         label={t('serverStatus.fileStorage')}
