@@ -660,7 +660,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
         sx={{
           width: { md: contentWidth },
           ml: { md: `${navWidth}px` },
-          bgcolor: 'background.paper',
+          // Glass: the page shows through the bar, blurred (the blur itself is in the theme).
+          bgcolor: (theme) => alpha(theme.palette.background.paper, 0.86),
           transition: 'width .2s, margin .2s',
           [reduceMotion]: { transition: 'none' },
         }}

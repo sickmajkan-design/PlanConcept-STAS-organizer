@@ -28,7 +28,7 @@ export function PageHeader({
       }}
     >
       <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', sm: '2.125rem' }, lineHeight: 1.1, letterSpacing: '-0.022em' }}>
           {title}
         </Typography>
         {description && (

@@ -23,7 +23,7 @@ function TabStrip({ tabs }: { tabs: SectionTab[] }) {
     .sort((a, b) => b.path.length - a.path.length)[0];
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+    <Box sx={{ mb: 2 }}>
       <Tabs value={current?.path ?? false} variant="scrollable" scrollButtons="auto">
         {tabs.map((tab) => (
           <Tab

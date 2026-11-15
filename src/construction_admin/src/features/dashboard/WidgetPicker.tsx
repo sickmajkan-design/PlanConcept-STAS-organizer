@@ -41,6 +41,7 @@ export function WidgetPicker({ open, excludeTypes, onClose, onPick }: WidgetPick
             {available.map((type) => (
               <ListItemButton key={type} onClick={() => onPick(type)}>
                 <ListItemText
+                  slotProps={{ primary: { sx: { fontWeight: 600 } } }}
                   primary={t(widgetRegistry[type].titleKey)}
                   secondary={
                     <>

@@ -71,8 +71,9 @@ export function ConfirmDialog({
   const shownError = error ?? failure;
 
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+    // The alert shape: a centred title and text, and one hairline above a row of two equal buttons.
+    <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { textAlign: 'center' } } }}>
+      <DialogTitle sx={{ pt: 3, pb: 1 }}>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{description}</DialogContentText>
         {shownError && (
@@ -81,15 +82,33 @@ export function ConfirmDialog({
           </Typography>
         )}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onCancel} disabled={loading || pending}>
+      <DialogActions
+        sx={{
+          p: 0,
+          gap: 0,
+          mt: 1,
+          borderTop: 1,
+          borderColor: 'divider',
+          '& .MuiButton-root': {
+            flex: 1,
+            height: 52,
+            borderRadius: 0,
+            fontSize: '1rem',
+            backgroundColor: 'transparent',
+            '&:hover': { backgroundColor: 'action.hover' },
+          },
+          '& .MuiButton-root + .MuiButton-root': { borderLeft: 1, borderColor: 'divider' },
+        }}
+      >
+        <Button onClick={onCancel} disabled={loading || pending} color="primary" sx={{ fontWeight: 500 }}>
           {t('common.cancel')}
         </Button>
         <Button
           onClick={() => void confirm()}
           color={destructive ? 'error' : 'primary'}
-          variant="contained"
+          variant="text"
           loading={loading || pending}
+          sx={{ fontWeight: 700 }}
         >
           {confirmLabel ?? t('common.delete')}
         </Button>

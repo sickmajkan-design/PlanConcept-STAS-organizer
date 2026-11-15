@@ -36,7 +36,7 @@ export function HowItWorks({ id, children }: { id: string; children: ReactNode }
   };
 
   return (
-    <Paper variant="outlined" sx={{ bgcolor: 'action.hover', borderStyle: 'dashed' }}>
+    <Paper variant="outlined" sx={{ bgcolor: 'action.hover', border: 'none', borderRadius: 3 }}>
       <Stack
         direction="row"
         onClick={toggle}
