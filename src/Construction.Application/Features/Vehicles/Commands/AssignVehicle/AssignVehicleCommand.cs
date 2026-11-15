@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.DocumentRequests;
@@ -13,7 +14,11 @@ namespace Construction.Application.Features.Vehicles.Commands.AssignVehicle;
 /// Assigns (or reassigns) a vehicle to an employee. Vehicles under service
 /// or out of service cannot be assigned.
 /// </summary>
-public record AssignVehicleCommand(Guid VehicleId, Guid EmployeeId) : IRequest<VehicleDto>;
+public record AssignVehicleCommand(Guid VehicleId, Guid EmployeeId) : IRequest<VehicleDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Vehicle(VehicleId));
+}
 
 public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand, VehicleDto>
 {

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
@@ -15,8 +16,11 @@ namespace Construction.Application.Features.Materials.Commands.CreateMaterial;
 /// recorded as a movement in the same save, so the history begins with what
 /// came in rather than with an unexplained number.
 /// </summary>
-public record CreateMaterialCommand : MaterialCommandBase, IRequest<MaterialDto>
+public record CreateMaterialCommand : MaterialCommandBase, IRequest<MaterialDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+
     /// <summary>Invoice or receipt the starting stock was bought against.</summary>
     public string? InvoiceNumber { get; init; }
 

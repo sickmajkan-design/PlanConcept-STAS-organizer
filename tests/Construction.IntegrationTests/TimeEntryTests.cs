@@ -38,7 +38,7 @@ public class TimeEntryTests : IntegrationTestBase
     }
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId) =>
-        scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
+        scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId ?? user.EmployeeId, user.Email);
 
     // ---- which site a shift with no project belongs to ------------------
 
@@ -693,7 +693,7 @@ public class TimeEntryTests : IntegrationTestBase
     {
         var (employee, worker) = await InScope(SeedWorkerAsync);
         var reviewer = await InScope(scope =>
-            TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+            TestData.SeedUserAsync(scope, UserRole.Admin));
 
         var entry = await InScope(scope =>
         {
@@ -853,15 +853,19 @@ public class TimeEntryTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task A_foreman_sees_everyone()
+    public async Task A_foreman_sees_the_hours_on_their_own_site()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        var foremanEmployee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman, foremanEmployee.Id));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, foremanEmployee.Id, project.Id));
         var start = DateTime.UtcNow.AddHours(-8);
 
         await InScope(scope => scope.Send(new CreateTimeEntryCommand
         {
             EmployeeId = employee.Id,
+            ProjectId = project.Id,
             StartedAt = start,
             EndedAt = start.AddHours(8)
         }));
@@ -886,7 +890,7 @@ public class TimeEntryTests : IntegrationTestBase
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var reviewer = await InScope(scope =>
-            TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+            TestData.SeedUserAsync(scope, UserRole.Admin));
 
         var day = DateTime.UtcNow.Date.AddDays(-3);
 
@@ -959,14 +963,18 @@ public class TimeEntryTests : IntegrationTestBase
         SeedSubmittedEntryAsync()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var reviewerEmployee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var reviewer = await InScope(scope =>
-            TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+            TestData.SeedUserAsync(scope, UserRole.ProjectManager, reviewerEmployee.Id));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, reviewerEmployee.Id, project.Id));
 
         var start = DateTime.UtcNow.AddHours(-8);
 
         var entry = await InScope(scope => scope.Send(new CreateTimeEntryCommand
         {
             EmployeeId = employee.Id,
+            ProjectId = project.Id,
             StartedAt = start,
             EndedAt = start.AddHours(8)
         }));

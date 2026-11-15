@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Application availability on the Server status page');
-    expect(screen.getByText('Backups on the Server status page')).toBeDefined();
+    expect(screen.getByText('Foremen and project managers change only their own sites')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

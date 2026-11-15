@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.WorkItems.Models;
@@ -8,8 +9,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.WorkItems.Commands.UpdateWorkItem;
 
 /// <summary>Edits a work item's details. Status moves through its own command.</summary>
-public record UpdateWorkItemCommand : WorkItemCommandBase, IRequest<WorkItemDto>
+public record UpdateWorkItemCommand : WorkItemCommandBase, IRequest<WorkItemDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.WorkItem(Id), SiteTargets.Project(ProjectId));
+
     public Guid Id { get; init; }
 }
 

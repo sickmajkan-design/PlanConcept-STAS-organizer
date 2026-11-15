@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
@@ -27,8 +28,11 @@ namespace Construction.Application.Features.Materials.Commands.AdjustMaterialQua
 /// has no site and no price, so counting it as consumption would put
 /// unexplained losses onto somebody's project.
 /// </remarks>
-public record AdjustMaterialQuantityCommand : IRequest<MaterialDto>
+public record AdjustMaterialQuantityCommand : IRequest<MaterialDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Material(Id));
+
     /// <summary>Set by the API layer from the route, never from the request body.</summary>
     public Guid Id { get; init; }
 

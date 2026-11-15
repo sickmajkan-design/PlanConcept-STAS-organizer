@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.CustomerCompanies;
@@ -18,7 +19,11 @@ namespace Construction.Application.Features.Employees.Commands.SetEmployeeProjec
 public record SetEmployeeProjectCompanyCommand(
     Guid EmployeeId,
     Guid ProjectId,
-    Guid? CustomerCompanyId) : IRequest;
+    Guid? CustomerCompanyId) : IRequest, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+}
 
 public class SetEmployeeProjectCompanyCommandValidator
     : AbstractValidator<SetEmployeeProjectCompanyCommand>

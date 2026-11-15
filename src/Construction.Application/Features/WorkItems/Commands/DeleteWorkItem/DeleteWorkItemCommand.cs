@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -13,7 +14,11 @@ namespace Construction.Application.Features.WorkItems.Commands.DeleteWorkItem;
 /// that it existed and was dropped. Deleting is for something raised by
 /// mistake, which is why it stops at Admin.
 /// </remarks>
-public record DeleteWorkItemCommand(Guid Id) : IRequest;
+public record DeleteWorkItemCommand(Guid Id) : IRequest, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.WorkItem(Id));
+}
 
 public class DeleteWorkItemCommandHandler : IRequestHandler<DeleteWorkItemCommand>
 {

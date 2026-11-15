@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -13,7 +14,11 @@ namespace Construction.Application.Features.TimeEntries.Commands.DeleteTimeEntry
 /// disappears from a timesheet is the one thing a worker cannot argue with.
 /// Rejecting it first leaves a reviewer and a reason on the record.
 /// </remarks>
-public record DeleteTimeEntryCommand(Guid Id) : IRequest;
+public record DeleteTimeEntryCommand(Guid Id) : IRequest, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.TimeEntry(Id));
+}
 
 public class DeleteTimeEntryCommandHandler : IRequestHandler<DeleteTimeEntryCommand>
 {

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -11,7 +12,11 @@ namespace Construction.Application.Features.Tools.Commands.AssignTool;
 /// Places the tool on a project (or moves it to another project). Any
 /// employee assignment is kept.
 /// </summary>
-public record AssignToolToProjectCommand(Guid ToolId, Guid ProjectId) : IRequest<ToolDto>;
+public record AssignToolToProjectCommand(Guid ToolId, Guid ProjectId) : IRequest<ToolDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Tool(ToolId), SiteTargets.Project(ProjectId));
+}
 
 public class AssignToolToProjectCommandHandler : IRequestHandler<AssignToolToProjectCommand, ToolDto>
 {

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.WorkItems.Models;
@@ -15,8 +16,11 @@ namespace Construction.Application.Features.WorkItems.Commands.ChangeWorkItemSta
 /// performs from site, and because the transitions it has to obey are a rule
 /// of their own rather than a field being set.
 /// </remarks>
-public record ChangeWorkItemStatusCommand : IRequest<WorkItemDto>
+public record ChangeWorkItemStatusCommand : IRequest<WorkItemDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.WorkItem(Id));
+
     public Guid Id { get; init; }
 
     public WorkItemStatus Status { get; init; }

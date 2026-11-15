@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -9,7 +10,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.TimeEntries.Commands.CreateTimeEntry;
 
 /// <summary>Records a shift on someone's behalf — the flat-phone case.</summary>
-public record CreateTimeEntryCommand : TimeEntryCommandBase, IRequest<TimeEntryDto>;
+public record CreateTimeEntryCommand : TimeEntryCommandBase, IRequest<TimeEntryDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Record(ProjectId, EmployeeId, "Employee", EmployeeId));
+}
 
 public class CreateTimeEntryCommandValidator
     : TimeEntryCommandBaseValidator<CreateTimeEntryCommand>

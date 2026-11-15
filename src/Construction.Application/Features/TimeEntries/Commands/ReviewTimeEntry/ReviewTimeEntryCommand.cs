@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -17,8 +18,11 @@ namespace Construction.Application.Features.TimeEntries.Commands.ReviewTimeEntry
 /// who may do it, what state the entry has to be in, and that the decision is
 /// recorded against a person. Splitting them would have duplicated all three.
 /// </remarks>
-public record ReviewTimeEntryCommand : IRequest<TimeEntryDto>
+public record ReviewTimeEntryCommand : IRequest<TimeEntryDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.TimeEntry(Id));
+
     public Guid Id { get; init; }
 
     public bool Approve { get; init; }

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -17,7 +18,11 @@ public enum ToolAssignmentTarget
 /// Releases one side of the tool's assignment (employee or project). The
 /// status returns to Available once neither side holds the tool.
 /// </summary>
-public record UnassignToolCommand(Guid ToolId, ToolAssignmentTarget Target) : IRequest<ToolDto>;
+public record UnassignToolCommand(Guid ToolId, ToolAssignmentTarget Target) : IRequest<ToolDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Tool(ToolId));
+}
 
 public class UnassignToolCommandHandler : IRequestHandler<UnassignToolCommand, ToolDto>
 {

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -13,7 +14,11 @@ namespace Construction.Application.Features.Vehicles.Commands.AssignVehicleToPro
 /// of any employee assignment — a vehicle can sit on a project and be held by
 /// an employee at the same time.
 /// </summary>
-public record AssignVehicleToProjectCommand(Guid VehicleId, Guid ProjectId) : IRequest<VehicleDto>;
+public record AssignVehicleToProjectCommand(Guid VehicleId, Guid ProjectId) : IRequest<VehicleDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Vehicle(VehicleId), SiteTargets.Project(ProjectId));
+}
 
 public class AssignVehicleToProjectCommandHandler
     : IRequestHandler<AssignVehicleToProjectCommand, VehicleDto>

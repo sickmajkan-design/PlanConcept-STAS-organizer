@@ -24,11 +24,27 @@ public class EmployeeProjectCompanyTests : IntegrationTestBase
     private static string Unique() => Guid.NewGuid().ToString("N")[..8];
 
     private static void ActAs(TestScope scope, User user) =>
-        scope.CurrentUser.SignInAs(user.Id, user.Role, null, user.Email);
+        scope.CurrentUser.SignInAs(user.Id, user.Role, user.EmployeeId, user.Email);
 
     private sealed record Setup(User SuperAdmin, Employee Employee, Project Project, CustomerCompanyDto Company);
 
     /// <summary>An employee, and a project whose client has one company of its own.</summary>
+    /// <summary>A project manager posted to the setup's project, so only the rule under test can refuse them.</summary>
+    private Task<User> PostedManagerAsync(Setup setup) =>
+        InScope(async scope =>
+        {
+            var employee = await TestData.SeedEmployeeAsync(scope);
+            var user = await TestData.SeedUserAsync(scope, UserRole.ProjectManager, employee.Id);
+            scope.Db.EmployeeProjects.Add(new EmployeeProject
+            {
+                EmployeeId = employee.Id,
+                ProjectId = setup.Project.Id,
+                StartDate = new DateOnly(2030, 1, 1),
+            });
+            await scope.Db.SaveChangesAsync();
+            return user;
+        });
+
     private async Task<Setup> SetupAsync()
     {
         var superAdmin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.SuperAdmin));
@@ -159,7 +175,7 @@ public class EmployeeProjectCompanyTests : IntegrationTestBase
     public async Task A_project_manager_cannot_name_a_company_when_posting_someone()
     {
         var setup = await SetupAsync();
-        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var manager = await PostedManagerAsync(setup);
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
         {
@@ -175,7 +191,7 @@ public class EmployeeProjectCompanyTests : IntegrationTestBase
     public async Task A_project_manager_may_still_post_someone_without_naming_a_company()
     {
         var setup = await SetupAsync();
-        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var manager = await PostedManagerAsync(setup);
 
         await InScope(scope =>
         {
@@ -266,7 +282,7 @@ public class EmployeeProjectCompanyTests : IntegrationTestBase
     public async Task Only_management_may_change_the_company_on_an_existing_posting()
     {
         var setup = await SetupAsync();
-        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var manager = await PostedManagerAsync(setup);
 
         await InScope(scope =>
         {

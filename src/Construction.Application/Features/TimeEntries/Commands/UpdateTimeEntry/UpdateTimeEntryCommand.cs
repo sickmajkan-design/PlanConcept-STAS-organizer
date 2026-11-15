@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -9,8 +10,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.TimeEntries.Commands.UpdateTimeEntry;
 
 /// <summary>Corrects a recorded shift — including closing one left running.</summary>
-public record UpdateTimeEntryCommand : TimeEntryCommandBase, IRequest<TimeEntryDto>
+public record UpdateTimeEntryCommand : TimeEntryCommandBase, IRequest<TimeEntryDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.TimeEntry(Id), SiteTargets.Record(ProjectId, EmployeeId, "Employee", EmployeeId));
+
     public Guid Id { get; init; }
 }
 

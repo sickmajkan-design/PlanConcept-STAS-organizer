@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Employees;
@@ -15,7 +16,11 @@ namespace Construction.Application.Features.Employees.Commands.RemoveEmployeeFro
 /// closed off as of today rather than erased. Deleting it would make the
 /// schedule disagree with the timesheets it sits next to.
 /// </remarks>
-public record RemoveEmployeeFromProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest;
+public record RemoveEmployeeFromProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+}
 
 public class RemoveEmployeeFromProjectCommandHandler
     : IRequestHandler<RemoveEmployeeFromProjectCommand>

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.CustomerCompanies;
@@ -17,8 +18,11 @@ namespace Construction.Application.Features.Employees.Commands.AssignEmployeeToP
 /// means "from today, open-ended", which is exactly what the assignment meant
 /// before it had dates.
 /// </remarks>
-public record AssignEmployeeToProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest
+public record AssignEmployeeToProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+
     /// <summary>Defaults to today.</summary>
     public DateOnly? StartDate { get; init; }
 

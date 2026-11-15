@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
@@ -7,8 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Materials.Commands.UpdateMaterial;
 
-public record UpdateMaterialCommand : MaterialCommandBase, IRequest<MaterialDto>
+public record UpdateMaterialCommand : MaterialCommandBase, IRequest<MaterialDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Material(Id), SiteTargets.Project(ProjectId));
+
     /// <summary>Set by the API layer from the route, never from the request body.</summary>
     public Guid Id { get; init; }
 }

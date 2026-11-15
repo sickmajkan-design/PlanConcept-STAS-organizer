@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.ArticleOrders.Models;
@@ -13,8 +14,11 @@ namespace Construction.Application.Features.ArticleOrders.Commands.SetArticleOrd
 /// Moves a request one step on: ordered, on its way, delivered, declined, or
 /// withdrawn. The steps go in order and none is skipped.
 /// </summary>
-public record SetArticleOrderStatusCommand : IRequest<ArticleOrderDto>
+public record SetArticleOrderStatusCommand : IRequest<ArticleOrderDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.ArticleOrder(Id));
+
     public Guid Id { get; init; }
 
     public ArticleOrderStatus Status { get; init; }

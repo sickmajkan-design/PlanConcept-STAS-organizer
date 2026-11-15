@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments.Models;
@@ -10,8 +11,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Attachments.Commands.UploadAttachment;
 
 /// <summary>Attaches a file to one record.</summary>
-public record UploadAttachmentCommand : IRequest<AttachmentDto>
+public record UploadAttachmentCommand : IRequest<AttachmentDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(OwnerType == AttachmentOwnerType.Project ? OwnerId : null), SiteTargets.WorkItemOwner(OwnerType == AttachmentOwnerType.WorkItem ? OwnerId : null));
+
     public AttachmentOwnerType OwnerType { get; init; }
 
     public Guid OwnerId { get; init; }

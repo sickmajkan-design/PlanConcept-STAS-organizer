@@ -32,7 +32,7 @@ public class AttachmentTests : IntegrationTestBase
         new MemoryStream(TestFiles.WithSignature(fileName, content));
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId = null) =>
-        scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
+        scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId ?? user.EmployeeId, user.Email);
 
     private static Task<AttachmentDto> UploadAsync(
         TestScope scope,
@@ -854,8 +854,19 @@ public class AttachmentTests : IntegrationTestBase
     private async Task<(WorkItem Item, User Foreman)> SeedDefectAsync(Guid? assignedTo = null)
     {
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var foremanEmployee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var foreman = await InScope(scope =>
-            TestData.SeedUserAsync(scope, UserRole.Foreman));
+            TestData.SeedUserAsync(scope, UserRole.Foreman, foremanEmployee.Id));
+        await InScope(async scope =>
+        {
+            scope.Db.EmployeeProjects.Add(new EmployeeProject
+            {
+                EmployeeId = foremanEmployee.Id,
+                ProjectId = project.Id,
+                StartDate = new DateOnly(2030, 1, 1),
+            });
+            await scope.Db.SaveChangesAsync();
+        });
 
         var item = await InScope(async scope =>
         {

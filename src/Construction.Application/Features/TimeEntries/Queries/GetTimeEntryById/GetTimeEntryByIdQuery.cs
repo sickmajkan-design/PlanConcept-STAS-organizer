@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -13,11 +14,14 @@ public class GetTimeEntryByIdQueryHandler : IRequestHandler<GetTimeEntryByIdQuer
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _clock;
 
     public GetTimeEntryByIdQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider clock)
     {
+        _clock = clock;
         _context = context;
         _currentUserService = currentUserService;
     }
@@ -37,6 +41,13 @@ public class GetTimeEntryByIdQueryHandler : IRequestHandler<GetTimeEntryByIdQuer
         {
             var ownEmployeeId = _currentUserService.EmployeeId;
             query = query.Where(t => ownEmployeeId != null && t.EmployeeId == ownEmployeeId);
+        }
+
+        // A foreman or project manager sees hours booked to the sites they are posted to, and their own.
+        if (await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, _clock.Today, cancellationToken) is { } own)
+        {
+            var self = _currentUserService.EmployeeId;
+            query = query.Where(t => own.ToList().Contains(t.ProjectId!.Value) || (self != null && t.EmployeeId == self));
         }
 
         return await query

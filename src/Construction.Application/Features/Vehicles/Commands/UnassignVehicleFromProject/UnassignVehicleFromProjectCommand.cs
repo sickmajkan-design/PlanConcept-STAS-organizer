@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -8,7 +9,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Vehicles.Commands.UnassignVehicleFromProject;
 
 /// <summary>Removes the vehicle's project assignment. Any employee assignment is kept.</summary>
-public record UnassignVehicleFromProjectCommand(Guid VehicleId) : IRequest<VehicleDto>;
+public record UnassignVehicleFromProjectCommand(Guid VehicleId) : IRequest<VehicleDto>, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Vehicle(VehicleId));
+}
 
 public class UnassignVehicleFromProjectCommandHandler
     : IRequestHandler<UnassignVehicleFromProjectCommand, VehicleDto>

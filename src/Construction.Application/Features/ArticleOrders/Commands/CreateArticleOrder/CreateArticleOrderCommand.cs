@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.ArticleOrders.Models;
@@ -10,8 +11,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.ArticleOrders.Commands.CreateArticleOrder;
 
 /// <summary>Asks for articles the person needs for the job.</summary>
-public record CreateArticleOrderCommand : IRequest<ArticleOrderDto>
+public record CreateArticleOrderCommand : IRequest<ArticleOrderDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+
     public Guid? ProjectId { get; init; }
 
     public bool Urgent { get; init; }
