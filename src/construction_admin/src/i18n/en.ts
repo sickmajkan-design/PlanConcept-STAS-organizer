@@ -5026,7 +5026,7 @@ export const en = {
   'releaseNotes.alerts1115.title': 'Server notices to an address without an account',
   'releaseNotes.alerts1115.extra': 'The e-mail of a server notice (full disk, server unavailable, no backup ...) can also go to extra addresses that have no account in the application. The addresses are set in the server settings. Sending works only once SMTP is set up.',
   'releaseNotes.phone1115.title': 'A tidier layout on a phone',
-  'releaseNotes.phone1115.layout': 'On a phone, the rows of filters and buttons that used to break into ragged lines are now lined up (Audit trail, Work time, Schedule, Employees and other pages). Notices with buttons now put the buttons under the text, and the Server status button on the disk space card looks nicer.',
+  'releaseNotes.phone1115.layout': 'On a phone, the rows of filters and buttons that used to break into ragged lines are now lined up (Audit trail, Work time, Schedule, Employees and other pages). Notices with buttons now put the buttons under the text, and the Server status button on the disk space card looks nicer. Widgets added on a phone no longer disappear after the page is refreshed.',
   'releaseNotes.serverwidgets1115.title': 'Widgets to watch the server',
   'releaseNotes.serverwidgets1115.widgets': 'On the home page, under "Add widget", the Super Admin can now add four server widgets: Server status (one sentence and what can be down), Processor, memory and disk, Backups, and Server sign-ins and errors. They refresh by themselves and lead to the Server status page. They are not added to the board on their own.',
   'releaseNotes.logins1115.title': 'Sign-in attempts on the Server status page',

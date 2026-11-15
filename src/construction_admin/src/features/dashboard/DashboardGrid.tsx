@@ -299,9 +299,12 @@ export function DashboardGrid() {
 
   function handleAdd(type: DashboardWidgetConfig['type']) {
     if (!widgets) return;
+    // The first free row under everything already there. Not Infinity: on a phone there is no grid to settle a
+    // position, and Infinity travels as null, which the server refuses, so the widget was never saved.
+    const bottom = widgets.reduce((lowest, w) => Math.max(lowest, w.y + w.h), 0);
     const next = [
       ...widgets,
-      { id: crypto.randomUUID(), type, x: 0, y: Infinity, w: DEFAULT_NEW_W, h: DEFAULT_NEW_H },
+      { id: crypto.randomUUID(), type, x: 0, y: bottom, w: DEFAULT_NEW_W, h: DEFAULT_NEW_H },
     ];
     setWidgets(next);
     scheduleSave(next);

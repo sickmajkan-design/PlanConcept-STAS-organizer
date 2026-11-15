@@ -5070,7 +5070,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.alerts1115.title': 'Obavještenja o serveru i na adresu bez naloga',
   'releaseNotes.alerts1115.extra': 'E-pošta obavještenja o serveru (pun disk, server nedostupan, nema kopije...) može se slati i na dodatne adrese koje nemaju nalog u aplikaciji. Adrese se podešavaju u postavkama servera. Slanje radi tek kad je podešen SMTP.',
   'releaseNotes.phone1115.title': 'Uredniji prikaz na telefonu',
-  'releaseNotes.phone1115.layout': 'Na telefonu su poravnati redovi s filterima i dugmadima koji su se lomili u više redova (Trag izmjena, Radno vrijeme, Raspored, Zaposleni i druge stranice). Obavještenja s dugmadima sada imaju dugmad ispod teksta, a dugme Stanje servera na kartici prostora izgleda ljepše.',
+  'releaseNotes.phone1115.layout': 'Na telefonu su poravnati redovi s filterima i dugmadima koji su se lomili u više redova (Trag izmjena, Radno vrijeme, Raspored, Zaposleni i druge stranice). Obavještenja s dugmadima sada imaju dugmad ispod teksta, a dugme Stanje servera na kartici prostora izgleda ljepše. Widgeti dodani na telefonu više ne nestaju poslije osvježavanja stranice.',
   'releaseNotes.serverwidgets1115.title': 'Widgeti za praćenje servera',
   'releaseNotes.serverwidgets1115.widgets': 'Na početnoj stranici, pod „Dodaj widget“, Super Admin sada može da doda četiri widgeta za server: Stanje servera (jedna rečenica i šta može da padne), Procesor, memorija i disk, Rezervne kopije te Prijave i greške servera. Osvježavaju se sami, a pritisak vodi na stranicu Stanje servera. Ne dodaju se sami na tablu.',
   'releaseNotes.logins1115.title': 'Pokušaji prijave na stranici Stanje servera',

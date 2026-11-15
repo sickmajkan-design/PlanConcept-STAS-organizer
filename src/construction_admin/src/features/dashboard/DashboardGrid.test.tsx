@@ -49,6 +49,28 @@ describe('HomePage dashboard', () => {
     expect(screen.getByText('Vehicles & tools')).toBeDefined();
   });
 
+  it('saves a widget added from the picker with a real row, so it is still there after a refresh', async () => {
+    network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'BranchOverview', x: 0, y: 3, w: 6, h: 5 }] });
+    network.reply('/branches', 200, []);
+    network.reply('/system/status', 500, {});
+
+    const user = userEvent.setup();
+    renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+    await user.click(await screen.findByRole('button', { name: 'Add widget' }, { timeout: 5000 }));
+    await user.click(await screen.findByText('Server status', {}, { timeout: 5000 }));
+
+    await waitFor(() => {
+      const save = network.calls.find((c) => c.method === 'PUT' && c.url.includes('/dashboard-layout'));
+      expect(save).toBeDefined();
+      const widgets = (save!.body as { widgets: { type: string; y: number }[] }).widgets;
+      const added = widgets.find((w) => w.type === 'ServerHealth');
+      // Infinity is sent as null and refused by the server (a phone has no grid to settle it).
+      expect(Number.isFinite(added!.y)).toBe(true);
+      expect(added!.y).toBe(8);
+    }, { timeout: 5000 });
+  });
+
   it('never mounts the dashboard for a role below Admin', async () => {
     renderScreen(<HomePage />, { user: signedIn('Foreman') });
 
