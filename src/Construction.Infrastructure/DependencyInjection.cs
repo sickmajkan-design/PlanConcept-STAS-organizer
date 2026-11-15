@@ -273,6 +273,7 @@ public static class DependencyInjection
         services.AddScoped<IServerProbe, Monitoring.ServerProbe>();
         services.AddSingleton<IBackupCatalog, Monitoring.BackupCatalog>();
         services.AddSingleton<IDockerStatusReader, Monitoring.DockerStatusReader>();
+        services.AddSingleton<IServerAlertRecipients, Monitoring.ServerAlertRecipients>();
 
         var settings = section.Get<FileStorageSettings>() ?? new FileStorageSettings();
 

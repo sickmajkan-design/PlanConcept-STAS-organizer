@@ -54,6 +54,15 @@ public static class ServerAlertPolicy
     public static TimeSpan CooldownFor(string key) => key == ServerAlertKeys.Certificate ? TimeSpan.FromHours(24) : Cooldown;
 }
 
+/// <summary>
+/// Addresses that get the e-mail of a server notice besides the Super Admins' own, set in the server's settings
+/// (<c>ServerAlerts:ExtraEmails</c>). They have no account and see nothing in the panel; they only receive the mail.
+/// </summary>
+public interface IServerAlertRecipients
+{
+    IReadOnlyList<string> ExtraEmails { get; }
+}
+
 /// <summary>Delivers a server notice to the Super Admins through the channels chosen for its kind.</summary>
 public class ServerAlertSender
 {
@@ -61,9 +70,12 @@ public class ServerAlertSender
     private readonly INotificationService _notifications;
     private readonly IOutbox _outbox;
     private readonly IDateTimeProvider _clock;
+    private readonly IServerAlertRecipients _extra;
 
-    public ServerAlertSender(IApplicationDbContext context, INotificationService notifications, IOutbox outbox, IDateTimeProvider clock)
+    public ServerAlertSender(
+        IApplicationDbContext context, INotificationService notifications, IOutbox outbox, IDateTimeProvider clock, IServerAlertRecipients extra)
     {
+        _extra = extra;
         _context = context;
         _notifications = notifications;
         _outbox = outbox;
@@ -123,9 +135,14 @@ public class ServerAlertSender
 
         if (setting.EmailEnabled)
         {
-            foreach (var admin in admins)
+            // Extra addresses get the mail of an ordinary notice; a message meant for chosen people only (recipients given) stays with them.
+            var addresses = admins.Select(a => a.Email)
+                .Concat(recipients is null ? _extra.ExtraEmails : [])
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var address in addresses)
             {
-                _outbox.Enqueue(new EmailPayload(admin.Email, title, Html(title, body)));
+                _outbox.Enqueue(new EmailPayload(address, title, Html(title, body)));
             }
         }
 
@@ -142,7 +159,11 @@ public class ServerAlertSender
         const string body = "Ovako izgleda obavještenje o serveru. Ako ga vidite, i push i e-pošta rade.";
 
         await _notifications.NotifyUserAsync(userId, NotificationType.GeneralAnnouncement, title, body, cancellationToken: cancellationToken);
-        _outbox.Enqueue(new EmailPayload(email, title, Html(title, body)));
+        foreach (var address in new[] { email }.Concat(_extra.ExtraEmails).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            _outbox.Enqueue(new EmailPayload(address, title, Html(title, body)));
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 

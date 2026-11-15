@@ -103,6 +103,8 @@ services:
       # leaves it alone.
       ClientApp__PasswordResetUrl: "${PASSWORD_RESET_URL:-${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}/reset-password}"
 
+      # Addresses that get the e-mail of a server notice besides the Super Admins (comma separated). No account, no panel access.
+      ServerAlerts__ExtraEmails: ${SERVER_ALERT_EXTRA_EMAILS:-}
       EmailSettings__Host: ${SMTP_HOST:-}
       EmailSettings__Port: ${SMTP_PORT:-587}
       EmailSettings__Username: ${SMTP_USERNAME:-}
