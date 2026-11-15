@@ -200,7 +200,7 @@ export function BookSettlementPage() {
         title={t('book.settlement.title')}
         description={monthLabel}
         secondaryActions={
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <IconButton size="small" onClick={() => shift(-1)} aria-label={t('book.overview.previous')}>
               <ChevronLeftOutlined />
             </IconButton>

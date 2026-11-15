@@ -63,6 +63,18 @@ export function buildTheme(mode: 'light' | 'dark') {
     ].join(','),
   },
   components: {
+    MuiStepper: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          [theme.breakpoints.down('sm')]: {
+            flexWrap: 'wrap',
+            rowGap: theme.spacing(1),
+            '& .MuiStepConnector-root': { display: 'none' },
+            '& .MuiStep-root': { paddingRight: theme.spacing(2) },
+          },
+        }),
+      },
+    },
     MuiAlert: {
       styleOverrides: {
         root: ({ theme }) => ({

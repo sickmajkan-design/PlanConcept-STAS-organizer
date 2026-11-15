@@ -446,9 +446,11 @@ function ProjectRow({
   return (
     <Stack
       direction="row"
-      spacing={1.5}
       onClick={onOpen}
       sx={{
+        gap: 1.5,
+        flexWrap: { xs: 'wrap', sm: 'nowrap' },
+        rowGap: 0.5,
         alignItems: 'center',
         py: 1,
         pl: isMain ? 2 : 5,
@@ -464,8 +466,8 @@ function ProjectRow({
         <SubdirectoryArrowRightOutlined fontSize="small" color="disabled" />
       )}
 
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+      <Box sx={{ flex: { xs: '1 1 calc(100% - 40px)', sm: 1 }, minWidth: 0 }}>
+        <Stack direction="row" sx={{ gap: 1, alignItems: 'center', minWidth: 0 }}>
           {project.branchColor && (
             <Tooltip title={project.branchName ?? ''}>
               <span style={{ display: 'inline-flex' }}>
@@ -502,6 +504,7 @@ function ProjectRow({
         {project.startDate ? formatDate(project.startDate) : '—'}
       </Typography>
 
+      <Box sx={{ ml: { xs: 'auto', sm: 0 } }}>
       <RowActions>
         <DocumentCountBadge ownerType="Project" ownerId={project.id} />
         {isMain && onAddSub && (
@@ -540,6 +543,7 @@ function ProjectRow({
           </IconButton>
         </Tooltip>
       </RowActions>
+      </Box>
     </Stack>
   );
 }

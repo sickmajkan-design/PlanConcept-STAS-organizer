@@ -155,7 +155,7 @@ export function RefundsPage() {
         width: 120,
         sortable: false,
         valueGetter: (_value, row) =>
-          row.status === 'Approved' && row.payrollMonth ? `${String(row.payrollMonth).padStart(2, '0')}.${row.payrollYear}` : 'â€”',
+          row.status === 'Approved' && row.payrollMonth ? `${String(row.payrollMonth).padStart(2, '0')}.${row.payrollYear}` : '—',
       },
       {
         field: 'actions',
