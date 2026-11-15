@@ -79,7 +79,18 @@ public class VerifyMfaCommandHandler : IRequestHandler<VerifyMfaCommand, AuthRes
 
         if (await CodeIsGoodAsync(user, request.Code, utcNow, cancellationToken))
         {
-            challenge.UsedAt = utcNow;
+            // The challenge is claimed in one statement ("set UsedAt where it is still null"), so of any number of
+            // requests that arrive together with the right code, exactly one gets a session. Reading it as open and
+            // then writing UsedAt later let every one of them through.
+            var claimed = await _context.MfaChallenges
+                .Where(c => c.Id == challenge.Id && c.UsedAt == null)
+                .ExecuteUpdateAsync(set => set.SetProperty(c => c.UsedAt, utcNow), cancellationToken);
+
+            if (claimed != 1)
+            {
+                throw new UnauthorizedException(InvalidMessage);
+            }
+
             return await _signIn.CompleteAsync(user, request.IpAddress, request.UserAgent, cancellationToken);
         }
 
@@ -128,8 +139,12 @@ public class VerifyMfaCommandHandler : IRequestHandler<VerifyMfaCommand, AuthRes
                 return false;
             }
 
-            recovery.UsedAt = utcNow;
-            return true;
+            // One code, one use, even when several requests try it at the same moment.
+            var claimed = await _context.MfaRecoveryCodes
+                .Where(c => c.Id == recovery.Id && c.UsedAt == null)
+                .ExecuteUpdateAsync(set => set.SetProperty(c => c.UsedAt, utcNow), cancellationToken);
+
+            return claimed == 1;
         }
 
         var secret = user.MfaSecretProtected is null ? null : _mfa.Unprotect(user.MfaSecretProtected, user.Id);

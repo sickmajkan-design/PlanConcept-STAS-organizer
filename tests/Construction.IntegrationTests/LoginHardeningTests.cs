@@ -186,6 +186,42 @@ public class LoginHardeningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_reset_link_used_twice_at_the_same_moment_sets_the_password_only_once()
+    {
+        var user = await InScope(scope => TestData.SeedUserAsync(scope));
+        const string rawToken = "reset-token-used-twice-at-once";
+
+        await InScope(async scope =>
+        {
+            scope.Db.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = Application.Common.Security.TokenHasher.Sha256(rawToken),
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        async Task<bool> TryResetAsync(string password)
+        {
+            try
+            {
+                await InScope(scope => scope.Send(new ResetPasswordCommand { Email = user.Email, Token = rawToken, NewPassword = password }));
+                return true;
+            }
+            catch (UnauthorizedException)
+            {
+                return false;
+            }
+        }
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(i => TryResetAsync($"BrandNewPass{i}x")));
+
+        Assert.Equal(1, results.Count(r => r));
+    }
+
+    [Fact]
     public void An_unknown_address_costs_a_full_password_derivation()
     {
         // The handler verifies against DummyHash when no account matched. If

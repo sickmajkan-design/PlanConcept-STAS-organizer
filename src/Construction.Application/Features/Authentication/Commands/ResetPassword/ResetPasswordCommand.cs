@@ -71,8 +71,18 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand>
             throw new UnauthorizedException(InvalidTokenMessage);
         }
 
+        // The link is claimed before anything changes, in one statement, so two requests with the same link cannot
+        // both set a password.
+        var claimed = await _context.PasswordResetTokens
+            .Where(t => t.Id == resetToken.Id && t.UsedAt == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(t => t.UsedAt, utcNow), cancellationToken);
+
+        if (claimed != 1)
+        {
+            throw new UnauthorizedException(InvalidTokenMessage);
+        }
+
         resetToken.User.PasswordHash = _passwordHasher.Hash(request.NewPassword);
-        resetToken.UsedAt = utcNow;
 
         // Proving control of the mailbox clears any lockout, so the recovery
         // path still works for someone an attacker has locked out.

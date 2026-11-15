@@ -5059,6 +5059,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.uptime1114.card': 'Nova kartica Dostupnost aplikacije pokazuje koliko je aplikacija bila dostupna u poslednjih 30 dana i svaki prekid duži od 3 minuta, čak i kad je pao ceo server. Na kartici je i adresa koju spoljni servis za nadzor (npr. UptimeRobot) treba da proverava (spoljni nadzor je uključen, besplatni plan proverava na 5 minuta).',
   'releaseNotes.notices1114.title': 'Obavještenja o problemima na serveru',
   'releaseNotes.notices1114.card': 'Na stranici Stanje servera nova kartica Obavještenja o serveru bira ko vas i kako obavještava: e-poštom, pushom ili oboje, posebno za svaku vrstu problema (pun disk, server nije bio dostupan, nema noćne kopije, antivirus ne radi, poruke se ne šalju). Server provjerava svakih nekoliko minuta, a isti problem ponavlja najviše na svakih 6 sati. Dugme Pošalji probno obavještenje pokazuje kako to izgleda.',
+  'releaseNotes.signin1115.title': 'Strožija zaštita prijave',
+  'releaseNotes.signin1115.once': 'Kod za oporavak, izazov druge provjere (MFA), link za promjenu lozinke i pozivnica za nalog sada važe tačno jednom, čak i kad se isti zahtjev pošalje više puta u istom trenutku. Ranije je takav istovremeni zahtjev mogao proći više puta. Obični korisnici ne primjećuju nikakvu razliku.',
   'releaseNotes.docker1114.title': 'Docker i izdanja na stranici Stanje servera',
   'releaseNotes.docker1114.card': 'Nova kartica Docker i izdanja pokazuje koji kontejneri rade i s kojom verzijom, koliko slika ima, koliko se može osloboditi i kad je bilo poslednje noćno čišćenje. Ako neki kontejner ne radi, to piše na vrhu stranice. Podatke upisuje mali skript na serveru jednom u 5 minuta, pa aplikacija ne dira Docker.',
   'releaseNotes.docker1114.cert': 'Ispod nje je kartica HTTPS certifikat: do kada važi i ko ga je izdao. Ako ističe za manje od 2 nedelje, upozorenje se pojavi na vrhu stranice i stiže mejlom (jednom dnevno).',
@@ -5274,6 +5276,4 @@ export const sr: Record<MessageKey, Message> = {
   'serverStatus.documentsValue': '{count} datoteka, {size}',
   'serverStatus.outboxPending': 'Poruke na čekanju',
   'serverStatus.outboxAbandoned': 'Odbačene poruke',
-  'releaseNotes.bulkdelete1113.title': 'Brisanje više dokumenata odjednom',
-  'releaseNotes.bulkdelete1113.pick': 'Na stranici Dokumenti sada možete označiti više dokumenata i obrisati ih zauvijek jednim klikom: briše se datoteka na serveru i zapis, bez traga. Dokumenti kojima traje rok čuvanja se preskaču. Uputstvo je u vodiču Brisanje dokumenata i čišćenje servera (Ctrl+K).',
 };

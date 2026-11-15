@@ -75,6 +75,16 @@ public class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCo
             throw new ConflictException($"An account for '{email}' already exists.");
         }
 
+        // Claimed in one statement, so two requests with the same link cannot both create an account.
+        var claimed = await _context.EmployeeInvitations
+            .Where(i => i.Id == invitation.Id && i.UsedAt == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(i => i.UsedAt, utcNow), cancellationToken);
+
+        if (claimed != 1)
+        {
+            throw new NotFoundException(nameof(EmployeeInvitation), "link");
+        }
+
         _context.Users.Add(new User
         {
             Email = email,
@@ -83,8 +93,6 @@ public class AcceptInvitationCommandHandler : IRequestHandler<AcceptInvitationCo
             IsActive = true,
             EmployeeId = invitation.EmployeeId,
         });
-
-        invitation.UsedAt = utcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

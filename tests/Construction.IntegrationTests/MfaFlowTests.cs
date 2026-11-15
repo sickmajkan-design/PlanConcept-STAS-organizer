@@ -247,4 +247,41 @@ public class MfaFlowTests
 
         Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
     }
+
+    [Fact]
+    public async Task A_recovery_code_used_on_many_sign_ins_at_once_works_only_once()
+    {
+        var (email, _, recovery) = await EnrolledAdminAsync();
+
+        // Two rounds, a different code each: the race is a matter of timing, so one round can miss it.
+        for (var round = 0; round < 2; round++)
+        {
+            var code = recovery[round];
+            var challenges = new List<string>();
+
+            for (var i = 0; i < 10; i++)
+            {
+                challenges.Add((await LoginAsync(email)).GetProperty("mfaToken").GetString()!);
+            }
+
+            // All at the same moment, each with its own challenge but the same one-time code.
+            var responses = await Task.WhenAll(challenges.Select(c => VerifyAsync(c, code)));
+
+            Assert.True(
+                responses.Count(r => r.StatusCode == HttpStatusCode.OK) <= 1,
+                $"Round {round}: the same recovery code signed in {responses.Count(r => r.StatusCode == HttpStatusCode.OK)} times.");
+        }
+    }
+
+    [Fact]
+    public async Task One_challenge_with_the_right_code_used_many_times_at_once_gives_one_session()
+    {
+        var (email, secret, _) = await EnrolledAdminAsync();
+        var challenge = (await LoginAsync(email)).GetProperty("mfaToken").GetString()!;
+        var code = CodeAt(secret, 1);
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 12).Select(_ => VerifyAsync(challenge, code)));
+
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.OK));
+    }
 }

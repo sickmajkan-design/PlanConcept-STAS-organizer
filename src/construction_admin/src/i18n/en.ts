@@ -5015,6 +5015,8 @@ export const en = {
   'releaseNotes.uptime1114.card': 'A new Application availability card shows how much of the last 30 days the application was up and every outage longer than 3 minutes, even when the whole server went down. The card also gives the address an outside monitoring service (e.g. UptimeRobot) should check (an outside monitor is now set up; the free plan checks every 5 minutes).',
   'releaseNotes.notices1114.title': 'Notices about trouble on the server',
   'releaseNotes.notices1114.card': 'On the Server status page a new Server notices card chooses who tells you and how: by e-mail, push or both, separately for each kind of problem (full disk, server was unavailable, no nightly backup, antivirus down, messages not being sent). The server checks every few minutes and repeats the same problem at most every 6 hours. The Send a test notice button shows what it looks like.',
+  'releaseNotes.signin1115.title': 'Stricter sign-in protection',
+  'releaseNotes.signin1115.once': 'A recovery code, a two-step sign-in challenge, a password reset link and an account invitation now work exactly once, even when the same request is sent several times at the same moment. Before, such a simultaneous request could succeed more than once. Ordinary users notice no difference.',
   'releaseNotes.docker1114.title': 'Docker and releases on the Server status page',
   'releaseNotes.docker1114.card': 'A new Docker and releases card shows which containers are running and with which version, how many images there are, how much can be freed and when the last nightly clean-up was. If a container is not running, the top of the page says so. A small script on the server writes the data every 5 minutes, so the application never touches Docker.',
   'releaseNotes.docker1114.cert': 'Below it is an HTTPS certificate card: until when it is valid and who issued it. If it expires in under 2 weeks, a warning shows at the top of the page and arrives by e-mail (once a day).',
@@ -5230,8 +5232,6 @@ export const en = {
   'serverStatus.documentsValue': '{count} files, {size}',
   'serverStatus.outboxPending': 'Messages waiting',
   'serverStatus.outboxAbandoned': 'Messages given up on',
-  'releaseNotes.bulkdelete1113.title': 'Deleting several documents at once',
-  'releaseNotes.bulkdelete1113.pick': 'On the Documents page you can now tick several documents and delete them for good with one click: the file on the server and the record, no trace. Documents still under a retention date are skipped. The steps are in the guide Deleting documents and cleaning the server (Ctrl+K).',
 } as const;
 
 export type MessageKey = keyof typeof en;
