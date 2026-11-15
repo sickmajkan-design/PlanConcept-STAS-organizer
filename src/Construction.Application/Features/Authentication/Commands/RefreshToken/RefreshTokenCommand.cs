@@ -61,12 +61,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
         if (storedToken.RevokedAt is not null)
         {
-            // Reuse of a rotated token indicates the token may have been stolen.
-            // Revoke every active token for the user to force a fresh login everywhere.
-            await RevokeAllActiveTokensAsync(storedToken.UserId, request.IpAddress, utcNow, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            throw new UnauthorizedException(InvalidTokenMessage);
+            await TreatAsReuseAsync(storedToken.UserId, request.IpAddress, utcNow, cancellationToken);
         }
 
         if (storedToken.ExpiresAt <= utcNow || !storedToken.User.IsActive)
@@ -74,15 +69,47 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             throw new UnauthorizedException(InvalidTokenMessage);
         }
 
+        // The token is claimed in one statement ("revoke it where it is still active") BEFORE a new pair is issued, so of
+        // any number of requests that present it at the same moment exactly one rotates it. Reading it as active and
+        // revoking it later let every one of them through, each with a fresh pair. The clients refresh one request at a
+        // time (the panel across tabs too), so a second request with the same token is the same thing as a replay of a
+        // rotated one, and gets the same answer.
+        var claimed = await _context.RefreshTokens
+            .Where(rt => rt.Id == storedToken.Id && rt.RevokedAt == null)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(rt => rt.RevokedAt, utcNow)
+                    .SetProperty(rt => rt.RevokedByIp, request.IpAddress),
+                cancellationToken);
+
+        if (claimed != 1)
+        {
+            await TreatAsReuseAsync(storedToken.UserId, request.IpAddress, utcNow, cancellationToken);
+        }
+
         var response = _authTokenService.IssueTokens(storedToken.User, request.IpAddress, out var newToken);
 
-        storedToken.RevokedAt = utcNow;
-        storedToken.RevokedByIp = request.IpAddress;
         storedToken.ReplacedByTokenHash = newToken.TokenHash;
 
         await _context.SaveChangesAsync(cancellationToken);
 
         return response;
+    }
+
+    /// <summary>
+    /// Reuse of a rotated token indicates the token may have been stolen. Revoke every active token for the user to force
+    /// a fresh login everywhere, then refuse. Always throws.
+    /// </summary>
+    private async Task TreatAsReuseAsync(
+        Guid userId,
+        string? ipAddress,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
+    {
+        await RevokeAllActiveTokensAsync(userId, ipAddress, utcNow, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        throw new UnauthorizedException(InvalidTokenMessage);
     }
 
     private async Task RevokeAllActiveTokensAsync(

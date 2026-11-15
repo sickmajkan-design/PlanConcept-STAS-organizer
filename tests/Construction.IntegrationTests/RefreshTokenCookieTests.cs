@@ -199,6 +199,27 @@ public class RefreshTokenCookieTests
     }
 
     [Fact]
+    public async Task One_refresh_token_presented_many_times_at_once_rotates_only_once()
+    {
+        var (email, _) = await _api.SeedSignInAccountAsync(UserRole.Worker);
+
+        using var client = _api.ClientWithoutCookieJar();
+        var (_, login) = await SignInAsync(client, email, wantCookie: false);
+        var token = login.GetProperty("refreshToken").GetString()!;
+
+        // Over real HTTP, because the race is between requests: in-process calls finish one after the other.
+        var responses = await Task.WhenAll(Enumerable.Range(0, 12).Select(_ =>
+            client.PostAsJsonAsync("/api/v1/auth/refresh", new { refreshToken = token })));
+
+        // Exactly one request rotates the token. The others are what a replay of a rotated token is: refused (the
+        // clients never send two at once).
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.OK));
+        Assert.All(
+            responses.Where(r => r.StatusCode != HttpStatusCode.OK),
+            r => Assert.Equal(HttpStatusCode.Unauthorized, r.StatusCode));
+    }
+
+    [Fact]
     public async Task Refreshing_without_a_cookie_or_a_body_token_is_refused()
     {
         using var client = _api.ClientWithoutCookieJar();
