@@ -37,11 +37,14 @@ public class GetAttachmentsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _clock;
 
     public GetAttachmentsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider clock)
     {
+        _clock = clock;
         _context = context;
         _currentUserService = currentUserService;
     }
@@ -83,6 +86,14 @@ public class GetAttachmentsQueryHandler
         {
             throw new ForbiddenAccessException(
                 "You may not view the files on this record.");
+        }
+
+        // A foreman or project manager reads the documents of their own sites only; "not found" says nothing about the others.
+        var ownSites = await AttachmentSiteScope.OwnProjectsAsync(_context, _currentUserService, _clock, cancellationToken);
+        if (!await AttachmentSiteScope.AllowsOwnerAsync(
+                _context, ownSites, _currentUserService.EmployeeId, request.OwnerType, request.OwnerId, cancellationToken))
+        {
+            throw new NotFoundException(request.OwnerType.ToString(), request.OwnerId);
         }
 
         // The documents of the book are behind its own grant, on top of the role.

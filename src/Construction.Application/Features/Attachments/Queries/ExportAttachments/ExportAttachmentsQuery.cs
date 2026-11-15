@@ -96,6 +96,10 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
                 a.StorageKey,
                 a.EmployeeId,
                 a.SharedWithEmployee,
+                a.ProjectId,
+                a.WorkItemId,
+                WorkItemProjectId = a.WorkItem != null ? a.WorkItem.ProjectId : null,
+                WorkItemAssignee = a.WorkItem != null ? a.WorkItem.AssignedEmployeeId : null,
                 VehicleDriverId = a.Vehicle != null ? a.Vehicle.AssignedEmployeeId : null
             })
             .ToDictionaryAsync(a => a.Id, cancellationToken);
@@ -107,6 +111,10 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
                 stored[d.Id].StorageKey,
                 stored[d.Id].EmployeeId,
                 stored[d.Id].SharedWithEmployee,
+                stored[d.Id].ProjectId,
+                stored[d.Id].WorkItemId,
+                stored[d.Id].WorkItemProjectId,
+                stored[d.Id].WorkItemAssignee,
                 stored[d.Id].VehicleDriverId,
                 d.SizeBytes,
             })
@@ -114,8 +122,11 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
 
         var bookAccess = await Book.BookRules.HasAccessAsync(_context, _currentUserService, cancellationToken);
 
+        var ownSites = await AttachmentSiteScope.OwnProjectsAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+
         var readable = rows
             .Where(r => r.Dto.OwnerType != AttachmentOwnerType.BookEntry || bookAccess)
+            .Where(r => AttachmentSiteScope.Allows(ownSites, _currentUserService.EmployeeId, r.ProjectId, r.WorkItemId, r.WorkItemProjectId, r.WorkItemAssignee))
             .Where(r =>
                 AttachmentRules.CanRead(_currentUserService.Role, r.Dto.OwnerType)
                 // Own card or own van: only what the office shared.

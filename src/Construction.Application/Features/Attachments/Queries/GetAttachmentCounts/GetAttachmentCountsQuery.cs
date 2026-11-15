@@ -80,6 +80,14 @@ public class GetAttachmentCountsQueryHandler
             _ => throw new ConflictException("Counts are available for employees, projects, vehicles, tools, housing and book entries.")
         };
 
+        // Project counts cover the caller's own sites only.
+        if (request.OwnerType == AttachmentOwnerType.Project
+            && await AttachmentSiteScope.OwnProjectsAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken) is { } ownSites)
+        {
+            var ids = ownSites.ToList();
+            owned = owned.Where(a => ids.Contains(a.Owner));
+        }
+
         return await owned
             .GroupBy(a => a.Owner)
             .Select(g => new AttachmentCountDto

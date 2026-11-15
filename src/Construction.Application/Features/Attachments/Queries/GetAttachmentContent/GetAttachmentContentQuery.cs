@@ -55,6 +55,15 @@ public class GetAttachmentContentQueryHandler
             || await IsOnOwnWorkItemAsync(attachment, cancellationToken)
             || await IsOnOwnRefundAsync(attachment, cancellationToken);
 
+        if (allowed && ownerType is AttachmentOwnerType.Project or AttachmentOwnerType.WorkItem)
+        {
+            var ownSites = await AttachmentSiteScope.OwnProjectsAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+            allowed = await AttachmentSiteScope.AllowsOwnerAsync(
+                _context, ownSites, _currentUserService.EmployeeId, ownerType,
+                ownerType == AttachmentOwnerType.Project ? attachment.ProjectId!.Value : attachment.WorkItemId!.Value,
+                cancellationToken);
+        }
+
         if (allowed && ownerType == AttachmentOwnerType.BookEntry)
         {
             allowed = await Book.BookRules.HasAccessAsync(_context, _currentUserService, cancellationToken);

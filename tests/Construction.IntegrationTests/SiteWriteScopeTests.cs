@@ -1,4 +1,8 @@
 using Construction.Application.Common.Exceptions;
+using Construction.Application.Features.Attachments;
+using Construction.Application.Features.Attachments.Commands.UploadAttachment;
+using Construction.Application.Features.Attachments.Queries.GetAttachmentContent;
+using Construction.Application.Features.Attachments.Queries.GetAttachments;
 using Construction.Application.Features.Materials.Commands.AdjustMaterialQuantity;
 using Construction.Application.Features.TimeEntries.Commands.DeleteTimeEntry;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntryById;
@@ -127,5 +131,38 @@ public class SiteWriteScopeTests : IntegrationTestBase
 
         var changed = await AsForeman(s, scope => scope.Send(new ChangeWorkItemStatusCommand { Id = own, Status = WorkItemStatus.Resolved }));
         Assert.Equal(WorkItemStatus.Resolved, changed.Status);
+    }
+
+    [Fact]
+    public async Task A_foreman_reads_the_documents_of_their_own_site_and_not_of_another()
+    {
+        var s = await SeedAsync();
+
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        async Task<Guid> UploadTo(Guid projectId) => await InScope(async scope =>
+        {
+            scope.CurrentUser.SignInAs(admin.Id, UserRole.Admin, null, admin.Email);
+            var bytes = System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 plan");
+            return (await scope.Send(new UploadAttachmentCommand
+            {
+                OwnerType = AttachmentOwnerType.Project,
+                OwnerId = projectId,
+                Category = AttachmentCategory.Contract,
+                FileName = "plan.pdf",
+                SizeBytes = bytes.Length,
+                Content = new MemoryStream(bytes),
+            })).Id;
+        });
+
+        var mine = await UploadTo(s.Mine.Id);
+        var other = await UploadTo(s.Other.Id);
+
+        Assert.Single(await AsForeman(s, scope => scope.Send(new GetAttachmentsQuery { OwnerType = AttachmentOwnerType.Project, OwnerId = s.Mine.Id })));
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            AsForeman(s, scope => scope.Send(new GetAttachmentsQuery { OwnerType = AttachmentOwnerType.Project, OwnerId = s.Other.Id })));
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            AsForeman(s, scope => scope.Send(new GetAttachmentContentQuery(other))));
+        Assert.NotNull(await AsForeman(s, scope => scope.Send(new GetAttachmentContentQuery(mine))));
     }
 }
