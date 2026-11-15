@@ -87,6 +87,9 @@ public sealed class ApiFixture : IAsyncLifetime
                 // in AuthRateLimitConfigurationTests, with a tiny limit.
                 builder.UseSetting("Auth:RateLimit:AuthenticatedPermitLimit", "1000000");
                 builder.UseSetting("Auth:RateLimit:AnonymousPermitLimit", "1000000");
+                // The credentials limiter too (120 a minute): the suite signs in per test case, and by now the run
+                // is long enough to spend the window and read 429 where a sign-in was expected.
+                builder.UseSetting("Auth:RateLimit:PermitLimit", "1000000");
 
                 builder.ConfigureServices(services =>
                 {
