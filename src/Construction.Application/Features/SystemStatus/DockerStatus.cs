@@ -100,6 +100,9 @@ public interface IDockerStatusReader
 
     /// <summary>The raw lines of <c>metrics.log</c>, or null when the host script has not written it.</summary>
     string? ReadMetricsLog();
+
+    /// <summary>The raw <c>bans.txt</c> (what fail2ban did on the host), or null when the host script has not written it.</summary>
+    string? ReadBans();
 }
 
 public static class DockerStatusParser

@@ -46,6 +46,15 @@ public class SystemController : ApiControllerBase
         return Ok(await Mediator.Send(new GetServerErrorsQuery(), cancellationToken));
     }
 
+    /// <summary>Failed sign-ins of the last seven days (by day, reason, address and account) and what fail2ban did on the host.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/login-attempts")]
+    [HttpGet("/api/system/login-attempts")]
+    [ProducesResponseType(typeof(LoginAttemptsDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<LoginAttemptsDto>> LoginAttempts(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetLoginAttemptsQuery(), cancellationToken));
+    }
+
     /// <summary>Where each kind of server trouble is announced (e-mail, push) and when it last was.</summary>
     [HttpGet("/api/v{version:apiVersion}/system/alerts")]
     [HttpGet("/api/system/alerts")]

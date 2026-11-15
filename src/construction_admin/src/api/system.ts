@@ -193,6 +193,16 @@ export interface ServerErrorGroup {
   firstVersion: string;
 }
 
+export interface LoginAttempts {
+  last24Hours: number;
+  last7Days: number;
+  days: { day: string; count: number }[];
+  reasons: { reason: string; count: number }[];
+  topIps: { ip: string; count: number; accounts: number; lastAtUtc: string }[];
+  topAccounts: { email: string; count: number }[];
+  ssh: { known: boolean; bannedNow: number; bannedTotal: number; failedTotal: number; bannedIps: string[] };
+}
+
 export type ServerAlertKey =
   | 'disk'
   | 'outage'
@@ -214,6 +224,7 @@ export interface ServerAlertSetting {
 export const systemApi = {
   metrics: () => request<ServerMetrics>({ method: 'GET', url: '/api/v1/system/metrics' }),
   errors: () => request<ServerErrorGroup[]>({ method: 'GET', url: '/api/v1/system/errors' }),
+  loginAttempts: () => request<LoginAttempts>({ method: 'GET', url: '/api/v1/system/login-attempts' }),
   alerts: () => request<ServerAlertSetting[]>({ method: 'GET', url: '/api/v1/system/alerts' }),
   setAlert: (key: ServerAlertKey, channels: { emailEnabled: boolean; pushEnabled: boolean }) =>
     request<void>({ method: 'PUT', url: `/api/v1/system/alerts/${key}`, data: channels }),

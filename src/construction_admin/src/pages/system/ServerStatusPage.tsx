@@ -18,6 +18,7 @@ import { formatSize } from '../../features/system/formatSize';
 import { serverAlerts, worstTone, type AlertTone } from '../../features/system/serverStatusAlerts';
 import { ServerAlertsCard } from '../../features/system/ServerAlertsCard';
 import { ServerErrorsCard, ServerErrorsTile } from '../../features/system/ServerErrorsCard';
+import { ServerLoginsCard } from '../../features/system/ServerLoginsCard';
 import { ServerMetricsCard } from '../../features/system/ServerMetricsCard';
 import { MetricTiles, StatusHero } from '../../features/system/ServerOverview';
 import { containerUptime } from '../../features/system/overviewMath';
@@ -166,6 +167,9 @@ export function ServerStatusPage() {
             </Grid>
             <Grid size={12}>
               <ServerErrorsCard />
+            </Grid>
+            <Grid size={12}>
+              <ServerLoginsCard />
             </Grid>
             <Grid size={12}>
               <ServerAlertsCard />

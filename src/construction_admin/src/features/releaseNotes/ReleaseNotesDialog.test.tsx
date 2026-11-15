@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Application availability on the Server status page');
+    await screen.findByText('Sign-in attempts on the Server status page');
     expect(screen.getByText('Foremen and project managers change only their own sites')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

@@ -43,6 +43,19 @@ fi
   echo "ports=$(ss -tlnH 2>/dev/null | awk '{print $4}' | grep -vE '^(127\.|\[?::1\]?)' | sed 's/.*://' | sort -un | paste -sd, - || true)"
   if command -v ufw > /dev/null 2>&1; then echo "firewall=$(ufw status 2>/dev/null | head -1 | awk '{print tolower($2)}')"; else echo firewall=missing; fi
 } | put security.txt
+# What fail2ban has done to the SSH door: banned now, banned in total, failed attempts seen, and the banned addresses (read-only).
+if [ "$(systemctl is-active fail2ban 2>/dev/null || true)" = active ]; then
+  f2b="$(fail2ban-client status sshd 2>/dev/null || true)"
+  if [ -n "$f2b" ]; then
+    num() { printf '%s\n' "$f2b" | sed -n "s/.*$1:[[:space:]]*\([0-9]*\).*/\1/p" | head -n 1; }
+    {
+      echo "banned_now=$(num 'Currently banned')"
+      echo "banned_total=$(num 'Total banned')"
+      echo "failed_total=$(num 'Total failed')"
+      echo "ips=$(printf '%s\n' "$f2b" | sed -n 's/.*Banned IP list:[[:space:]]*//p' | head -n 1 | tr -s ' ' ',' | sed 's/,$//')"
+    } | put bans.txt
+  fi
+fi
 # One sample for the load charts: time | 1-minute load | cores | memory used % | disk used %. Seven days at one per five
 # minutes is about 2000 lines; the file is cut to the last 2100.
 metrics="$dir/metrics.log"

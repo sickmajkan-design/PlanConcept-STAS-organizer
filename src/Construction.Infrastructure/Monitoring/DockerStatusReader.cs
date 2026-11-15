@@ -51,6 +51,18 @@ public sealed class DockerStatusReader : IDockerStatusReader
         }
     }
 
+    public string? ReadBans()
+    {
+        try
+        {
+            return ReadOrNull("bans.txt");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     private string? ReadOrNull(string name)
     {
         var path = Path.Combine(_directory, name);
