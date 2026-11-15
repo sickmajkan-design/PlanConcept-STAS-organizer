@@ -1,5 +1,8 @@
+import ArrowForwardIosRounded from '@mui/icons-material/ArrowForwardIosRounded';
+import CleaningServicesOutlined from '@mui/icons-material/CleaningServicesOutlined';
+import MonitorHeartOutlined from '@mui/icons-material/MonitorHeartOutlined';
 import StorageOutlined from '@mui/icons-material/StorageOutlined';
-import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography, alpha } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
@@ -11,6 +14,18 @@ import { StorageCleanupDialog } from './StorageCleanupDialog';
 import { formatSize } from './formatSize';
 
 const TONE = { 0: 'success', 1: 'warning', 2: 'error' } as const;
+
+/** Pill buttons in the style of the server page: round, quiet, and a little press on touch (only transform, so it stays smooth). */
+const pill = {
+  borderRadius: 999,
+  px: 1.75,
+  py: 0.5,
+  fontWeight: 600,
+  textTransform: 'none',
+  transition: 'transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease',
+  '&:active': { transform: 'scale(0.97)' },
+  '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active': { transform: 'none' } },
+} as const;
 
 /**
  * How much room the server has left, always on screen for the Super Admin, so a disk that is filling up is noticed
@@ -41,16 +56,35 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
   return (
     <Card variant="outlined" sx={{ mb: 2 }} data-testid="storage-card">
       <CardContent>
-        <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: 'center' }}>
+        <Stack direction="row" sx={{ mb: 1, alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <StorageOutlined fontSize="small" color="action" />
           <Typography variant="subtitle1" sx={{ flex: 1 }}>
             {t('storage.title')}
           </Typography>
           {status.known && <Chip size="small" color={tone} label={levelLabel} />}
-          <Button size="small" component={RouterLink} to={paths.system}>
+          <Button
+            size="small"
+            component={RouterLink}
+            to={paths.system}
+            startIcon={<MonitorHeartOutlined fontSize="small" />}
+            endIcon={<ArrowForwardIosRounded sx={{ fontSize: '12px !important' }} />}
+            sx={(theme) => ({
+              ...pill,
+              color: 'primary.main',
+              bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.1),
+              '&:hover': { bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.26 : 0.16) },
+            })}
+          >
             {t('storage.details')}
           </Button>
-          <Button size="small" variant="outlined" onClick={() => setCleaning(true)}>
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={() => setCleaning(true)}
+            startIcon={<CleaningServicesOutlined fontSize="small" />}
+            sx={{ ...pill, borderColor: 'divider' }}
+          >
             {t('storage.cleanup.open')}
           </Button>
         </Stack>
