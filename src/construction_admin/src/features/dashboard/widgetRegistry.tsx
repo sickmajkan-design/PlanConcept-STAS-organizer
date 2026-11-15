@@ -6,6 +6,7 @@ import {
   canViewDirectory,
   canViewFinance,
   canViewFinanceStatistics,
+  isSuperAdmin,
 } from '../../auth/authHelpers';
 import type { User } from '../../api/types';
 
@@ -29,6 +30,7 @@ import { ProjectFocusWidget } from './widgets/ProjectFocusWidget';
 import { ProjectsOverBudgetWidget } from './widgets/ProjectsOverBudgetWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
 import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
+import { ServerBackupsWidget, ServerHealthWidget, ServerResourcesWidget, ServerSignInsWidget } from './widgets/ServerWidgets';
 import { TopProjectsByExpenseWidget } from './widgets/TopProjectsByExpenseWidget';
 import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 
@@ -191,6 +193,38 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
     fit: true,
     // The units, their heads and their head counts: the same people who may open the directory.
     allowed: canViewDirectory,
+  },
+  ServerHealth: {
+    component: ServerHealthWidget,
+    titleKey: 'dashboard.widget.ServerHealth',
+    help: 'widgeti-server',
+    fit: true,
+    // Everything these read is the Super Admin's own server page.
+    allowed: isSuperAdmin,
+  },
+  ServerResources: {
+    component: ServerResourcesWidget,
+    titleKey: 'dashboard.widget.ServerResources',
+    help: 'widgeti-server',
+    fit: true,
+    // Everything these read is the Super Admin's own server page.
+    allowed: isSuperAdmin,
+  },
+  ServerBackups: {
+    component: ServerBackupsWidget,
+    titleKey: 'dashboard.widget.ServerBackups',
+    help: 'widgeti-server',
+    fit: true,
+    // Everything these read is the Super Admin's own server page.
+    allowed: isSuperAdmin,
+  },
+  ServerSignIns: {
+    component: ServerSignInsWidget,
+    titleKey: 'dashboard.widget.ServerSignIns',
+    help: 'widgeti-server',
+    fit: true,
+    // Everything these read is the Super Admin's own server page.
+    allowed: isSuperAdmin,
   },
 };
 

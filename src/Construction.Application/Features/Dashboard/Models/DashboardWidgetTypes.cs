@@ -33,6 +33,10 @@ public static class DashboardWidgetTypes
     public const string BranchOverview = nameof(BranchOverview);
     public const string WeeklyReports = nameof(WeeklyReports);
     public const string Finance = nameof(Finance);
+    public const string ServerHealth = nameof(ServerHealth);
+    public const string ServerResources = nameof(ServerResources);
+    public const string ServerBackups = nameof(ServerBackups);
+    public const string ServerSignIns = nameof(ServerSignIns);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -56,6 +60,10 @@ public static class DashboardWidgetTypes
         ArticleOrders,
         BranchOverview,
         WeeklyReports,
+        ServerHealth,
+        ServerResources,
+        ServerBackups,
+        ServerSignIns,
     ];
 
     /// <summary>

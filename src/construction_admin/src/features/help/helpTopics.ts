@@ -296,6 +296,40 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'widgeti-server',
+    group: 'account',
+    path: paths.home,
+    audience: (user) => isSuperAdmin(user),
+    content: {
+      sr: {
+        title: 'Widgeti: server',
+        summary: 'Četiri widgeta za Super Admina koji prate server s početne stranice: stanje, procesor, memorija i disk, rezervne kopije te prijave i greške.',
+        steps: [
+          'Stanje servera. Jedna rečenica o tome da li je server u redu, uz ono što može da padne. Kako se računa: Rečenica dolazi s iste liste upozorenja kao stranica Stanje servera (pun disk, server nije dostupan, nema noćne kopije, antivirus ne radi, poruke se ne šalju, certifikat ističe). Tačke pokazuju bazu, antivirus i red poruka. Dostupnost je koliko je aplikacija radila u poslednjih 30 dana, po otkucajima koje sama upisuje svakog minuta.',
+          'Procesor, memorija i disk. Tri prstena koji pokazuju šta se puni. Kako se računa: Procesor je opterećenje u poslednjem minutu po jezgru (100% znači da su sva jezgra zauzeta); memorija je zauzeta memorija računara; disk je zauzeti prostor. Žuto i crveno se javljaju kad se približi granici, a disk ima i granice upozorenja koje važe za obavještenje o punom disku.',
+          'Rezervne kopije. Da se vidi bez otvaranja stranice da li kopije rade. Kako se računa: Poslednja kopija je najnovija na serveru (crveno kad je starija od 36 sati); izvan servera znači da postoji provjerena kopija na drugom mjestu; vraćanje je poslednja uspješna probna rekonstrukcija, koja se radi sama svake nedjelje.',
+          'Prijave i greške servera. Napadi i kvarovi na jednom mjestu. Kako se računa: Neuspjele prijave su pokušaji prijave u poslednja 24 sata (pogrešna lozinka, nepoznat nalog, zaključan nalog, pogrešan kod druge provjere); blokirane SSH adrese su one koje fail2ban trenutno drži; greške danas su neočekivane greške servera od ponoći. Detalji su na stranici Stanje servera.',
+        ],
+        example: 'Na početnoj stranici vidite žutu tačku na rezervnim kopijama: poslednja je stara dva dana. Pritisak na „Otvori stanje servera“ pokazuje zašto.',
+        tips: ['Widgeti se dodaju na „Dodaj widget“ i vide ih samo Super Admini. Osvježavaju se sami.', 'Ako ne vidite podatke o kopijama ili SSH-u, skript na serveru još nije javio stanje.'],
+        keywords: ['server', 'widget', 'disk', 'memorija', 'kopije', 'prijave', 'greške', 'procesor'],
+      },
+      en: {
+        title: 'Widgets: server',
+        summary: 'Four widgets for the Super Admin that watch the server from the home page: status, processor, memory and disk, backups, and sign-ins and errors.',
+        steps: [
+          'Server status. One sentence on whether the server is all right, with what can be down. How it is counted: The sentence comes from the same list of notices as the Server status page (full disk, server unavailable, no nightly backup, antivirus not working, messages not going out, certificate running out). The dots show the database, the antivirus and the message queue. Availability is how much of the last 30 days the application was running, by the heartbeats it writes itself every minute.',
+          'Processor, memory and disk. Three rings that show what is filling up. How it is counted: Processor is the load of the last minute per core (100% means all cores are busy); memory is the machine\'s memory in use; disk is the space in use. Yellow and red appear as a limit nears, and the disk has the same limits as the full-disk notice.',
+          'Backups. To see without opening the page whether backups are working. How it is counted: The last backup is the newest one on the server (red when older than 36 hours); off the server means a verified copy exists elsewhere; the restore is the last successful rehearsal, which runs by itself every Sunday.',
+          'Server sign-ins and errors. Attacks and faults in one place. How it is counted: Failed sign-ins are sign-in attempts in the last 24 hours (wrong password, unknown account, locked account, wrong second-step code); blocked SSH addresses are those fail2ban holds right now; errors today are unexpected server errors since midnight. The detail is on the Server status page.',
+        ],
+        example: 'On the home page you see a yellow dot on Backups: the last one is two days old. Pressing "Open server status" shows why.',
+        tips: ['Add the widgets with "Add widget"; only Super Admins see them. They refresh by themselves.', 'If the backups or SSH figures are missing, the script on the server has not reported yet.'],
+        keywords: ['server', 'widget', 'disk', 'memory', 'backups', 'sign-ins', 'errors', 'processor'],
+      },
+    },
+  },
+  {
     id: 'server-stanje',
     group: 'account',
     path: paths.system,

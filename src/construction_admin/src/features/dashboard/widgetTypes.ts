@@ -20,6 +20,10 @@ export const dashboardWidgetTypes = [
   'ArticleOrders',
   'BranchOverview',
   'WeeklyReports',
+  'ServerHealth',
+  'ServerResources',
+  'ServerBackups',
+  'ServerSignIns',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];

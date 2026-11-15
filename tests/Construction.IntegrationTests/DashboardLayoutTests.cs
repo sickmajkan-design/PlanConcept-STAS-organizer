@@ -56,6 +56,19 @@ public class DashboardLayoutTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_four_server_widgets_can_be_saved_and_are_not_on_a_first_board()
+    {
+        var layout = await SaveThenReadAsync(
+            Widget(DashboardWidgetTypes.ServerHealth, 0, 0),
+            Widget(DashboardWidgetTypes.ServerResources, 6, 0),
+            Widget(DashboardWidgetTypes.ServerBackups, 0, 12),
+            Widget(DashboardWidgetTypes.ServerSignIns, 6, 12));
+
+        Assert.Equal(4, layout.Widgets.Count);
+        Assert.DoesNotContain(DashboardWidgetTypes.ServerHealth, DashboardWidgetTypes.Default);
+    }
+
+    [Fact]
     public async Task Five_old_finance_cards_become_one_in_the_place_of_the_first()
     {
         var layout = await SaveThenReadAsync(
