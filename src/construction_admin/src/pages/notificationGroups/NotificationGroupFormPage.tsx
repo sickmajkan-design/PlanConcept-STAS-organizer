@@ -137,7 +137,7 @@ export function NotificationGroupFormPage() {
                     labelId="ng-members-label"
                     input={<OutlinedInput label={t('notificationGroups.members')} />}
                     renderValue={(selected) => (
-                      <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                      <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                         {(selected as string[]).map((employeeId) => (
                           <Chip
                             key={employeeId}

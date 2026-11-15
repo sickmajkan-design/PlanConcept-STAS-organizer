@@ -311,7 +311,7 @@ export function ReportReviewDialog({
     <Dialog open={!!reportId} onClose={onClose} fullWidth maxWidth="xl" scroll="paper">
       <DialogTitle sx={{ pb: 1 }}>
         {detail ? (
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
             <span>
               {detail.projectName} · {formatIsoWeek(detail.isoYear, detail.isoWeek)}
             </span>
@@ -355,7 +355,7 @@ export function ReportReviewDialog({
           >
             {/* The pictures */}
             <Stack spacing={1} sx={{ minWidth: 0 }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Stack direction="row" sx={{ gap: 1, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <ButtonGroup size="small" aria-label={t('weeklyReports.review.pages')}>
                   {pages.map((p, index) => (
                     <Button

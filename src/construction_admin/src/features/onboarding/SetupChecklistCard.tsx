@@ -297,8 +297,7 @@ export function SetupChecklistCard() {
                   <Stack
                     key={step.id}
                     direction="row"
-                    spacing={1.5}
-                    sx={{
+                    sx={{ gap: 1.5,
                       alignItems: 'center',
                       // On a phone the buttons go under the text instead of squeezing it.
                       flexWrap: 'wrap',

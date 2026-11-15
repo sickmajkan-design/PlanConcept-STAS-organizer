@@ -504,7 +504,7 @@ export function ProjectFormPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 8 }}>
-                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Stack direction="row" sx={{ gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                   <Controller
                     name="worksSaturdays"
                     control={control}

@@ -63,6 +63,17 @@ export function buildTheme(mode: 'light' | 'dark') {
     ].join(','),
   },
   components: {
+    MuiAlert: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          [theme.breakpoints.down('sm')]: {
+            flexWrap: 'wrap',
+            '& .MuiAlert-message': { flex: '1 1 0', minWidth: 0 },
+            '& .MuiAlert-action': { flex: '1 0 100%', justifyContent: 'flex-end', margin: 0, padding: theme.spacing(0.5, 0, 0) },
+          },
+        }),
+      },
+    },
     MuiButton: {
       styleOverrides: {
         // A button title is one line, always: a title that wraps looks broken. The room around it gives way instead.

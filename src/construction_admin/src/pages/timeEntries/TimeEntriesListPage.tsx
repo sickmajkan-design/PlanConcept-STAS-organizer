@@ -271,10 +271,9 @@ export function TimeEntriesListPage() {
 
       <Stack
         direction="row"
-        spacing={2}
-        sx={{ mb: 1.5, alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
+        sx={{ gap: 2, mb: 1.5, alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
       >
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', width: { xs: '100%', sm: 'auto' } }}>
           <IconButton size="small" onClick={() => setDate((d) => shiftDate(d, -1))}>
             <ChevronLeftOutlined fontSize="small" />
           </IconButton>
@@ -284,6 +283,7 @@ export function TimeEntriesListPage() {
             value={date}
             onChange={(event) => event.target.value && setDate(event.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ flex: { xs: 1, sm: 'none' } }}
           />
           <IconButton size="small" onClick={() => setDate((d) => shiftDate(d, 1))}>
             <ChevronRightOutlined fontSize="small" />
@@ -312,6 +312,7 @@ export function TimeEntriesListPage() {
             variant="outlined"
             startIcon={<PlaylistAddCheckOutlined fontSize="small" />}
             onClick={() => setReviewQueueOpen(true)}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             {t('timeEntries.reviewQueue')}
           </Button>

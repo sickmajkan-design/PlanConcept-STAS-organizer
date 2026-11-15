@@ -582,7 +582,7 @@ function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; on
         >
           <Typography variant="body2">{text(c)}</Typography>
           {onOpen && (
-            <Button size="small" onClick={() => onOpen(c)}>
+            <Button size="small" onClick={() => onOpen(c)} sx={{ ml: { xs: -2, sm: 0 } }}>
               {t('planning.conflict.open')}
             </Button>
           )}

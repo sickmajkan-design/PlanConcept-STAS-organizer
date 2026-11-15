@@ -163,7 +163,7 @@ export function EmployeesListPage() {
           return sites.length === 0 ? (
             <Chip size="small" variant="outlined" label={t('employees.unassigned')} />
           ) : (
-            <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, py: 0.5 }}>
+            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, py: 0.5 }}>
               {sites.map((name) => (
                 <Chip key={name} size="small" color="success" label={name} />
               ))}

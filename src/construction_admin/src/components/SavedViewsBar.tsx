@@ -30,7 +30,7 @@ export function SavedViewsBar<TState>({
   };
 
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+    <Stack direction="row" sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
       {views.map((view) => (
         <Chip
           key={view.id}
@@ -46,6 +46,7 @@ export function SavedViewsBar<TState>({
         color="inherit"
         startIcon={<AddOutlined fontSize="small" />}
         onClick={(event) => setAnchorEl(event.currentTarget)}
+        sx={{ ml: views.length === 0 ? -1 : 0 }}
       >
         {t('savedViews.save')}
       </Button>

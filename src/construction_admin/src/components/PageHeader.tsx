@@ -51,10 +51,27 @@ export function PageHeader({
         )}
       </Box>
       {(action || secondaryActions) && (
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+            // On a phone, with quieter buttons beside the main one, the main action takes the first row and the
+            // others share the row under it, instead of a ragged line of different widths.
+            ...(secondaryActions
+              ? { width: { xs: '100%', sm: 'auto' }, '& > *': { flexGrow: { xs: 1, sm: 0 } } }
+              : {}),
+          }}
+        >
           {secondaryActions}
           {action && (
-            <Button variant="contained" startIcon={action.icon} onClick={action.onClick}>
+            <Button
+              variant="contained"
+              startIcon={action.icon}
+              onClick={action.onClick}
+              sx={secondaryActions ? { order: { xs: -1, sm: 0 }, flex: { xs: '1 1 100%', sm: 'none' } } : undefined}
+            >
               {action.label}
             </Button>
           )}

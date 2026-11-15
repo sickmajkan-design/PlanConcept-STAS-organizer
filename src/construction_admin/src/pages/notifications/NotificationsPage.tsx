@@ -161,8 +161,7 @@ export function NotificationsPage() {
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Stack
                   direction="row"
-                  spacing={1}
-                  sx={{ alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}
+                  sx={{ gap: 1, alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}
                 >
                   <Typography
                     variant="subtitle2"

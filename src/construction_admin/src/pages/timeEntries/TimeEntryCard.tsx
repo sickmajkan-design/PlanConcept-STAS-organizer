@@ -185,7 +185,7 @@ export function TimeEntryCard({
               {entry.projectName ? <ProjectLabel name={entry.projectName} projectId={entry.projectId} noWrap /> : t('timeEntries.noProject')}
             </Typography>
           )}
-          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
             <Chip size="small" variant="outlined" label={workTypeLabel} />
             <StatusChip status={entry.status} kind="timeEntryStatus" size="small" />
             {entry.autoClosed && (

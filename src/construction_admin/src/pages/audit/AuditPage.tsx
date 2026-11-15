@@ -165,7 +165,7 @@ export function AuditPage() {
 
       {isSuperAdmin(user) && <StorageCard />}
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap' }}>
+      <Stack direction="row" sx={{ gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <TextField
           size="small"
           label={t('audit.entityName')}
@@ -174,7 +174,7 @@ export function AuditPage() {
             setEntityName(event.target.value);
             resetToFirstPage();
           }}
-          sx={{ minWidth: 180 }}
+          sx={{ minWidth: 180, flex: { xs: '1 1 100%', sm: '0 1 auto' } }}
         />
         <TextField
           select
@@ -185,7 +185,7 @@ export function AuditPage() {
             setAction(event.target.value as AuditAction | '');
             resetToFirstPage();
           }}
-          sx={{ minWidth: 160 }}
+          sx={{ minWidth: 160, flex: { xs: '1 1 100%', sm: '0 1 auto' } }}
         >
           <MenuItem value="">{t('audit.allActions')}</MenuItem>
           {auditActions.map((value) => (
@@ -204,7 +204,7 @@ export function AuditPage() {
             resetToFirstPage();
           }}
           slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ minWidth: 160 }}
+          sx={{ minWidth: 140, flex: { xs: '1 1 calc(50% - 8px)', sm: '0 1 auto' } }}
         />
         <TextField
           type="date"
@@ -216,7 +216,7 @@ export function AuditPage() {
             resetToFirstPage();
           }}
           slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ minWidth: 160 }}
+          sx={{ minWidth: 140, flex: { xs: '1 1 calc(50% - 8px)', sm: '0 1 auto' } }}
         />
       </Stack>
 

@@ -56,12 +56,15 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
   return (
     <Card variant="outlined" sx={{ mb: 2 }} data-testid="storage-card">
       <CardContent>
-        <Stack direction="row" sx={{ mb: 1, alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <StorageOutlined fontSize="small" color="action" />
-          <Typography variant="subtitle1" sx={{ flex: 1 }}>
-            {t('storage.title')}
-          </Typography>
-          {status.known && <Chip size="small" color={tone} label={levelLabel} />}
+        <Stack direction="row" sx={{ mb: 1.5, alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flex: '1 1 auto', minWidth: 0 }}>
+            <StorageOutlined fontSize="small" color="action" />
+            <Typography variant="subtitle1" sx={{ flex: 1 }}>
+              {t('storage.title')}
+            </Typography>
+            {status.known && <Chip size="small" color={tone} label={levelLabel} />}
+          </Stack>
+          <Stack direction="row" sx={{ gap: 1, width: { xs: '100%', sm: 'auto' } }}>
           <Button
             size="small"
             component={RouterLink}
@@ -70,6 +73,8 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
             endIcon={<ArrowForwardIosRounded sx={{ fontSize: '12px !important' }} />}
             sx={(theme) => ({
               ...pill,
+              flex: { xs: 1, sm: 'none' },
+              justifyContent: 'center',
               color: 'primary.main',
               bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.1),
               '&:hover': { bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.26 : 0.16) },
@@ -83,10 +88,11 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
             color="inherit"
             onClick={() => setCleaning(true)}
             startIcon={<CleaningServicesOutlined fontSize="small" />}
-            sx={{ ...pill, borderColor: 'divider' }}
+            sx={{ ...pill, flex: { xs: 1, sm: 'none' }, borderColor: 'divider' }}
           >
             {t('storage.cleanup.open')}
           </Button>
+          </Stack>
         </Stack>
 
         {status.known ? (

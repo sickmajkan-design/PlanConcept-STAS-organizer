@@ -243,7 +243,7 @@ export function ExpiringDocumentsPage() {
         </FirstUseHint>
       </Box>
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1.5, alignItems: 'center' }}>
+      <Stack direction="row" sx={{ gap: 2, mb: 2, flexWrap: 'wrap', rowGap: 1.5, alignItems: 'center' }}>
         <TextField
           size="small"
           type="search"
