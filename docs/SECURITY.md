@@ -484,7 +484,7 @@ The `backup-data` volume is mounted **read-only** into the API at `/backups` (`B
 
 ### Availability on the status page (2026-11-14)
 
-`UptimeService` writes a heartbeat row (`service_heartbeats`, one row) every minute. At start-up, if the last heartbeat is more than 3 minutes old, the gap is stored in `service_outages`; so a stretch when the whole server was down is known afterwards, which nothing running on it could report at the time. A normal deploy restart is shorter than 3 minutes and is not counted. The status page shows availability for up to 30 days and the last 10 outages (`UptimeStatusDto`, computed in `GetServerStatusQueryHandler`). One API instance is assumed. For alerts while nobody looks, point an outside monitor (UptimeRobot or similar, every 2 minutes) at `https://<host>/health/ready`, which answers 200 while the database is reachable; the panel prints the address.
+`UptimeService` writes a heartbeat row (`service_heartbeats`, one row) every minute. At start-up, if the last heartbeat is more than 3 minutes old, the gap is stored in `service_outages`; so a stretch when the whole server was down is known afterwards, which nothing running on it could report at the time. A normal deploy restart is shorter than 3 minutes and is not counted. The status page shows availability for up to 30 days and the last 10 outages (`UptimeStatusDto`, computed in `GetServerStatusQueryHandler`). One API instance is assumed. For alerts while nobody looks, point an outside monitor (UptimeRobot or similar, as often as the plan allows, every 5 minutes on the free one) at `https://<host>/health/ready`, which answers 200 while the database is reachable; the panel prints the address.
 
 ### Server notices (2026-11-14)
 
