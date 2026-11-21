@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Models;
@@ -61,9 +62,14 @@ public class GetAbsenceBalanceQueryHandler : IRequestHandler<GetAbsenceBalanceQu
         var today = _dateTimeProvider.Today;
         var year = request.Year ?? today.Year;
 
+        // A foreman or project manager sees the balance of the people on their own sites (and their own).
+        var own = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
+
         var employee = await _context.Employees
             .AsNoTracking()
-            .Where(e => e.Id == employeeId)
+            .Where(e => e.Id == employeeId
+                && (own == null || e.Id == _currentUserService.EmployeeId
+                    || e.ProjectAssignments.Any(pa => own.Contains(pa.ProjectId) && (pa.EndDate == null || pa.EndDate > today))))
             .Select(e => new { e.AnnualLeaveDaysAllowance, e.EmploymentDate })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), employeeId);

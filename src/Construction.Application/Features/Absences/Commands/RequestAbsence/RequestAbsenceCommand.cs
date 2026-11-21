@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Models;
@@ -112,8 +113,15 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
             throw new ForbiddenAccessException("You may not grant leave.");
         }
 
+        // A foreman or project manager records leave for the people on their own sites; anybody else is "not found".
+        var today = _dateTimeProvider.Today;
+        var own = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
+
         var employeeExists = await _context.Employees
-            .AnyAsync(e => e.Id == employeeId, cancellationToken);
+            .AnyAsync(e => e.Id == employeeId
+                && (own == null || !forSomebodyElse
+                    || e.ProjectAssignments.Any(pa => own.Contains(pa.ProjectId) && (pa.EndDate == null || pa.EndDate > today))),
+                cancellationToken);
 
         if (!employeeExists)
         {
@@ -122,11 +130,11 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
 
         var status = request.Approve ? AbsenceStatus.Approved : AbsenceStatus.Requested;
 
-        if (status == AbsenceStatus.Approved)
-        {
-            await EnsureNoApprovedOverlapAsync(
-                employeeId, request.StartDate, request.EndDate, null, cancellationToken);
-        }
+        // Annual leave, sick leave and the rest exclude each other: a day is one thing. Granted leave blocks a new
+        // entry at once (to change a booking, edit it). Two unanswered requests may overlap, since a request is a
+        // question and somebody may have asked twice; the second one then cannot be granted.
+        await EnsureNoOverlapAsync(
+            _context, employeeId, request.StartDate, request.EndDate, null, includeWaiting: false, cancellationToken);
 
         var now = _dateTimeProvider.UtcNow;
 
@@ -184,18 +192,28 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
     /// This exists so the answer is a sentence; that exists so two approvals
     /// racing each other cannot both land.
     /// </remarks>
-    internal static async Task EnsureNoApprovedOverlapAsync(
+    internal static Task EnsureNoApprovedOverlapAsync(
         IApplicationDbContext context,
         Guid employeeId,
         DateOnly startDate,
         DateOnly endDate,
         Guid? excludeId,
+        CancellationToken cancellationToken) =>
+        EnsureNoOverlapAsync(context, employeeId, startDate, endDate, excludeId, includeWaiting: false, cancellationToken);
+
+    internal static async Task EnsureNoOverlapAsync(
+        IApplicationDbContext context,
+        Guid employeeId,
+        DateOnly startDate,
+        DateOnly endDate,
+        Guid? excludeId,
+        bool includeWaiting,
         CancellationToken cancellationToken)
     {
         var clashes = await context.Absences
             .AsNoTracking()
             .Where(a => a.EmployeeId == employeeId
-                && a.Status == AbsenceStatus.Approved
+                && (a.Status == AbsenceStatus.Approved || (includeWaiting && a.Status == AbsenceStatus.Requested))
                 && (excludeId == null || a.Id != excludeId)
                 && a.StartDate <= endDate
                 && a.EndDate >= startDate)
@@ -204,18 +222,9 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
         if (clashes)
         {
             throw new ConflictException(
-                "This employee already has approved time off over those dates.");
+                "This employee already has approved time off over those dates. Change that one instead of adding another.");
         }
     }
-
-    private Task EnsureNoApprovedOverlapAsync(
-        Guid employeeId,
-        DateOnly startDate,
-        DateOnly endDate,
-        Guid? excludeId,
-        CancellationToken cancellationToken) =>
-        EnsureNoApprovedOverlapAsync(
-            _context, employeeId, startDate, endDate, excludeId, cancellationToken);
 
     /// <summary>
     /// Tells everyone who could review this — same audience as

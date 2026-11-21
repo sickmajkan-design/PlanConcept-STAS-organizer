@@ -125,10 +125,29 @@ public class CustomerRulesEndToEndTests
     [Fact]
     public async Task A_foreman_may_record_leave_for_somebody_but_not_grant_it()
     {
-        var (foreman, _) = await FreshAccountAsync(UserRole.Foreman);
+        var (foreman, foremanUserId) = await FreshAccountAsync(UserRole.Foreman);
         var (_, workerId) = await FreshAccountAsync(UserRole.Worker);
         var employeeId = await _api.InScope(db =>
             db.Users.Where(u => u.Id == workerId).Select(u => u.EmployeeId).SingleAsync());
+
+        // A foreman records leave for the people on their own site: post both to one.
+        await _api.InScope(async db =>
+        {
+            var foremanEmployee = await db.Users.Where(u => u.Id == foremanUserId).Select(u => u.EmployeeId).SingleAsync();
+            var site = new Construction.Domain.Entities.Project { Name = $"Site {Guid.NewGuid():N}" };
+            db.Projects.Add(site);
+            await db.SaveChangesAsync();
+            foreach (var who in new[] { foremanEmployee!.Value, employeeId!.Value })
+            {
+                db.EmployeeProjects.Add(new Construction.Domain.Entities.EmployeeProject
+                {
+                    EmployeeId = who, ProjectId = site.Id, StartDate = new DateOnly(2000, 1, 1),
+                });
+            }
+
+            await db.SaveChangesAsync();
+            return true;
+        });
 
         var recorded = await RequestLeaveAsync(foreman, new { EmployeeId = employeeId });
         Assert.Equal("Requested", recorded.GetProperty("status").GetString());

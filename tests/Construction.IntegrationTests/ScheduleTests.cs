@@ -532,7 +532,9 @@ public class ScheduleTests : IntegrationTestBase
             return scope.Send(new GetAbsencesQuery { WaitingOnReviewer = true });
         });
 
-        Assert.Equal(new[] { undecided.Id }, waiting.Items.Select(a => a.Id).ToArray());
+        // Other tests leave waiting requests in the shared database, so check ours rather than the whole list.
+        Assert.Contains(waiting.Items, a => a.Id == undecided.Id);
+        Assert.DoesNotContain(waiting.Items, a => a.Id == granted.Id);
     }
 
     [Fact]

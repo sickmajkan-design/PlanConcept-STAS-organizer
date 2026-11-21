@@ -1,6 +1,8 @@
 using Construction.Application.Common.Security;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Common;
 using Construction.Application.Features.Branches;
+using Construction.Application.Features.Exports.Queries;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Absences.Models;
 using Construction.Domain.Entities;
@@ -62,13 +64,16 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetAbsencesQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<AbsenceDto>> Handle(
@@ -95,6 +100,10 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
         {
             query = query.Where(a => a.EmployeeId == employeeId);
         }
+
+        // A foreman or project manager sees the leave of the people on their own sites, not the whole company's.
+        var own = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, _dateTimeProvider.Today, cancellationToken);
+        query = query.Narrow(own, _currentUserService.EmployeeId, _dateTimeProvider.Today);
 
         query = query.InBranch(request.BranchId);
 

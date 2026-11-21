@@ -22,6 +22,14 @@ internal static class ExportSiteScope
             : query.Where(e => e.Id == self
                 || e.ProjectAssignments.Any(pa => own.Contains(pa.ProjectId) && (pa.EndDate == null || pa.EndDate > today)));
 
+    /// <summary>Absences of the people on the caller's sites (and the caller's own), the same crew the schedule board shows.</summary>
+    public static IQueryable<Absence> Narrow(
+        this IQueryable<Absence> query, IReadOnlyList<Guid>? own, Guid? self, DateOnly today) =>
+        own is null
+            ? query
+            : query.Where(a => a.EmployeeId == self
+                || a.Employee.ProjectAssignments.Any(pa => own.Contains(pa.ProjectId) && (pa.EndDate == null || pa.EndDate > today)));
+
     public static IQueryable<Project> Narrow(this IQueryable<Project> query, IReadOnlyList<Guid>? own) =>
         own is null ? query : query.Where(p => own.Contains(p.Id));
 

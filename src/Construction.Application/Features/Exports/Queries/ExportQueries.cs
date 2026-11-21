@@ -1552,11 +1552,19 @@ public class ExportAbsencesQueryValidator : ExportQueryValidator<ExportAbsencesQ
 public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, ExportFile>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ISpreadsheetWriter _writer;
 
-    public ExportAbsencesQueryHandler(IApplicationDbContext context, ISpreadsheetWriter writer)
+    public ExportAbsencesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
+        ISpreadsheetWriter writer)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
         _writer = writer;
     }
 
@@ -1571,6 +1579,9 @@ public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, E
         var query = _context.Absences
             .AsNoTracking()
             .Where(a => a.EndDate >= request.From && a.StartDate <= request.To);
+
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+        query = query.Narrow(own, _currentUserService.EmployeeId, _dateTimeProvider.Today);
 
         if (request.EmployeeId is { } employeeId)
         {
