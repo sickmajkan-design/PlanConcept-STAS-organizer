@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
@@ -10,8 +11,24 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
 
 /// <summary>Corrects a previously recorded delivery, issue, or correction.</summary>
-public record UpdateMaterialMovementCommand : IRequest<MaterialMovementDto>
+public record UpdateMaterialMovementCommand : IRequest<MaterialMovementDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(
+            context,
+            cancellationToken,
+            async (ctx, ct) =>
+            {
+                var existing = await ctx.MaterialMovements.AsNoTracking()
+                    .Where(m => m.Id == Id)
+                    .Select(m => m.ProjectId)
+                    .FirstOrDefaultAsync(ct);
+
+                return existing is { } p ? new SiteTarget(p, null, "MaterialMovement", Id) : null;
+            },
+            SiteTargets.Material(MaterialId),
+            SiteTargets.Project(ProjectId));
+
     public Guid Id { get; init; }
 
     public Guid MaterialId { get; init; }

@@ -195,9 +195,9 @@ public class AuthRateLimitConfigurationTests
         Assert.Equal(HttpStatusCode.Unauthorized, other.StatusCode);
     }
 
-    /// <summary>The probes must keep answering however busy the address is.</summary>
+    /// <summary>The probes keep answering at a probe's pace, but an address cannot hammer the anonymous database check.</summary>
     [Fact]
-    public async Task The_global_limit_never_applies_to_the_health_probe()
+    public async Task The_health_probe_has_its_own_generous_limit_not_the_global_one()
     {
         using var host = Host(permitLimit: 1000, anonymousGlobalLimit: 1);
         using var client = host.CreateClient();
@@ -208,6 +208,13 @@ public class AuthRateLimitConfigurationTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
+
+        for (var attempt = 5; attempt < 300; attempt++)
+        {
+            await client.GetAsync("/health/live");
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync("/health/live")).StatusCode);
     }
 
     /// <summary>

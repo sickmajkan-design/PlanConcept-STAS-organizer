@@ -1,4 +1,5 @@
 using Construction.Application.Common;
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
@@ -11,8 +12,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 
 /// <summary>Records a delivery, an issue to site, or a stocktake correction.</summary>
-public record RecordMaterialMovementCommand : IRequest<MaterialMovementDto>
+public record RecordMaterialMovementCommand : IRequest<MaterialMovementDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Material(MaterialId), SiteTargets.Project(ProjectId));
+
     public Guid MaterialId { get; init; }
 
     public MaterialMovementKind Kind { get; init; }

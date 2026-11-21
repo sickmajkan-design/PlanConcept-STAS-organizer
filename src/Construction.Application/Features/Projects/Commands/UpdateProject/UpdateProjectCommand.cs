@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Finance;
@@ -9,8 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Projects.Commands.UpdateProject;
 
-public record UpdateProjectCommand : ProjectCommandBase, IRequest<ProjectDto>
+public record UpdateProjectCommand : ProjectCommandBase, IRequest<ProjectDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(Id));
+
     /// <summary>Set by the API layer from the route, never from the request body.</summary>
     public Guid Id { get; init; }
 }

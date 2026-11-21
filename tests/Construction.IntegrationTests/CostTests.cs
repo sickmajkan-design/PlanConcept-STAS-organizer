@@ -44,6 +44,8 @@ public class CostTests : IntegrationTestBase
             .Where(u => u.Id == user.Id)
             .ExecuteUpdate(u => u.SetProperty(x => x.FinanceAccess, FinanceAccess.Full));
 
+        employeeId ??= TestData.PostEverywhere(scope, user);
+
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
     }
 

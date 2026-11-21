@@ -173,11 +173,20 @@ public static class RateLimitingExtensions
             // authentication, since before it nobody is signed in yet.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
             {
-                // Polled by the orchestrator and an uptime check, and a limiter
-                // that can take the health probe down takes the container with it.
+                // Polled by the orchestrator and an uptime check, so the allowance is generous
+                // (a probe every few seconds is 30 a minute), but not unlimited: the readiness
+                // check asks the database, and it is anonymous.
+                // shortcut: fixed 300/min per address, make it a setting if a monitor ever needs more.
                 if (context.Request.Path.StartsWithSegments("/health"))
                 {
-                    return RateLimitPartition.GetNoLimiter("health");
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        "health:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 300,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0
+                        });
                 }
 
                 var subject = context.User.Identity?.IsAuthenticated == true

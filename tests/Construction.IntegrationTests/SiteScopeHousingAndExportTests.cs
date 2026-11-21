@@ -134,6 +134,23 @@ public class SiteScopeHousingAndExportTests : IntegrationTestBase
         Assert.Contains(s.Other.Name, SpreadsheetText(all.Content));
     }
 
+    [Fact]
+    public async Task A_foreman_cannot_edit_another_site_or_book_material_to_it()
+    {
+        var s = await SeedAsync();
+        var material = await InScope(scope => TestData.SeedMaterialAsync(scope, 10));
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            AsForeman(s, scope => scope.Send(new Construction.Application.Features.Projects.Commands.UpdateProject.UpdateProjectCommand { Id = s.Other.Id, Name = "x" })));
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            AsForeman(s, scope => scope.Send(new Construction.Application.Features.Costs.Commands.RecordMaterialMovement.RecordMaterialMovementCommand
+            {
+                MaterialId = material.Id,
+                ProjectId = s.Other.Id,
+                Quantity = 1,
+            })));
+    }
+
     private static string SpreadsheetText(byte[] xlsx)
     {
         using var zip = new ZipArchive(new MemoryStream(xlsx));

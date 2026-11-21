@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -13,6 +14,35 @@ public static class TestData
     private static readonly IPasswordHasher Hasher = new PasswordHasher();
 
     private static string UniqueSuffix() => Guid.NewGuid().ToString("N")[..10];
+
+    /// <summary>
+    /// Foreman and Project Manager only reach the sites they are posted to. For a test about something else (stock, costs,
+    /// exports) the actor is posted to every project that exists now, and the employee id to sign in with is returned.
+    /// </summary>
+    public static Guid? PostEverywhere(TestScope scope, User user)
+    {
+        if (user.Role is not (UserRole.Foreman or UserRole.ProjectManager))
+        {
+            return null;
+        }
+
+        var employee = SeedEmployeeAsync(scope).GetAwaiter().GetResult();
+        scope.Db.Users.Where(u => u.Id == user.Id).ExecuteUpdate(u => u.SetProperty(x => x.EmployeeId, employee.Id));
+
+        foreach (var projectId in scope.Db.Projects.Select(p => p.Id).ToList())
+        {
+            scope.Db.EmployeeProjects.Add(new EmployeeProject
+            {
+                EmployeeId = employee.Id,
+                ProjectId = projectId,
+                StartDate = new DateOnly(2000, 1, 1),
+            });
+        }
+
+        scope.Db.SaveChanges();
+
+        return employee.Id;
+    }
 
     public static async Task<User> SeedUserAsync(
         TestScope scope,

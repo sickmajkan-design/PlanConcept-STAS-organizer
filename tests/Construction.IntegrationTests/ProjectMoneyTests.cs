@@ -91,7 +91,7 @@ public class ProjectMoneyTests
     public async Task An_update_by_somebody_without_the_grant_keeps_the_contract_sum_and_the_billing_mode()
     {
         var id = await CreateAsSuperAdminAsync(contractValue: 5000m, billingMode: "Measured");
-        using var manager = _api.ClientAs(UserRole.ProjectManager);
+        using var manager = _api.ClientAs(UserRole.Admin);
 
         // The form of somebody who never saw the sum sends none, and the default billing mode.
         var response = await manager.PutAsJsonAsync($"/api/v1/projects/{id}", new
