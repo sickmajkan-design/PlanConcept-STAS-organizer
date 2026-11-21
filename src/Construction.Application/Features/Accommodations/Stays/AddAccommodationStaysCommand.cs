@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -27,8 +28,12 @@ public record AccommodationStayRow
 /// Puts several people into one accommodation at once. With <see cref="Preview"/> nothing is written and the answer
 /// says what would happen to each; without it everything that is in order is written and the rest is reported.
 /// </summary>
-public record AddAccommodationStaysCommand : IRequest<AccommodationStaysResultDto>
+public record AddAccommodationStaysCommand : IRequest<AccommodationStaysResultDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(
+            context, cancellationToken, [.. Stays.Select(s => s.ProjectId).Distinct().Select(SiteTargets.Project)]);
+
     /// <summary>Set from the route, never from the body.</summary>
     public Guid AccommodationId { get; init; }
 

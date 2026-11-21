@@ -53,20 +53,26 @@ public class GetAccommodationsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUser;
 
     public GetAccommodationsQueryHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUser)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<PagedList<AccommodationDto>> Handle(
         GetAccommodationsQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Accommodations.AsNoTracking().InBranch(request.BranchId);
+        var (own, seesAmounts) = await AccommodationVisibility.ForCallerAsync(
+            _context, _currentUser, _dateTimeProvider, cancellationToken);
+
+        var query = _context.Accommodations.AsNoTracking().InBranch(request.BranchId).Narrow(own);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
@@ -106,6 +112,11 @@ public class GetAccommodationsQueryHandler
             cancellationToken);
 
         await AccommodationOccupancy.FillCurrentOccupantsAsync(_context, page.Items, today, cancellationToken);
+
+        if (!seesAmounts)
+        {
+            AccommodationVisibility.HideAmounts(page.Items);
+        }
 
         return page;
     }

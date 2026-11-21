@@ -42,7 +42,7 @@ public class AccommodationDto
 
     public DateOnly? ContractEnd { get; init; }
 
-    public decimal? DepositAmount { get; init; }
+    public decimal? DepositAmount { get; set; }
 
     public bool UtilitiesIncluded { get; init; }
 
@@ -54,9 +54,9 @@ public class AccommodationDto
     public int CurrentOccupants { get; set; }
 
     /// <summary>Set when a rate is currently in force (EndDate null). Null for one with no rate on file.</summary>
-    public decimal? CurrentMonthlyAmount { get; init; }
+    public decimal? CurrentMonthlyAmount { get; set; }
 
-    public string? CurrentProvider { get; init; }
+    public string? CurrentProvider { get; set; }
 
     public DateTime CreatedAt { get; init; }
 

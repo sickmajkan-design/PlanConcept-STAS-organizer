@@ -13,21 +13,28 @@ public class GetAccommodationByIdQueryHandler : IRequestHandler<GetAccommodation
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUser;
 
     public GetAccommodationByIdQueryHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUser)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<AccommodationDto> Handle(
         GetAccommodationByIdQuery request,
         CancellationToken cancellationToken)
     {
+        var (own, seesAmounts) = await AccommodationVisibility.ForCallerAsync(
+            _context, _currentUser, _dateTimeProvider, cancellationToken);
+
         var accommodation = await _context.Accommodations
             .AsNoTracking()
+            .Narrow(own)
             .Where(a => a.Id == request.Id)
             .Select(AccommodationMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
@@ -42,6 +49,11 @@ public class GetAccommodationByIdQueryHandler : IRequestHandler<GetAccommodation
             [accommodation],
             _dateTimeProvider.Today,
             cancellationToken);
+
+        if (!seesAmounts)
+        {
+            AccommodationVisibility.HideAmounts([accommodation]);
+        }
 
         return accommodation;
     }

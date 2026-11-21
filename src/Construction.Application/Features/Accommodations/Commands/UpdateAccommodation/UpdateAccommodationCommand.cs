@@ -21,26 +21,41 @@ public class UpdateAccommodationCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUser;
 
     public UpdateAccommodationCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUser)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<AccommodationDto> Handle(
         UpdateAccommodationCommand request,
         CancellationToken cancellationToken)
     {
+        var (own, seesAmounts) = await AccommodationVisibility.ForCallerAsync(
+            _context, _currentUser, _dateTimeProvider, cancellationToken);
+
         var accommodation = await _context.Accommodations
+            .Narrow(own)
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Accommodation), request.Id);
 
         await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
 
+        var deposit = accommodation.DepositAmount;
+
         AccommodationFieldMapper.Apply(accommodation, request);
+
+        if (!seesAmounts)
+        {
+            // The form was filled from a record with the amounts hidden; saving it must not wipe them.
+            accommodation.DepositAmount = deposit;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -55,6 +70,11 @@ public class UpdateAccommodationCommandHandler
             [dto],
             _dateTimeProvider.Today,
             cancellationToken);
+
+        if (!seesAmounts)
+        {
+            AccommodationVisibility.HideAmounts([dto]);
+        }
 
         return dto;
     }

@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
@@ -9,8 +10,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Accommodations.Stays;
 
 /// <summary>Puts a person into an accommodation from a date, optionally until another.</summary>
-public record AddAccommodationStayCommand : IRequest<AccommodationStayDto>
+public record AddAccommodationStayCommand : IRequest<AccommodationStayDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, SiteTargets.Project(ProjectId));
+
     /// <summary>Set from the route, never from the body.</summary>
     public Guid AccommodationId { get; init; }
 
@@ -29,8 +33,11 @@ public record AddAccommodationStayCommand : IRequest<AccommodationStayDto>
 }
 
 /// <summary>Corrects a stay: moves the dates, ends it, or changes what it is charged to.</summary>
-public record UpdateAccommodationStayCommand : IRequest<AccommodationStayDto>
+public record UpdateAccommodationStayCommand : IRequest<AccommodationStayDto>, ISiteScoped
 {
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, StaySiteTarget.Of(Id), SiteTargets.Project(ProjectId));
+
     /// <summary>Set from the route, never from the body.</summary>
     public Guid Id { get; init; }
 
@@ -43,7 +50,25 @@ public record UpdateAccommodationStayCommand : IRequest<AccommodationStayDto>
     public string? Note { get; init; }
 }
 
-public record DeleteAccommodationStayCommand(Guid Id) : IRequest;
+public record DeleteAccommodationStayCommand(Guid Id) : IRequest, ISiteScoped
+{
+    public Task<IReadOnlyList<SiteTarget>> SiteTargetsAsync(IApplicationDbContext context, CancellationToken cancellationToken) =>
+        SiteTargets.ResolveAsync(context, cancellationToken, StaySiteTarget.Of(Id));
+}
+
+/// <summary>An existing stay's project. A stay charged to no project is nobody's site.</summary>
+public static class StaySiteTarget
+{
+    public static SiteTargets.Resolver Of(Guid id) => async (context, ct) =>
+    {
+        var projectId = await context.AccommodationStays.AsNoTracking()
+            .Where(s => s.Id == id)
+            .Select(s => s.ProjectId)
+            .FirstOrDefaultAsync(ct);
+
+        return projectId is { } p ? new SiteTarget(p, null, "AccommodationStay", id) : null;
+    };
+}
 
 public class AddAccommodationStayCommandValidator : AbstractValidator<AddAccommodationStayCommand>
 {

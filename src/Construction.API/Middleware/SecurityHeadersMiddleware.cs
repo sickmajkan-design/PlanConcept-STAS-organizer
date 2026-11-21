@@ -47,6 +47,13 @@ public class SecurityHeadersMiddleware
         // Tokens and ids appear in paths; do not leak them to third parties.
         headers["Referrer-Policy"] = "no-referrer";
 
+        // Personal and financial JSON must not sit in a shared or browser cache. An action that
+        // wants caching (the public logo) sets its own value later and wins.
+        if (!IsSwagger(context.Request.Path))
+        {
+            headers["Cache-Control"] = "no-store";
+        }
+
         // The API has no use for any of these device capabilities.
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
 

@@ -110,15 +110,18 @@ public class ExportTimeEntriesQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ISpreadsheetWriter _writer;
 
     public ExportTimeEntriesQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
         ISpreadsheetWriter writer)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
         _writer = writer;
     }
 
@@ -136,8 +139,11 @@ public class ExportTimeEntriesQueryHandler
 
         var english = ExportLabels.IsEnglish(request.Language);
 
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+
         var query = _context.TimeEntries
             .AsNoTracking()
+            .Narrow(own, _currentUserService.EmployeeId)
             .Where(t => t.EndedAt != null)
             .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= request.From
                 && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= request.To);
@@ -324,15 +330,18 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ISpreadsheetWriter _writer;
 
     public ExportEmployeesQueryHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService,
         ISpreadsheetWriter writer)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
         _writer = writer;
     }
 
@@ -340,7 +349,11 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
     {
         var english = ExportLabels.IsEnglish(request.Language);
 
-        var query = _context.Employees.AsNoTracking();
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+        var self = _currentUserService.EmployeeId;
+        var today = _dateTimeProvider.Today;
+
+        var query = _context.Employees.AsNoTracking().Narrow(own, self, today);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
@@ -418,15 +431,18 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ISpreadsheetWriter _writer;
 
     public ExportProjectsQueryHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService,
         ISpreadsheetWriter writer)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
         _writer = writer;
     }
 
@@ -434,7 +450,11 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
     {
         var english = ExportLabels.IsEnglish(request.Language);
 
-        var query = _context.Projects.AsNoTracking();
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+        var self = _currentUserService.EmployeeId;
+        var today = _dateTimeProvider.Today;
+
+        var query = _context.Projects.AsNoTracking().Narrow(own);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
@@ -509,15 +529,18 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ISpreadsheetWriter _writer;
 
     public ExportVehiclesQueryHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService,
         ISpreadsheetWriter writer)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
         _writer = writer;
     }
 
@@ -525,7 +548,11 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
     {
         var english = ExportLabels.IsEnglish(request.Language);
 
-        var query = _context.Vehicles.AsNoTracking();
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+        var self = _currentUserService.EmployeeId;
+        var today = _dateTimeProvider.Today;
+
+        var query = _context.Vehicles.AsNoTracking().Narrow(own, self);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
@@ -618,15 +645,18 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ISpreadsheetWriter _writer;
 
     public ExportToolsQueryHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService,
         ISpreadsheetWriter writer)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
         _writer = writer;
     }
 
@@ -634,7 +664,11 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
     {
         var english = ExportLabels.IsEnglish(request.Language);
 
-        var query = _context.Tools.AsNoTracking();
+        var own = await ExportSiteScope.OwnAsync(_context, _currentUserService, _dateTimeProvider, cancellationToken);
+        var self = _currentUserService.EmployeeId;
+        var today = _dateTimeProvider.Today;
+
+        var query = _context.Tools.AsNoTracking().Narrow(own, self);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

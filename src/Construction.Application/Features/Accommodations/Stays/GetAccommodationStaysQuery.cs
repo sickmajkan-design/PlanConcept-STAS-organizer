@@ -42,20 +42,26 @@ public class GetAccommodationStaysQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUser;
 
     public GetAccommodationStaysQueryHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUser)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<PagedList<AccommodationStayDto>> Handle(
         GetAccommodationStaysQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.AccommodationStays.AsNoTracking();
+        var (own, _) = await AccommodationVisibility.ForCallerAsync(
+            _context, _currentUser, _dateTimeProvider, cancellationToken);
+
+        var query = _context.AccommodationStays.AsNoTracking().Narrow(own);
 
         if (request.AccommodationId is { } accommodationId)
         {
