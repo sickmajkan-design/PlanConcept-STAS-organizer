@@ -1,5 +1,5 @@
-import { EuroOutlined, GridViewOutlined, ListOutlined, PersonSearchOutlined, TimelineOutlined } from '@mui/icons-material';
-import { Alert, Box, Button, Chip, CircularProgress, Paper, Snackbar, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
+import { CheckCircleOutlineOutlined, CloseOutlined, EuroOutlined, ExpandMoreOutlined, GridViewOutlined, ListOutlined, PersonSearchOutlined, TimelineOutlined } from '@mui/icons-material';
+import { Alert, Box, Button, ButtonBase, Chip, CircularProgress, Collapse, IconButton, Paper, Snackbar, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,7 @@ import {
   type Plan,
   type RangeMode,
 } from '../../features/planning/planningLogic';
+import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
 import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningQuery } from '../../features/planning/usePlanning';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
@@ -83,20 +84,33 @@ export function PlanningPage() {
   const navigate = useNavigate();
   const today = useMemo(todayCompany, []);
 
-  // The timeline is a wide grid meant for a desk; on a phone the answer people come
-  // for is "who is on which site today", which the by-site view gives in one column.
-  const [view, setView] = useState<View>(() =>
-    typeof window !== 'undefined' && window.matchMedia?.('(max-width: 599.95px)').matches
-      ? 'day'
-      : 'timeline',
-  );
+  // "Who is on which site" is the question people come with, so the by-site view opens first, on a desk and on a
+  // phone alike. A view picked by hand is remembered in this browser.
+  const { user } = useAuth();
+  const viewKey = `planning.view.${user?.id ?? ''}`;
+  const [view, setViewState] = useState<View>(() => {
+    try {
+      const saved = window.localStorage.getItem(viewKey);
+      if (saved === 'day' || saved === 'timeline' || saved === 'need' || saved === 'list' || (saved === 'cost' && canSeeLabourCost(user))) return saved;
+    } catch {
+      /* falls back to the by-site view */
+    }
+    return 'day';
+  });
+  const setView = (next: View) => {
+    setViewState(next);
+    try {
+      window.localStorage.setItem(viewKey, next);
+    } catch {
+      /* the choice simply is not remembered */
+    }
+  };
   const [focusDay, setFocusDay] = useState(today);
   const [mode, setMode] = useState<RangeMode>('M');
   const [range, setRange] = useState(() => rangeFor('M', today, { from: today, to: today }));
   const [panel, setPanel] = useState<Panel | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const { user } = useAuth();
   const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
   const [tourOpen, setTourOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -307,10 +321,14 @@ export function PlanningPage() {
 
       {plan && (
         <Box data-tour="banner">
-          <NeedBanner plan={plan} today={today} onFind={readOnly ? undefined : (item) => setPanel({ kind: 'replace', item })} />
+          <AlertsBar
+            plan={plan}
+            today={today}
+            onFind={readOnly ? undefined : (item) => setPanel({ kind: 'replace', item })}
+            onOpen={readOnly ? undefined : (c) => openWorker(c.person.id, c.from, c.to)}
+          />
         </Box>
       )}
-      {plan && <ConflictBanner plan={plan} today={today} onOpen={readOnly ? undefined : (c) => openWorker(c.person.id, c.from, c.to)} />}
 
       <Stack data-tour="controls" direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', my: 2 }}>
         {periodView ? (
@@ -486,74 +504,35 @@ function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: numb
   );
 }
 
-function NeedBanner({ plan, today, onFind }: { plan: Plan; today: string; onFind?: (item: AwayItem) => void }) {
+/**
+ * Everything that needs a second look, in one quiet line: a coloured dot and a count per kind. Opening it lists the
+ * items; each can be dismissed, and a dismissal is remembered in this browser until the problem itself changes.
+ */
+function AlertsBar({
+  plan,
+  today,
+  onFind,
+  onOpen,
+}: {
+  plan: Plan;
+  today: string;
+  onFind?: (item: AwayItem) => void;
+  onOpen?: (conflict: Conflict) => void;
+}) {
   const t = useT();
   const enumLabel = useEnumLabel();
+  const { user } = useAuth();
+  const { hidden, hide, restore } = useHiddenAlerts(user?.id, today);
+  const [open, setOpen] = useState(false);
 
   const from = Math.max(0, plan.indexOf(today));
-  const items = awayItems(plan, from, Math.min(plan.days - 1, from + 30));
+  const allAway = awayItems(plan, from, Math.min(plan.days - 1, from + 30));
+  const allFound = conflicts(plan, from, plan.days - 1);
+  const away = allAway.filter((i) => !hidden.has(awayKey(i)));
+  const found = allFound.filter((c) => !hidden.has(conflictKey(c)));
+  const hiddenCount = allAway.length - away.length + allFound.length - found.length;
+  const count = away.length + found.length;
 
-  if (items.length === 0) {
-    return <Chip color="success" variant="outlined" label={t('planning.replace.allCovered')} />;
-  }
-
-  return (
-    <Paper variant="outlined" sx={{ borderRadius: 2.5, borderColor: 'warning.main', p: 1.5 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-        {t('planning.replace.title')} <span>{items.length}</span>
-      </Typography>
-      {items.map((item, i) => (
-        <Stack
-          key={`${item.person.id}-${item.from}-${i}`}
-          direction="row"
-          spacing={1}
-          useFlexGap
-          sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', py: 0.75, borderTop: i ? 1 : 0, borderColor: 'divider' }}
-        >
-          <Typography variant="body2">
-            <b>{item.person.name}</b>{' '}
-            <Typography component="span" variant="caption" color="text.secondary">
-              {item.person.position} · {plan.projectById.get(item.projectId)?.name} · {enumLabel('absenceType', item.type)} {formatDate(item.from)} – {formatDate(item.to)}
-            </Typography>
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <SuggestionCount plan={plan} item={item} />
-            {onFind && (
-              <Button size="small" variant="outlined" onClick={() => onFind(item)}>
-                {t('planning.replace.find')}
-              </Button>
-            )}
-          </Stack>
-        </Stack>
-      ))}
-    </Paper>
-  );
-}
-
-
-function SuggestionCount({ plan, item }: { plan: Plan; item: AwayItem }) {
-  const t = useT();
-  const good = candidates(plan, item.person.id, item.projectId, item.days).filter((c) => c.tier <= 3).length;
-
-  return good > 0 ? (
-    <Chip size="small" color="success" label={t('planning.replace.suggestions', { count: good })} />
-  ) : (
-    <Chip size="small" color="error" label={t('planning.replace.none')} />
-  );
-}
-
-const CONFLICT_LIMIT = 4;
-
-function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; onOpen?: (conflict: Conflict) => void }) {
-  const t = useT();
-  const [all, setAll] = useState(false);
-
-  const from = Math.max(0, plan.indexOf(today));
-  const found = conflicts(plan, from, plan.days - 1);
-
-  if (found.length === 0) return null;
-
-  const shown = all ? found : found.slice(0, CONFLICT_LIMIT);
   const name = (id: string | undefined) => plan.projectById.get(id ?? '')?.name ?? '?';
 
   const text = (c: Conflict): string => {
@@ -567,32 +546,128 @@ function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; on
     return t('planning.conflict.beforeStart', { ...base, site: name(c.projectId), date: formatDate(site?.startDate) });
   };
 
+  const dot = (color: string) => <Box component="span" aria-hidden sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />;
+
+  const dismiss = (key: string) => (
+    <Tooltip title={t('planning.alerts.hide')}>
+      <IconButton
+        size="small"
+        aria-label={t('planning.alerts.hide')}
+        onClick={() => hide(key)}
+        sx={{ opacity: 0.55, transition: 'opacity 150ms ease-out', '&:hover, &:focus-visible': { opacity: 1 } }}
+      >
+        <CloseOutlined sx={{ fontSize: 16 }} />
+      </IconButton>
+    </Tooltip>
+  );
+
+  const rowSx = (i: number) => ({ py: 0.25, borderTop: i ? 1 : 0, borderColor: 'divider', alignItems: 'center', justifyContent: 'space-between' });
+
   return (
-    <Paper variant="outlined" sx={{ borderRadius: 2.5, p: 1.5, mt: 1.5 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', justifyContent: 'space-between' }}>
-        {t('planning.conflict.title')} <span>{found.length}</span>
-      </Typography>
-      {shown.map((c, i) => (
-        <Stack
-          key={`${c.person.id}-${c.kind}-${c.from}-${i}`}
-          direction="row"
-          spacing={1}
-          useFlexGap
-          sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', py: 0.5, borderTop: i ? 1 : 0, borderColor: 'divider' }}
-        >
-          <Typography variant="body2">{text(c)}</Typography>
-          {onOpen && (
-            <Button size="small" onClick={() => onOpen(c)} sx={{ ml: { xs: -2, sm: 0 } }}>
-              {t('planning.conflict.open')}
-            </Button>
-          )}
-        </Stack>
-      ))}
-      {found.length > CONFLICT_LIMIT && (
-        <Button size="small" color="inherit" onClick={() => setAll(!all)} sx={{ mt: 0.5 }}>
-          {all ? t('planning.conflict.less') : t('planning.conflict.more', { count: found.length - CONFLICT_LIMIT })}
-        </Button>
-      )}
-    </Paper>
+    <Box sx={{ mt: 1.5 }} role="status">
+      <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+        {count > 0 && (
+          <ButtonBase
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            sx={{
+              gap: 1.25,
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 5,
+              border: 1,
+              borderColor: 'divider',
+              fontSize: 13,
+              color: 'text.secondary',
+              transition: 'background-color 150ms ease-out',
+              '&:hover': { bgcolor: 'action.hover' },
+              '&:active': { transform: 'scale(0.98)' },
+            }}
+          >
+            {found.length > 0 && (
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                {dot('warning.main')}
+                <span>{t('planning.conflict.title')}</span>
+                <b>{found.length}</b>
+              </Stack>
+            )}
+            {away.length > 0 && (
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                {dot('info.main')}
+                <span>{t('planning.replace.title')}</span>
+                <b>{away.length}</b>
+              </Stack>
+            )}
+            <ExpandMoreOutlined sx={{ fontSize: 18, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease-out', '@media (prefers-reduced-motion: reduce)': { transition: 'none' } }} />
+          </ButtonBase>
+        )}
+        {allAway.length === 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+            <CheckCircleOutlineOutlined sx={{ fontSize: 15, color: 'success.main' }} />
+            {t('planning.replace.allCovered')}
+          </Typography>
+        )}
+        {hiddenCount > 0 && (
+          <Button size="small" color="inherit" onClick={restore} sx={{ color: 'text.secondary', fontWeight: 500 }}>
+            {t('planning.alerts.restore', { count: hiddenCount })}
+          </Button>
+        )}
+      </Stack>
+
+      <Collapse in={open && count > 0} unmountOnExit>
+        <Paper variant="outlined" sx={{ borderRadius: 2.5, px: 1.5, py: 0.75, mt: 1 }}>
+          {found.map((c, i) => (
+            <Stack key={conflictKey(c)} direction="row" spacing={1} useFlexGap sx={rowSx(i)}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                {dot('warning.main')}
+                <Typography variant="body2">{text(c)}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                {onOpen && (
+                  <Button size="small" onClick={() => onOpen(c)}>
+                    {t('planning.conflict.open')}
+                  </Button>
+                )}
+                {dismiss(conflictKey(c))}
+              </Stack>
+            </Stack>
+          ))}
+          {away.map((item, i) => (
+            <Stack key={awayKey(item)} direction="row" spacing={1} useFlexGap sx={rowSx(found.length + i)}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+                {dot('info.main')}
+                <Typography variant="body2">
+                  <b>{item.person.name}</b>{' '}
+                  <Typography component="span" variant="caption" color="text.secondary">
+                    {item.person.position} · {plan.projectById.get(item.projectId)?.name} · {enumLabel('absenceType', item.type)} {formatDate(item.from)} – {formatDate(item.to)}
+                  </Typography>
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                <SuggestionCount plan={plan} item={item} />
+                {onFind && (
+                  <Button size="small" variant="outlined" onClick={() => onFind(item)}>
+                    {t('planning.replace.find')}
+                  </Button>
+                )}
+                {dismiss(awayKey(item))}
+              </Stack>
+            </Stack>
+          ))}
+        </Paper>
+      </Collapse>
+    </Box>
+  );
+}
+
+
+function SuggestionCount({ plan, item }: { plan: Plan; item: AwayItem }) {
+  const t = useT();
+  const good = candidates(plan, item.person.id, item.projectId, item.days).filter((c) => c.tier <= 3).length;
+
+  return good > 0 ? (
+    <Chip size="small" color="success" label={t('planning.replace.suggestions', { count: good })} />
+  ) : (
+    <Chip size="small" color="error" label={t('planning.replace.none')} />
   );
 }

@@ -88,7 +88,7 @@ describe('PlanningPage', () => {
 
     await renderPage();
 
-    expect(await screen.findByText('Needs a stand-in')).toBeDefined();
+    await userEvent.click(await screen.findByRole('button', { name: /Needs a stand-in/ }));
     expect(screen.getAllByText(/Marko Horvat/).length).toBeGreaterThan(0);
     expect(screen.getByText('1 suggestions')).toBeDefined();
   }, SCREEN_TIMEOUT);
@@ -107,6 +107,7 @@ describe('PlanningPage', () => {
 
     await renderPage();
 
+    await userEvent.click(await screen.findByRole('button', { name: /Needs a stand-in/ }));
     await userEvent.click(await screen.findByRole('button', { name: 'Find a stand-in' }));
     const dialog = await screen.findByRole('dialog');
     await userEvent.click(within(dialog).getByText(/Ivo Babić/));
@@ -203,7 +204,7 @@ describe('PlanningPage', () => {
 
     await renderPage();
 
-    expect(await screen.findByText('Worth a look')).toBeDefined();
+    await userEvent.click(await screen.findByRole('button', { name: /Worth a look/ }));
     expect(screen.getByText(/Ana Novak is posted to both Aldi Hall and Sava Bridge/)).toBeDefined();
   }, SCREEN_TIMEOUT);
 
@@ -231,6 +232,8 @@ describe('PlanningPage', () => {
     network.reply('/planning', 200, plan());
 
     await renderPage();
+    // The month is the period of the timeline; the by-site view that opens first shows a single day.
+    await userEvent.click(await screen.findByRole('button', { name: 'Timeline' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Export to Excel' }));
 
     await waitFor(() => {
@@ -292,6 +295,7 @@ describe('PlanningPage', () => {
       await renderPage();
 
       expect(await screen.findByText(/You are viewing the schedule of Zagreb unit/)).toBeDefined();
+      await userEvent.click(await screen.findByRole('button', { name: /Needs a stand-in/ }));
       expect(screen.queryByRole('button', { name: 'Find a stand-in' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
 
@@ -326,6 +330,7 @@ describe('PlanningPage', () => {
       await renderPage();
 
       expect(await screen.findByText(/You can move people and sites of Zagreb unit only/)).toBeDefined();
+      await userEvent.click(await screen.findByRole('button', { name: /Needs a stand-in/ }));
       expect(await screen.findByRole('button', { name: 'Find a stand-in' })).toBeDefined();
 
       await userEvent.click(screen.getByRole('button', { name: /Needs by project/ }));
