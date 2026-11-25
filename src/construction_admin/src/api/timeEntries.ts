@@ -46,12 +46,15 @@ export interface ClockInInput {
   projectId?: string | null;
   latitude?: number;
   longitude?: number;
+  /** Only for a press that waited for signal: when it really happened. */
+  occurredAt?: string;
 }
 
 export interface ClockOutInput {
   breakMinutes: number;
   latitude?: number;
   longitude?: number;
+  occurredAt?: string;
 }
 
 export const timeEntriesApi = {

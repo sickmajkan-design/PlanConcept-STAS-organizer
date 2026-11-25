@@ -18,6 +18,11 @@ import { CompanyTimeZoneSync } from './features/companySettings/CompanyTimeZoneS
 // too — that is the one that leaves an operator looking at nothing at all.
 installGlobalErrorReporting();
 
+// Production only: in development a worker would keep serving yesterday's files to the dev server.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Above every provider, so it still catches a crash in one of them. Its

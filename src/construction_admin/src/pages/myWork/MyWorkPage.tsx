@@ -35,7 +35,7 @@ import { Link } from 'react-router-dom';
 
 import { canReviewRefunds, canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
-import { useClockIn, useClockInSites, useClockOut, useCurrentShift } from '../../features/timeEntries/useShift';
+import { useClockInSites, useShiftState } from '../../features/timeEntries/useShift';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatTimeOfDay, splitMinutes } from '../../utils/formatting';
@@ -55,16 +55,14 @@ export function getPosition(): Promise<{ latitude: number; longitude: number } |
 
 function ShiftCard() {
   const t = useT();
-  const current = useCurrentShift();
+  const state = useShiftState();
   const sites = useClockInSites();
-  const clockIn = useClockIn();
-  const clockOut = useClockOut();
   const [projectId, setProjectId] = useState('');
   const [ending, setEnding] = useState(false);
   const [breakMinutes, setBreakMinutes] = useState('0');
   const [now, setNow] = useState(() => Date.now());
   const [problem, setProblem] = useState<string | null>(null);
-  const shift = current.data ?? null;
+  const { shift, busy } = state;
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 30000);
@@ -76,7 +74,7 @@ function ShiftCard() {
     const position = await getPosition();
 
     try {
-      await clockIn.mutateAsync({ projectId: projectId || null, ...position });
+      await state.start({ projectId: projectId || null, ...position });
     } catch (error) {
       setProblem((error as Error).message);
     }
@@ -87,7 +85,7 @@ function ShiftCard() {
     const position = await getPosition();
 
     try {
-      await clockOut.mutateAsync({ breakMinutes: Math.max(0, Math.round(Number(breakMinutes) || 0)), ...position });
+      await state.end({ breakMinutes: Math.max(0, Math.round(Number(breakMinutes) || 0)), ...position });
       setEnding(false);
     } catch (error) {
       setEnding(false);
@@ -95,25 +93,46 @@ function ShiftCard() {
     }
   };
 
-  const busy = clockIn.isPending || clockOut.isPending;
   const elapsed = shift ? Math.max(0, Math.floor((now - new Date(shift.startedAt).getTime()) / 60000)) : 0;
 
   return (
     <Card variant="outlined" sx={{ borderRadius: 3 }}>
       <CardContent>
         <Stack spacing={2}>
-          {current.isError && <Alert severity="error">{t('myWork.shift.loadError')}</Alert>}
+          {state.loadError && <Alert severity="error">{t('myWork.shift.loadError')}</Alert>}
           {problem && (
             <Alert severity="error" onClose={() => setProblem(null)}>
               {problem}
             </Alert>
           )}
+          {state.queued > 0 && (
+            <Alert
+              severity="info"
+              action={
+                <Button color="inherit" size="small" onClick={() => void state.flush()}>
+                  {t('myWork.shift.sendNow')}
+                </Button>
+              }
+            >
+              {t('myWork.shift.queued', { count: state.queued })}
+            </Alert>
+          )}
+          {state.failed.map((f) => (
+            <Alert key={f.id} severity="warning" onClose={() => state.dismissFailed(f.id)}>
+              {t('myWork.shift.failedOp', {
+                what: t(f.kind === 'in' ? 'myWork.shift.kind.in' : 'myWork.shift.kind.out'),
+                time: formatTimeOfDay(f.occurredAt),
+                message: f.message,
+              })}
+            </Alert>
+          ))}
 
           {shift ? (
             <>
               <Box>
                 <Typography variant="overline" color="text.secondary">
                   {t('myWork.shift.running')}
+                  {shift.pending ? ` · ${t('myWork.shift.pending')}` : ''}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                   {t('timeEntries.hoursShort', splitMinutes(elapsed))}
@@ -157,7 +176,7 @@ function ShiftCard() {
                 size="large"
                 variant="contained"
                 startIcon={<PlayArrowRounded />}
-                disabled={busy || current.isLoading}
+                disabled={busy || state.loading}
                 onClick={start}
                 sx={{ py: 1.75, fontSize: '1.1rem' }}
               >
