@@ -46,6 +46,9 @@ public record ClockInCommand : IRequest<TimeEntryDto>
     /// reviewing the timesheet can see which rows the handset stamped.
     /// </remarks>
     public DateTime? OccurredAt { get; init; }
+
+    /// <summary>Set by the panel when a shift is started from the browser.</summary>
+    public bool ViaWeb { get; init; }
 }
 
 public class ClockInCommandValidator : AbstractValidator<ClockInCommand>
@@ -186,7 +189,8 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             Status = TimeEntryStatus.InProgress,
             Note = request.Note?.Trim(),
             StartLatitude = request.Latitude,
-            StartLongitude = request.Longitude
+            StartLongitude = request.Longitude,
+            ViaWeb = request.ViaWeb
         };
 
         _context.TimeEntries.Add(entry);

@@ -75,6 +75,12 @@ public class TimeEntry : BaseEntity, ISoftDeletable, IAuditable
     public bool AutoClosed { get; set; }
 
     /// <summary>
+    /// True when the shift was started from the browser (the panel) rather than the phone app,
+    /// so a reviewer can tell which rows came from the temporary web route.
+    /// </summary>
+    public bool ViaWeb { get; set; }
+
+    /// <summary>
     /// Paid minutes, or null while the shift is still running.
     /// Never negative: validation rejects a break longer than the shift.
     /// </summary>

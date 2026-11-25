@@ -8,6 +8,7 @@ import { DashboardGrid } from '../features/dashboard/DashboardGrid';
 import { TodaySummary } from '../features/dashboard/TodaySummary';
 import { SetupChecklistCard } from '../features/onboarding/SetupChecklistCard';
 import { useI18n, useT } from '../i18n/useI18n';
+import { MyWorkPage } from './myWork/MyWorkPage';
 import { paths } from '../routes/paths';
 import { ijekavianDate } from '../utils/formatting';
 import { companyNow } from '../utils/companyTime';
@@ -43,6 +44,9 @@ export function HomePage() {
       </Box>
     );
   }
+
+  // A worker or foreman starts from "My work": the shift and the things they do every day.
+  if (user.employeeId) return <MyWorkPage />;
 
   const cards = [
     {

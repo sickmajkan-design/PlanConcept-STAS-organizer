@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canAdministerAccounts, canManageAssignments, isSuperAdmin } from '../../auth/authHelpers';
+import { canAdministerAccounts, canManageAssignments } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -26,12 +26,6 @@ export interface ReleaseSection {
 
 export const releaseSections: ReleaseSection[] = [
   {
-    id: 'serverwidgets1115',
-    titleKey: 'releaseNotes.serverwidgets1115.title',
-    itemKeys: ['releaseNotes.serverwidgets1115.widgets'],
-    audience: (user) => isSuperAdmin(user),
-  },
-  {
     id: 'apple1115',
     titleKey: 'releaseNotes.apple1115.title',
     itemKeys: ['releaseNotes.apple1115.look'],
@@ -54,6 +48,12 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.names1125.title',
     itemKeys: ['releaseNotes.names1125.names'],
     audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
+  },
+  {
+    id: 'webshift1125',
+    titleKey: 'releaseNotes.webshift1125.title',
+    itemKeys: ['releaseNotes.webshift1125.shift'],
+    audience: (user) => !!user.employeeId,
   },
 ];
 

@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { createCrudApi, listParams } from './resource';
 import type {
   ListQuery,
@@ -41,7 +42,31 @@ export interface ReviewTimeEntryInput {
   confirm?: boolean;
 }
 
+export interface ClockInInput {
+  projectId?: string | null;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ClockOutInput {
+  breakMinutes: number;
+  latitude?: number;
+  longitude?: number;
+}
+
 export const timeEntriesApi = {
+  /** The caller's running shift; the API answers 204 (empty body) when there is none. */
+  current: async () => (await request<TimeEntry | ''>({ method: 'GET', url: '/api/v1/timeentries/current' })) || null,
+
+  clockInSites: () => request<{ id: string; name: string }[]>({ method: 'GET', url: '/api/v1/timeentries/clock-in-sites' }),
+
+  /** A shift started here is marked as coming from the browser. */
+  clockIn: (input: ClockInInput, key: string) =>
+    request<TimeEntry>({ method: 'POST', url: '/api/v1/timeentries/clock-in', data: { ...input, viaWeb: true }, headers: idempotencyHeaders(key) }),
+
+  clockOut: (input: ClockOutInput, key: string) =>
+    request<TimeEntry>({ method: 'POST', url: '/api/v1/timeentries/clock-out', data: input, headers: idempotencyHeaders(key) }),
+
   ...createCrudApi<TimeEntry, TimeEntry, TimeEntryInput, TimeEntryListQuery>(
     '/api/v1/timeentries',
   ),

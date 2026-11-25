@@ -8,6 +8,9 @@ export const paths = {
   twoStep: '/two-step',
 
   home: '/',
+  myWork: '/my-work',
+  myTime: '/my-work/time',
+  myAbsences: '/my-work/absences',
   customerPortal: '/customer',
   bulletin: '/bulletin',
   employees: '/employees',

@@ -4291,6 +4291,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
+                    b.Property<bool>("ViaWeb")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("WorkType")
                         .HasColumnType("integer");
 

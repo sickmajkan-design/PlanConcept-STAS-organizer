@@ -59,6 +59,34 @@ public class TimeEntryTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_shift_started_from_the_browser_is_marked_and_one_from_the_app_is_not()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+
+        var web = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand { ViaWeb = true });
+        });
+
+        Assert.True(web.ViaWeb);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new Construction.Application.Features.TimeEntries.Commands.ClockOut.ClockOutCommand());
+        });
+
+        var app = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand());
+        });
+
+        Assert.False(app.ViaWeb);
+    }
+
+    [Fact]
     public async Task A_shift_with_no_project_goes_to_the_one_running_site_the_worker_is_posted_to()
     {
         // The phone app sends no project, so without this every hour it records is on no site.

@@ -1013,6 +1013,8 @@ export interface TimeEntry {
   reviewedAt: string | null;
   reviewNote: string | null;
   autoClosed: boolean;
+  /** Started from the browser rather than the phone app. */
+  viaWeb: boolean;
   createdAt: string;
   updatedAt: string | null;
 }

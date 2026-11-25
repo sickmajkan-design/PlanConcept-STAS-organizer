@@ -129,6 +129,8 @@ public class TimeEntryDto
 
     public bool AutoClosed { get; init; }
 
+    public bool ViaWeb { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -170,6 +172,7 @@ public static class TimeEntryMapping
             ReviewedAt = entry.ReviewedAt,
             ReviewNote = entry.ReviewNote,
             AutoClosed = entry.AutoClosed,
+            ViaWeb = entry.ViaWeb,
             CreatedAt = entry.CreatedAt,
             UpdatedAt = entry.UpdatedAt,
         };

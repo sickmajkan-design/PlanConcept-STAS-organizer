@@ -15,6 +15,8 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { AcceptInvitationPage } from './pages/auth/AcceptInvitationPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
+import { MyWorkPage } from './pages/myWork/MyWorkPage';
+import { MyAbsencesPage, MyTimePage } from './pages/myWork/MyRecordsPages';
 import { paths } from './routes/paths';
 import {
   RequireAccountAdmin,
@@ -434,6 +436,9 @@ function Layout() {
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path={paths.home} element={<HomePage />} />
+            <Route path={paths.myWork} element={<MyWorkPage />} />
+            <Route path={paths.myTime} element={<MyTimePage />} />
+            <Route path={paths.myAbsences} element={<MyAbsencesPage />} />
             <Route path={paths.map} element={<LiveMapPage />} />
             <Route path={paths.changePassword} element={<ChangePasswordPage />} />
             <Route path={paths.twoStep} element={<TwoStepPage />} />

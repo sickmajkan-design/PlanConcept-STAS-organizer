@@ -193,6 +193,7 @@ export function TimeEntryCard({
                 <Chip size="small" color="warning" variant="outlined" label={t('timeEntries.autoClosed')} />
               </Tooltip>
             )}
+            {entry.viaWeb && <Chip size="small" variant="outlined" label={t('timeEntries.viaWeb')} />}
             {extraTags?.map((tag) => (
               <Chip key={tag} size="small" color="warning" variant="outlined" label={tag} />
             ))}
