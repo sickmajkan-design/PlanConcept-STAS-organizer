@@ -5037,7 +5037,7 @@ export const en = {
   'releaseNotes.schedule1123.title': 'Schedule: sites first, quieter notices',
   'releaseNotes.schedule1123.view': 'The schedule now opens on the by-site view, and the view you pick is remembered. The two boxes "Check" and "Needs a stand-in" became one quiet line with counts: open it to see the items, and hide any of them with the cross. A hidden item stays hidden on this device until the problem itself changes; "Show hidden" brings them all back.',
   'releaseNotes.names1125.title': 'Schedule: First Last or Last First, search among the free',
-  'releaseNotes.names1125.names': 'Next to the views in the Schedule there is a new switch, "First Last / Last First". The choice changes how names are written and ordered everywhere on the screen (cards, timeline, windows, messages) and is remembered. The "Free" list has a quick search by name and skill, so the right worker is found at once and dragged to a site.',
+  'releaseNotes.names1125.names': 'Next to the views in the Schedule there is a new switch, "First Last / Last First". The choice changes how names are written and ordered everywhere on the screen (cards, timeline, windows, messages) and is remembered. The "Free" list has a quick search by name and skill, so the right worker is found at once and dragged to a site. The list scrolls on its own, so the page no longer moves when you reach its end.',
   'action.serverStatus': 'Server status',
   'storage.details': 'Server status',
   'serverStatus.title': 'Server status',

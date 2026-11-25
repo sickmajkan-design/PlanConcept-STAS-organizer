@@ -5081,7 +5081,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.schedule1123.title': 'Raspored: gradilišta prva, tiša obavještenja',
   'releaseNotes.schedule1123.view': 'Raspored se sada otvara na prikazu po gradilištima, a prikaz koji izaberete se pamti. Dva okvira "Provjerite" i "Treba zamjenu" postala su jedan tihi red s brojevima: otvorite ga da vidite stavke, a svaku možete sakriti krstićem. Sakrivena stavka ostaje sakrivena na ovom uređaju dok se sam problem ne promijeni; "Prikaži sakrivene" vraća sve.',
   'releaseNotes.names1125.title': 'Raspored: Ime Prezime ili Prezime Ime, traženje slobodnih',
-  'releaseNotes.names1125.names': 'Pored prikaza u Rasporedu je novi prekidač "Ime Prezime / Prezime Ime". Izbor mijenja zapis i poredak imena svuda na ekranu (kartice, linija, prozori, poruke) i pamti se. U listi "Slobodni" je polje za brzo traženje po imenu i vještini, pa se odgovarajući radnik nađe odmah i povuče na gradilište.',
+  'releaseNotes.names1125.names': 'Pored prikaza u Rasporedu je novi prekidač "Ime Prezime / Prezime Ime". Izbor mijenja zapis i poredak imena svuda na ekranu (kartice, linija, prozori, poruke) i pamti se. U listi "Slobodni" je polje za brzo traženje po imenu i vještini, pa se odgovarajući radnik nađe odmah i povuče na gradilište. Lista se skroluje sama, pa stranica ne "bježi" kad stignete do njenog kraja.',
   'action.serverStatus': 'Stanje servera',
   'storage.details': 'Stanje servera',
   'serverStatus.title': 'Stanje servera',

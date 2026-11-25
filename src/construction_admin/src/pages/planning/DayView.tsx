@@ -273,7 +273,10 @@ export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps
                 {t(free.length === 0 ? 'planning.day.noFree' : 'planning.free.noMatch')}
               </Typography>
             ) : (
-              shownFree.map((p) => <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} />)
+              // The panel is sticky on desktop, so the list scrolls inside it and never hands the scroll over to the page.
+              <Box sx={{ maxHeight: { md: 'calc(100vh - 260px)' }, overflowY: { md: 'auto' }, overscrollBehavior: 'contain' }}>
+                {shownFree.map((p) => <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} />)}
+              </Box>
             )}
           </Box>
         </DropCard>
