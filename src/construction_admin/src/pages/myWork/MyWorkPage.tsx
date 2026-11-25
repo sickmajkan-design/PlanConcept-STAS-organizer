@@ -2,7 +2,10 @@ import {
   ApartmentOutlined,
   CalendarMonthOutlined,
   ChecklistOutlined,
+  CampaignOutlined,
+  DescriptionOutlined,
   EventBusyOutlined,
+  NotificationsNoneOutlined,
   PlayArrowRounded,
   RequestQuoteOutlined,
   ScheduleOutlined,
@@ -230,6 +233,10 @@ export function MyWorkPage() {
         {/* Own time and leave work for everyone. The rest of the panel is for a foreman and above: the API serves it to nobody else. */}
         <Tile to={paths.myTime} icon={<ScheduleOutlined />} label={t('myWork.tile.time')} hint={t('myWork.tile.timeHint')} />
         <Tile to={paths.myAbsences} icon={<EventBusyOutlined />} label={t('myWork.tile.absences')} hint={t('myWork.tile.absencesHint')} />
+        <Tile to={paths.myDocuments} icon={<DescriptionOutlined />} label={t('myWork.tile.documents')} hint={t('myWork.tile.documentsHint')} />
+        {/* Inbox and bulletin are open to every account, a worker included. */}
+        <Tile to={paths.notifications} icon={<NotificationsNoneOutlined />} label={t('notifications.title')} hint={t('myWork.tile.notificationsHint')} />
+        <Tile to={paths.bulletin} icon={<CampaignOutlined />} label={t('nav.bulletin')} hint={t('myWork.tile.bulletinHint')} />
         {lead && <Tile to={paths.timeEntries} icon={<ScheduleOutlined />} label={t('myWork.tile.team')} hint={t('myWork.tile.teamHint')} />}
         {lead && <Tile to={paths.schedule} icon={<CalendarMonthOutlined />} label={t('nav.schedule')} hint={t('myWork.tile.scheduleHint')} />}
         {lead && <Tile to={paths.workItems} icon={<ChecklistOutlined />} label={t('nav.workItems')} hint={t('myWork.tile.workItemsHint')} />}

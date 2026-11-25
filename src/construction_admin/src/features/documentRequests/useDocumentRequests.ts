@@ -22,6 +22,18 @@ export function useDocumentRequestsQuery(query: DocumentRequestListQuery, enable
   });
 }
 
+export function useMyDocumentRequests() {
+  return useQuery({
+    queryKey: [...documentRequestKeys.all, 'mine'],
+    queryFn: documentRequestsApi.mine,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useSubmitDocumentRequest() {
+  return useResourceMutation((v: { id: string; files: File[] }) => documentRequestsApi.submit(v.id, v.files), caches);
+}
+
 export function useDocumentRequestQuery(id: string | null) {
   return useQuery({
     queryKey: [...documentRequestKeys.all, 'detail', id],

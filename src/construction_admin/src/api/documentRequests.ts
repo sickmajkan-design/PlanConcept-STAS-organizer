@@ -77,6 +77,19 @@ export const documentRequestsApi = {
 
   get: (id: string) => request<DocumentRequest>({ method: 'GET', url: `${BASE}/${id}` }),
 
+  /** What the signed-in person has been asked for. Any employee. */
+  mine: () => request<DocumentRequest[]>({ method: 'GET', url: `${BASE}/mine` }),
+
+  /** The person answers with one document, as up to five files. */
+  submit: (id: string, files: File[]) => {
+    const form = new FormData();
+
+    for (const file of files) form.append('files', file);
+
+    // No explicit Content-Type: the browser sets the multipart boundary.
+    return request<DocumentRequest>({ method: 'POST', url: `${BASE}/${id}/submit`, data: form });
+  },
+
   create: (input: CreateDocumentRequestsInput) =>
     request<CreateDocumentRequestsResult>({ method: 'POST', url: BASE, data: input }),
 
