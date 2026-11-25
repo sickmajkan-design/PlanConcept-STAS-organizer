@@ -443,7 +443,6 @@ function Layout() {
             <Route path={paths.myRefunds} element={<MyRefundsPage />} />
             <Route path={paths.myHousing} element={<MyHousingPage />} />
             <Route path={paths.myTasks} element={<MyTasksPage />} />
-            <Route path={paths.map} element={<LiveMapPage />} />
             <Route path={paths.changePassword} element={<ChangePasswordPage />} />
             <Route path={paths.twoStep} element={<TwoStepPage />} />
             {/* Everyone with an account has an inbox, including a worker who
@@ -452,6 +451,7 @@ function Layout() {
             <Route path={paths.bulletin} element={<BulletinPage />} />
 
             <Route element={<RequireDirectoryAccess />}>
+              <Route path={paths.map} element={<LiveMapPage />} />
               <Route path={paths.employees} element={<EmployeesListPage />} />
               <Route path={paths.employeeNew} element={<EmployeeFormPage />} />
               <Route path={paths.employeesQuickEntry} element={<QuickEntryPage kind="employees" />} />

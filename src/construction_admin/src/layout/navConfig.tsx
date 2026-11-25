@@ -173,7 +173,8 @@ function buildBookItems(user: User, t: ReturnType<typeof useT>): NavItem[] {
 export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntry[] {
   return [
     { label: t('nav.home'), path: paths.home, icon: <HomeOutlined /> },
-    { label: t('nav.liveMap'), path: paths.map, icon: <MapOutlined /> },
+    // Where people are right now: the API serves it to a foreman and above, so a worker is not shown a page that would only fail.
+    ...(canViewDirectory(user) ? [{ label: t('nav.liveMap'), path: paths.map, icon: <MapOutlined /> }] : []),
     { label: t('nav.bulletin'), path: paths.bulletin, icon: <CampaignOutlined /> },
     { label: t('nav.help'), path: paths.help, icon: <HelpOutlineOutlined /> },
     ...(canViewDirectory(user)
