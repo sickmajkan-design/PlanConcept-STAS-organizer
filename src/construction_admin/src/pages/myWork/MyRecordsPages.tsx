@@ -1,19 +1,23 @@
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Link as MuiLink, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { ArrowBackOutlined } from '@mui/icons-material';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { absenceTypes, type AbsenceType } from '../../api/types';
+import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useAbsenceBalanceQuery, useAbsencesQuery, useBookAbsence, useDeleteAbsence } from '../../features/absences/useAbsences';
 import { useMyDocumentRequests, useSubmitDocumentRequest } from '../../features/documentRequests/useDocumentRequests';
+import { useRefundsQuery, useReviewRefund } from '../../features/refunds/useRefunds';
+import { useMyHousing } from '../../features/accommodations/useAccommodations';
 import { useTimeEntriesQuery } from '../../features/timeEntries/useTimeEntries';
 import { useAuth } from '../../auth/useAuth';
 import { useEnumLabel } from '../../i18n/enumLabels';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
+import { NewRefundDialog } from '../refunds/NewRefundDialog';
 import { paths } from '../../routes/paths';
 import { todayCompany } from '../../utils/companyTime';
-import { dateOnlyOffset, formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
+import { dateOnlyOffset, formatDate, formatMoney, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 
 function Header({ title }: { title: string }) {
   return (
@@ -311,6 +315,172 @@ export function MyDocumentsPage() {
           </Card>
         );
       })}
+    </Stack>
+  );
+}
+
+/** The signed-in person's own refund requests: ask, see the decision, withdraw one that is still waiting. */
+export function MyRefundsPage() {
+  const t = useT();
+  const { locale } = useI18n();
+  const list = useRefundsQuery({ mine: true, pageSize: 50, pageNumber: 1 });
+  const review = useReviewRefund();
+  const [creating, setCreating] = useState(false);
+  const [receipt, setReceipt] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const items = list.data?.items ?? [];
+
+  const withdraw = async (id: string) => {
+    setProblem(null);
+
+    try {
+      await review.mutateAsync({ id, input: { status: 'Cancelled' } });
+    } catch (error) {
+      setProblem((error as Error).message);
+    }
+  };
+
+  return (
+    <Stack spacing={2} sx={{ maxWidth: 640 }}>
+      <Header title={t('myWork.tile.refunds')} />
+      <Button variant="contained" size="large" onClick={() => setCreating(true)} sx={{ py: 1.5 }}>
+        {t('refunds.new')}
+      </Button>
+      {problem && (
+        <Alert severity="error" onClose={() => setProblem(null)}>
+          {problem}
+        </Alert>
+      )}
+      {list.isLoading && <CircularProgress size={24} />}
+      {list.isError && <Alert severity="error">{t('myWork.loadError')}</Alert>}
+      {!list.isLoading && !list.isError && items.length === 0 && <Typography color="text.secondary">{t('myWork.refunds.empty')}</Typography>}
+
+      {items.map((r) => (
+        <Card key={r.id} variant="outlined" sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
+              <Typography sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                {formatMoney(r.amount, locale)} {r.currency}
+              </Typography>
+              <StatusChip status={r.status} kind="refundStatus" size="small" />
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              {formatDate(r.expenseDate)}
+              {r.projectName ? ` · ${r.projectName}` : ''}
+              {r.status === 'Approved' && r.payrollMonth ? ` · ${String(r.payrollMonth).padStart(2, '0')}.${r.payrollYear}` : ''}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {r.description}
+            </Typography>
+            {r.reviewNote && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                {r.reviewNote}
+              </Alert>
+            )}
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <Button size="small" onClick={() => setReceipt(r.id)}>
+                {t('refunds.receipt')}
+              </Button>
+              {r.status === 'Requested' && (
+                <Button size="small" color="inherit" disabled={review.isPending} onClick={() => void withdraw(r.id)}>
+                  {t('refunds.action.withdraw')}
+                </Button>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      ))}
+
+      <NewRefundDialog open={creating} onClose={() => setCreating(false)} />
+      <Dialog open={!!receipt} onClose={() => setReceipt(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{t('refunds.receipt')}</DialogTitle>
+        <DialogContent>
+          {receipt && <AttachmentList ownerType="Refund" ownerId={receipt} categories={['Photo', 'Other']} canUpload={items.find((r) => r.id === receipt)?.status === 'Requested'} />}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReceipt(null)}>{t('common.close')}</Button>
+        </DialogActions>
+      </Dialog>
+    </Stack>
+  );
+}
+
+function Line({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography>{children}</Typography>
+    </Box>
+  );
+}
+
+/** Where the signed-in person lives now, or will next. Read-only, and the API leaves out every cost figure. */
+export function MyHousingPage() {
+  const t = useT();
+  const query = useMyHousing();
+  const home = query.data;
+
+  return (
+    <Stack spacing={2} sx={{ maxWidth: 640 }}>
+      <Header title={t('myWork.tile.housing')} />
+      {query.isLoading && <CircularProgress size={24} />}
+      {query.isError && <Alert severity="error">{t('myWork.loadError')}</Alert>}
+      {!query.isLoading && !query.isError && !home && <Typography color="text.secondary">{t('myWork.housing.none')}</Typography>}
+
+      {home && (
+        <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <CardContent>
+            <Stack spacing={1.5}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {home.name}
+                </Typography>
+                {home.upcoming && <Chip size="small" color="warning" variant="outlined" label={t('myWork.housing.upcoming')} sx={{ mt: 0.5 }} />}
+              </Box>
+              <Line label={t('myWork.housing.address')}>
+                <MuiLink href={`https://maps.apple.com/?q=${encodeURIComponent(`${home.address} ${home.city ?? ''}`.trim())}`} target="_blank" rel="noopener noreferrer">
+                  {home.address}
+                  {home.city ? `, ${home.city}` : ''}
+                </MuiLink>
+                {home.floor ? ` · ${home.floor}` : ''}
+              </Line>
+              <Line label={t('myWork.housing.period')}>
+                {formatDate(home.startDate)}
+                {home.endDate ? ` – ${formatDate(home.endDate)}` : ''}
+              </Line>
+              {home.landlordName && (
+                <Line label={t('myWork.housing.landlord')}>
+                  {home.landlordName}
+                  {home.landlordPhone && (
+                    <>
+                      {' · '}
+                      <MuiLink href={`tel:${home.landlordPhone}`}>{home.landlordPhone}</MuiLink>
+                    </>
+                  )}
+                </Line>
+              )}
+              {home.note && <Line label={t('myWork.housing.note')}>{home.note}</Line>}
+              {home.roommateContacts.length > 0 && (
+                <Line label={t('myWork.housing.roommates')}>
+                  {home.roommateContacts.map((r, i) => (
+                    <Box key={`${r.name}-${i}`} component="span" sx={{ display: 'block' }}>
+                      {r.name}
+                      {r.phone && (
+                        <>
+                          {' · '}
+                          <MuiLink href={`tel:${r.phone}`}>{r.phone}</MuiLink>
+                        </>
+                      )}
+                    </Box>
+                  ))}
+                </Line>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
     </Stack>
   );
 }

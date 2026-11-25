@@ -40,7 +40,28 @@ function fileForm(file: File): FormData {
   return form;
 }
 
+/** Where the signed-in person lives. Deliberately without any cost figures. */
+export interface MyHousing {
+  name: string;
+  address: string;
+  city: string | null;
+  floor: string | null;
+  rooms: number | null;
+  landlordName: string | null;
+  landlordPhone: string | null;
+  note: string | null;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  endDate: string | null;
+  /** True when the stay begins in the future. */
+  upcoming: boolean;
+  roommateContacts: { name: string; phone: string | null }[];
+}
+
 export const accommodationsApi = {
+  /** 204 (no stay) arrives as an empty body, so it is turned into null here. */
+  mine: async () => (await request<MyHousing | ''>({ method: 'GET', url: '/api/v1/accommodations/mine' })) || null,
+
   ...crud,
 
   import: {

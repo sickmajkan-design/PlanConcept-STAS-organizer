@@ -5,6 +5,7 @@ import {
   CampaignOutlined,
   DescriptionOutlined,
   EventBusyOutlined,
+  HomeWorkOutlined,
   NotificationsNoneOutlined,
   PlayArrowRounded,
   RequestQuoteOutlined,
@@ -32,7 +33,7 @@ import {
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { canViewDirectory } from '../../auth/authHelpers';
+import { canReviewRefunds, canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useClockIn, useClockInSites, useClockOut, useCurrentShift } from '../../features/timeEntries/useShift';
 import { useT } from '../../i18n/useI18n';
@@ -233,6 +234,8 @@ export function MyWorkPage() {
         {/* Own time and leave work for everyone. The rest of the panel is for a foreman and above: the API serves it to nobody else. */}
         <Tile to={paths.myTime} icon={<ScheduleOutlined />} label={t('myWork.tile.time')} hint={t('myWork.tile.timeHint')} />
         <Tile to={paths.myAbsences} icon={<EventBusyOutlined />} label={t('myWork.tile.absences')} hint={t('myWork.tile.absencesHint')} />
+        <Tile to={paths.myRefunds} icon={<RequestQuoteOutlined />} label={t('myWork.tile.refunds')} hint={t('myWork.tile.myRefundsHint')} />
+        <Tile to={paths.myHousing} icon={<HomeWorkOutlined />} label={t('myWork.tile.housing')} hint={t('myWork.tile.housingHint')} />
         <Tile to={paths.myDocuments} icon={<DescriptionOutlined />} label={t('myWork.tile.documents')} hint={t('myWork.tile.documentsHint')} />
         {/* Inbox and bulletin are open to every account, a worker included. */}
         <Tile to={paths.notifications} icon={<NotificationsNoneOutlined />} label={t('notifications.title')} hint={t('myWork.tile.notificationsHint')} />
@@ -241,7 +244,7 @@ export function MyWorkPage() {
         {lead && <Tile to={paths.schedule} icon={<CalendarMonthOutlined />} label={t('nav.schedule')} hint={t('myWork.tile.scheduleHint')} />}
         {lead && <Tile to={paths.workItems} icon={<ChecklistOutlined />} label={t('nav.workItems')} hint={t('myWork.tile.workItemsHint')} />}
         {lead && <Tile to={paths.articleOrders} icon={<ShoppingCartOutlined />} label={t('nav.articleOrders')} hint={t('myWork.tile.ordersHint')} />}
-        {lead && <Tile to={paths.refunds} icon={<RequestQuoteOutlined />} label={t('nav.refunds')} hint={t('myWork.tile.refundsHint')} />}
+        {canReviewRefunds(user) && <Tile to={paths.refunds} icon={<RequestQuoteOutlined />} label={t('nav.refunds')} hint={t('myWork.tile.refundsHint')} />}
         {lead && <Tile to={paths.weeklyReports} icon={<ScheduleSendOutlined />} label={t('nav.weeklyReports')} hint={t('myWork.tile.weeklyHint')} />}
         {lead && <Tile to={paths.projects} icon={<ApartmentOutlined />} label={t('nav.projects')} hint={t('myWork.tile.projectsHint')} />}
       </Box>

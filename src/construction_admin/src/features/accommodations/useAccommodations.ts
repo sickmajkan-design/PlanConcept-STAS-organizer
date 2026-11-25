@@ -140,3 +140,7 @@ export function useSaveAccommodationStays() {
     stayCaches,
   );
 }
+
+export function useMyHousing() {
+  return useQuery({ queryKey: ['accommodations', 'mine'], queryFn: accommodationsApi.mine });
+}

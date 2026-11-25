@@ -106,6 +106,7 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
             onChange={(event) => setDescription(event.target.value)}
             slotProps={{ htmlInput: { maxLength: 1000 } }}
           />
+          {!projects.isError && (
           <TextField select label={t('refunds.project')} value={projectId} onChange={(event) => setProjectId(event.target.value)}>
             <MenuItem value="">{t('refunds.noProject')}</MenuItem>
             {(projects.data?.items ?? []).map((project) => (
@@ -114,6 +115,7 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
               </MenuItem>
             ))}
           </TextField>
+          )}
           <Stack spacing={0.5}>
             {file ? (
               <Chip

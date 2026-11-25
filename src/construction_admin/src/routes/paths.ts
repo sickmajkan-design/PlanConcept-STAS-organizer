@@ -12,6 +12,8 @@ export const paths = {
   myTime: '/my-work/time',
   myAbsences: '/my-work/absences',
   myDocuments: '/my-work/documents',
+  myRefunds: '/my-work/refunds',
+  myHousing: '/my-work/housing',
   customerPortal: '/customer',
   bulletin: '/bulletin',
   employees: '/employees',
