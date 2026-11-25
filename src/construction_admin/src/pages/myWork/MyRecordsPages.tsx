@@ -1,20 +1,24 @@
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Link as MuiLink, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Link as MuiLink, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material';
 import { ArrowBackOutlined } from '@mui/icons-material';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { absenceTypes, type AbsenceType } from '../../api/types';
+import { absenceTypes, workItemPriorities, type AbsenceType, type WorkItem, type WorkItemPriority, type WorkItemStatus } from '../../api/types';
 import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useAbsenceBalanceQuery, useAbsencesQuery, useBookAbsence, useDeleteAbsence } from '../../features/absences/useAbsences';
 import { useMyDocumentRequests, useSubmitDocumentRequest } from '../../features/documentRequests/useDocumentRequests';
 import { useRefundsQuery, useReviewRefund } from '../../features/refunds/useRefunds';
 import { useMyHousing } from '../../features/accommodations/useAccommodations';
+import { useUploadAttachment } from '../../features/attachments/useAttachments';
+import { useClockInSites } from '../../features/timeEntries/useShift';
+import { useChangeWorkItemStatus, useCreateWorkItem, useWorkItemsQuery } from '../../features/workItems/useWorkItems';
 import { useTimeEntriesQuery } from '../../features/timeEntries/useTimeEntries';
 import { useAuth } from '../../auth/useAuth';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { NewRefundDialog } from '../refunds/NewRefundDialog';
+import { getPosition } from './MyWorkPage';
 import { paths } from '../../routes/paths';
 import { todayCompany } from '../../utils/companyTime';
 import { dateOnlyOffset, formatDate, formatMoney, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
@@ -481,6 +485,198 @@ export function MyHousingPage() {
           </CardContent>
         </Card>
       )}
+    </Stack>
+  );
+}
+
+/**
+ * One assigned task. A worker moves it from site: start it, or mark it done. Closing it is a check by somebody
+ * else, so there is no button for that; the API refuses it for a worker as well.
+ */
+function TaskCard({ item, onPhotos }: { item: WorkItem; onPhotos: (item: WorkItem) => void }) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const change = useChangeWorkItemStatus(item.id);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const move = async (status: WorkItemStatus) => {
+    setProblem(null);
+
+    try {
+      await change.mutateAsync(status);
+    } catch (error) {
+      setProblem((error as Error).message);
+    }
+  };
+
+  return (
+    <Card variant="outlined" sx={{ borderRadius: 3 }}>
+      <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
+          <Typography sx={{ fontWeight: 600 }}>{item.title}</Typography>
+          <StatusChip status={item.status} kind="workItemStatus" size="small" />
+        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          {enumLabel('workItemKind', item.kind)} · {enumLabel('workItemPriority', item.priority)}
+          {item.projectName ? ` · ${item.projectName}` : ''}
+          {item.dueDate ? ` · ${t('myWork.tasks.due', { date: formatDate(item.dueDate) })}` : ''}
+        </Typography>
+        {item.description && (
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {item.description}
+          </Typography>
+        )}
+        {problem && (
+          <Alert severity="error" sx={{ mt: 1 }} onClose={() => setProblem(null)}>
+            {problem}
+          </Alert>
+        )}
+        <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 1 }}>
+          {item.status === 'Open' && (
+            <Button size="small" variant="contained" disabled={change.isPending} onClick={() => void move('InProgress')}>
+              {t('myWork.tasks.start')}
+            </Button>
+          )}
+          {(item.status === 'Open' || item.status === 'InProgress') && (
+            <Button size="small" variant={item.status === 'InProgress' ? 'contained' : 'outlined'} disabled={change.isPending} onClick={() => void move('Resolved')}>
+              {t('myWork.tasks.done')}
+            </Button>
+          )}
+          <Button size="small" onClick={() => onPhotos(item)}>
+            {t('myWork.tasks.photos')}
+          </Button>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Reports a defect: what is wrong, where, and a photo. A worker may raise a defect and nothing else. */
+function DefectDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const create = useCreateWorkItem();
+  const upload = useUploadAttachment();
+  const sites = useClockInSites();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<WorkItemPriority>('Normal');
+  const [projectId, setProjectId] = useState('');
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const siteList = sites.data ?? [];
+  // A defect belongs to a site. One site is chosen for the person; with several they pick.
+  const site = projectId || (siteList.length === 1 ? siteList[0].id : '');
+  const valid = title.trim().length > 0 && !!site;
+
+  const send = async () => {
+    setProblem(null);
+    setBusy(true);
+
+    try {
+      const position = await getPosition();
+      const item = await create.mutateAsync({
+        kind: 'Defect',
+        title: title.trim(),
+        description: description.trim() || null,
+        priority,
+        projectId: site,
+        latitude: position?.latitude ?? null,
+        longitude: position?.longitude ?? null,
+      });
+
+      if (photo) {
+        await upload.mutateAsync({ ownerType: 'WorkItem', ownerId: item.id, category: 'Photo', file: photo });
+      }
+
+      setTitle('');
+      setDescription('');
+      setPhoto(null);
+      onClose();
+    } catch (error) {
+      setProblem((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={() => !busy && onClose()} fullWidth maxWidth="xs">
+      <DialogTitle>{t('myWork.tasks.reportTitle')}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ pt: 1 }}>
+          {problem && <Alert severity="error">{problem}</Alert>}
+          <TextField label={t('myWork.tasks.what')} value={title} onChange={(e) => setTitle(e.target.value)} slotProps={{ htmlInput: { maxLength: 200 } }} />
+          <TextField label={t('myWork.tasks.details')} value={description} onChange={(e) => setDescription(e.target.value)} multiline minRows={2} slotProps={{ htmlInput: { maxLength: 2000 } }} />
+          {siteList.length > 1 && (
+            <TextField select label={t('myWork.shift.site')} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+              {siteList.map((s) => (
+                <MenuItem key={s.id} value={s.id}>
+                  {s.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+          <TextField select label={t('workItems.priority')} value={priority} onChange={(e) => setPriority(e.target.value as WorkItemPriority)}>
+            {workItemPriorities.map((p) => (
+              <MenuItem key={p} value={p}>
+                {enumLabel('workItemPriority', p)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button component="label" variant="outlined">
+            {photo ? photo.name : t('myWork.tasks.addPhoto')}
+            <input hidden type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+          </Button>
+          {!sites.isLoading && siteList.length === 0 && <Alert severity="warning">{t('myWork.tasks.noSite')}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={busy}>
+          {t('common.cancel')}
+        </Button>
+        <Button variant="contained" onClick={() => void send()} disabled={!valid || busy}>
+          {t('myWork.tasks.send')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** The signed-in person's own tasks, and a way to report a defect from site. */
+export function MyTasksPage() {
+  const t = useT();
+  const { user } = useAuth();
+  const [all, setAll] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [photos, setPhotos] = useState<WorkItem | null>(null);
+  // A worker is limited to their own by the API. A foreman sees everything there, so the list is narrowed here.
+  const list = useWorkItemsQuery({ assignedEmployeeId: user?.employeeId ?? undefined, openOnly: all ? undefined : true, pageSize: 50, pageNumber: 1 });
+  const items = list.data?.items ?? [];
+
+  return (
+    <Stack spacing={2} sx={{ maxWidth: 640 }}>
+      <Header title={t('myWork.tile.tasks')} />
+      <Button variant="contained" size="large" onClick={() => setReporting(true)} sx={{ py: 1.5 }}>
+        {t('myWork.tasks.report')}
+      </Button>
+      <FormControlLabel control={<Switch checked={all} onChange={(e) => setAll(e.target.checked)} />} label={t('myWork.tasks.showFinished')} />
+      {list.isLoading && <CircularProgress size={24} />}
+      {list.isError && <Alert severity="error">{t('myWork.loadError')}</Alert>}
+      {!list.isLoading && !list.isError && items.length === 0 && <Typography color="text.secondary">{t('myWork.tasks.empty')}</Typography>}
+      {items.map((item) => (
+        <TaskCard key={item.id} item={item} onPhotos={setPhotos} />
+      ))}
+
+      <DefectDialog open={reporting} onClose={() => setReporting(false)} />
+      <Dialog open={!!photos} onClose={() => setPhotos(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{photos?.title}</DialogTitle>
+        <DialogContent>{photos && <AttachmentList ownerType="WorkItem" ownerId={photos.id} categories={['Photo', 'Other']} canUpload />}</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPhotos(null)}>{t('common.close')}</Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -41,7 +41,7 @@ import { paths } from '../../routes/paths';
 import { formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 
 /** One fix when the browser has it. A worker in a basement must still be able to start work, so nothing here blocks. */
-function getPosition(): Promise<{ latitude: number; longitude: number } | null> {
+export function getPosition(): Promise<{ latitude: number; longitude: number } | null> {
   if (!('geolocation' in navigator)) return Promise.resolve(null);
 
   return new Promise((resolve) =>
@@ -236,6 +236,7 @@ export function MyWorkPage() {
         <Tile to={paths.myAbsences} icon={<EventBusyOutlined />} label={t('myWork.tile.absences')} hint={t('myWork.tile.absencesHint')} />
         <Tile to={paths.myRefunds} icon={<RequestQuoteOutlined />} label={t('myWork.tile.refunds')} hint={t('myWork.tile.myRefundsHint')} />
         <Tile to={paths.myHousing} icon={<HomeWorkOutlined />} label={t('myWork.tile.housing')} hint={t('myWork.tile.housingHint')} />
+        <Tile to={paths.myTasks} icon={<ChecklistOutlined />} label={t('myWork.tile.tasks')} hint={t('myWork.tile.tasksHint')} />
         <Tile to={paths.myDocuments} icon={<DescriptionOutlined />} label={t('myWork.tile.documents')} hint={t('myWork.tile.documentsHint')} />
         {/* Inbox and bulletin are open to every account, a worker included. */}
         <Tile to={paths.notifications} icon={<NotificationsNoneOutlined />} label={t('notifications.title')} hint={t('myWork.tile.notificationsHint')} />
