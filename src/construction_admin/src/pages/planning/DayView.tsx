@@ -1,7 +1,7 @@
 import { CheckCircleOutlined, HourglassEmpty } from '@mui/icons-material';
-import { Avatar, Box, Button, ButtonBase, Chip, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Button, ButtonBase, Chip, Paper, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
@@ -165,7 +165,10 @@ export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps
   // A drop on a non-working day would change nothing, so there is nothing to aim at.
   const dropOff = !!readOnly || !work;
 
+  const [freeQuery, setFreeQuery] = useState('');
   const free = work ? plan.people.filter((p) => !p.cells[day].project && !p.cells[day].away) : [];
+  const q = freeQuery.trim().toLocaleLowerCase();
+  const shownFree = free.filter((p) => !q || `${p.name} ${p.position}`.toLocaleLowerCase().includes(q));
   const away = plan.people.filter((p) => p.cells[day].away);
 
   return (
@@ -253,12 +256,24 @@ export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps
             <Typography variant="subtitle2" sx={{ px: 1, py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
               {t('planning.day.free')} <span>{free.length}</span>
             </Typography>
-            {free.length === 0 ? (
+            {free.length > 1 && (
+              <Stack spacing={0.75} sx={{ px: 0.5, pb: 1 }}>
+                <TextField
+                  size="small"
+                  type="search"
+                  value={freeQuery}
+                  onChange={(e) => setFreeQuery(e.target.value)}
+                  placeholder={t('planning.free.search')}
+                  slotProps={{ htmlInput: { 'aria-label': t('planning.free.search') } }}
+                />
+              </Stack>
+            )}
+            {free.length === 0 || shownFree.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                {t('planning.day.noFree')}
+                {t(free.length === 0 ? 'planning.day.noFree' : 'planning.free.noMatch')}
               </Typography>
             ) : (
-              free.map((p) => <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} />)
+              shownFree.map((p) => <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} />)
             )}
           </Box>
         </DropCard>

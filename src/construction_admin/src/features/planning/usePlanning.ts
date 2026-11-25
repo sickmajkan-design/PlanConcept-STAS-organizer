@@ -12,7 +12,7 @@ import { employeeKeys } from '../employees/useEmployees';
 import { projectKeys } from '../projects/useProjects';
 import { toolKeys } from '../tools/useTools';
 import { vehicleKeys } from '../vehicles/useVehicles';
-import { buildPlan, type Plan } from './planningLogic';
+import { buildPlan, type NameOrder, type Plan } from './planningLogic';
 
 export const planningKeys = {
   all: ['planning'] as const,
@@ -21,7 +21,7 @@ export const planningKeys = {
 /** The longest window the API serves in one call. */
 export const MAX_WINDOW_DAYS = 400;
 
-export function usePlanningQuery(from: string, to: string) {
+export function usePlanningQuery(from: string, to: string, nameOrder: NameOrder = 'first') {
   const { branchId } = useBranchFilter();
 
   const query = useQuery({
@@ -30,7 +30,7 @@ export function usePlanningQuery(from: string, to: string) {
     placeholderData: keepPreviousData,
   });
 
-  const plan = useMemo<Plan | null>(() => (query.data ? buildPlan(query.data) : null), [query.data]);
+  const plan = useMemo<Plan | null>(() => (query.data ? buildPlan(query.data, nameOrder) : null), [query.data, nameOrder]);
 
   return { ...query, plan };
 }

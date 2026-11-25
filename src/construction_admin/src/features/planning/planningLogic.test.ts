@@ -4,6 +4,7 @@ import type { PlanningData, PlanningEmployee, PlanningProject } from '../../api/
 import {
   awayItems,
   buildPlan,
+  orderName,
   candidates,
   columnsFor,
   confirmationOf,
@@ -360,8 +361,8 @@ describe('certificates', () => {
       ),
     );
 
-    expect(missingCertificates(plan, plan.people[1], 's1', [1])).toEqual(['Work at height']);
-    expect(missingCertificates(plan, plan.people[2], 's1', [1])).toEqual([]);
+    expect(missingCertificates(plan, plan.people.find((p) => p.id === 'without')!, 's1', [1])).toEqual(['Work at height']);
+    expect(missingCertificates(plan, plan.people.find((p) => p.id === 'with')!, 's1', [1])).toEqual([]);
 
     const list = candidates(plan, 'away', 's1', [1]);
 
@@ -454,5 +455,14 @@ describe('housing', () => {
     const found = conflicts(plan, 0, plan.days - 1).filter((c) => c.kind === 'housedIdle');
 
     expect(found.map((c) => [c.from, c.to])).toEqual([['2026-10-07', '2026-10-08']]);
+  });
+});
+
+describe('orderName', () => {
+  it('keeps a double surname whole, and falls back to the full name without the parts', () => {
+    const e = { fullName: 'Ana Horvat Kovač', firstName: 'Ana', lastName: 'Horvat Kovač' };
+    expect(orderName(e, 'last')).toBe('Horvat Kovač Ana');
+    expect(orderName(e, 'first')).toBe('Ana Horvat Kovač');
+    expect(orderName({ fullName: 'Ana Horvat' }, 'last')).toBe('Ana Horvat');
   });
 });

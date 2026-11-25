@@ -32,6 +32,7 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
+import type { NameOrder } from '../../features/planning/planningLogic';
 import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningQuery } from '../../features/planning/usePlanning';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
@@ -105,6 +106,22 @@ export function PlanningPage() {
       /* the choice simply is not remembered */
     }
   };
+  const nameKey = `planning.nameOrder.${user?.id ?? ''}`;
+  const [nameOrder, setNameOrderState] = useState<NameOrder>(() => {
+    try {
+      return window.localStorage.getItem(nameKey) === 'last' ? 'last' : 'first';
+    } catch {
+      return 'first';
+    }
+  });
+  const setNameOrder = (next: NameOrder) => {
+    setNameOrderState(next);
+    try {
+      window.localStorage.setItem(nameKey, next);
+    } catch {
+      /* the choice simply is not remembered */
+    }
+  };
   const [focusDay, setFocusDay] = useState(today);
   const [mode, setMode] = useState<RangeMode>('M');
   const [range, setRange] = useState(() => rangeFor('M', today, { from: today, to: today }));
@@ -132,7 +149,7 @@ export function PlanningPage() {
   };
 
   const window_ = fetchWindow(range, focusDay, today, MAX_WINDOW_DAYS);
-  const { plan, error, isLoading, refetch } = usePlanningQuery(window_.from, window_.to);
+  const { plan, error, isLoading, refetch } = usePlanningQuery(window_.from, window_.to, nameOrder);
   const mutations = usePlanningActions();
 
   const periodView = view === 'timeline' || view === 'need' || view === 'cost';
@@ -317,6 +334,11 @@ export function PlanningPage() {
             </ToggleButton>
           </Tooltip>
         ))}
+      </ToggleButtonGroup>
+
+      <ToggleButtonGroup size="small" exclusive value={nameOrder} onChange={(_, next: NameOrder | null) => next && setNameOrder(next)} aria-label={t('planning.nameOrder')} sx={{ mb: 2, ml: { sm: 2 }, '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5, py: 0.75 } }}>
+        <ToggleButton value="first">{t('planning.nameOrder.first')}</ToggleButton>
+        <ToggleButton value="last">{t('planning.nameOrder.last')}</ToggleButton>
       </ToggleButtonGroup>
 
       {plan && (

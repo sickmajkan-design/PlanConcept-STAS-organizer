@@ -119,6 +119,10 @@ public class PlanningEmployeeDto
 
     public string FullName { get; init; } = null!;
 
+    public string FirstName { get; init; } = null!;
+
+    public string LastName { get; init; } = null!;
+
     public string Position { get; init; } = null!;
 
     public IReadOnlyList<PlanningPostingDto> Postings { get; init; } = [];
@@ -203,6 +207,8 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             {
                 e.Id,
                 FullName = e.FirstName + " " + e.LastName,
+                e.FirstName,
+                e.LastName,
                 e.Position,
                 Postings = e.ProjectAssignments
                     .Where(a => a.StartDate <= to && (a.EndDate == null || a.EndDate >= from))
@@ -302,6 +308,8 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             {
                 Id = e.Id,
                 FullName = e.FullName,
+                FirstName = e.FirstName,
+                LastName = e.LastName,
                 Position = e.Position.Trim(),
                 Postings = e.Postings,
                 Absences = absences

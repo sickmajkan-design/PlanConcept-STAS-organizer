@@ -47,6 +47,8 @@ export interface PlanningAbsence {
 export interface PlanningEmployee {
   id: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
   position: string;
   postings: PlanningPosting[];
   absences: PlanningAbsence[];

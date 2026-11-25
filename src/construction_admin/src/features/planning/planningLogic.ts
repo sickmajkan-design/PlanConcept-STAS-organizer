@@ -89,7 +89,15 @@ export interface Plan {
   freeTotal: number[];
 }
 
-export function buildPlan(data: PlanningData): Plan {
+export type NameOrder = 'first' | 'last';
+
+/** "Ime Prezime" or "Prezime Ime", from the separate fields (a double surname stays whole). */
+export function orderName(e: { fullName: string; firstName?: string; lastName?: string }, order: NameOrder): string {
+  if (!e.firstName || !e.lastName) return e.fullName;
+  return order === 'last' ? `${e.lastName} ${e.firstName}` : `${e.firstName} ${e.lastName}`;
+}
+
+export function buildPlan(data: PlanningData, nameOrder: NameOrder = 'first'): Plan {
   const days = diffDays(data.from, data.to) + 1;
   const date = (i: number) => addDays(data.from, i);
   const indexOf = (d: string) => diffDays(data.from, d);
@@ -124,8 +132,11 @@ export function buildPlan(data: PlanningData): Plan {
 
     const stays = (e.stays ?? []).map((s) => ({ place: s.place, from: s.startDate, to: s.endDate }));
 
-    return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells, certificates, stays };
+    return { id: e.id, name: orderName(e, nameOrder), position: e.position, key: positionKey(e.position), cells, certificates, stays };
   });
+
+  // The list follows the chosen order: by first name, or by surname.
+  people.sort((a, b) => a.name.localeCompare(b.name, 'sr'));
 
   const holidays = new Set((data.holidays ?? []).map((h) => `${h.countryCode}|${h.date}`));
   const holidayNames = new Map<string, string>();
