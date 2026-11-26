@@ -215,11 +215,17 @@ export function AbsencesListPage() {
             <StatusChip status={params.row.status} kind="absenceStatus" />
             {params.row.hasPendingEdit && (
               <Tooltip
-                title={
+                title={`${
                   params.row.proposedByEmployee
                     ? t('absences.pendingEditWaitingManagement')
                     : t('absences.pendingEditWaitingEmployee')
-                }
+                }${
+                  params.row.proposedAt
+                    ? ` · ${t('absences.pendingEditWaitingDays', {
+                        days: Math.max(0, Math.floor((Date.now() - Date.parse(params.row.proposedAt)) / 86_400_000)),
+                      })}`
+                    : ''
+                }`}
               >
                 <Chip
                   size="small"

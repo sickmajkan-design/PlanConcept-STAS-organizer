@@ -361,6 +361,16 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           onRowDoubleClick={
             onRowDoubleClick ? (params) => onRowDoubleClick(params.row) : undefined
           }
+          // Keyboard: Enter on a focused cell opens the row like a double-click.
+          onCellKeyDown={
+            onRowDoubleClick
+              ? (params, event) => {
+                  if (event.key === 'Enter' && event.target === event.currentTarget) {
+                    onRowDoubleClick(params.row);
+                  }
+                }
+              : undefined
+          }
           getRowClassName={(params) =>
             highlightedId && params.id === highlightedId ? 'row-highlight' : ''
           }

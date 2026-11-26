@@ -1306,7 +1306,7 @@ export const helpTopics: HelpTopic[] = [
         tips: [
           'Drugi datum se nudi za godišnji odmor koji čeka ili je već odobren, a dok jedan prijedlog čeka odgovor ne može se dati drugi.',
           'Ako sami odlučite o zahtjevu dok prijedlog čeka, prijedlog se briše.',
-          'Isti način otvaranja (dvoklik) radi i na listama narudžbi, refundacija, zahtjeva za dokumente, sedmičnih izvještaja, zadataka i faktura.',
+          'Red se otvara i tasterom Enter. Isti način otvaranja (dvoklik) radi i na listama narudžbi, refundacija, zahtjeva za dokumente, sedmičnih izvještaja, zadataka i faktura.',
           'Predlagati smiju svi koji mogu odobriti ili odbiti odsustvo.',
         ],
         keywords: ['odsustvo', 'godišnji', 'drugi datum', 'prijedlog', 'pregled', 'dvoklik', 'razlog', 'termin', 'zahtjev'],
@@ -1328,7 +1328,7 @@ export const helpTopics: HelpTopic[] = [
         tips: [
           'Other dates can be offered for annual leave that is waiting or already approved, and while one proposal waits for an answer another cannot be made.',
           'If you decide the request yourself while a proposal waits, the proposal is removed.',
-          'The same way of opening (double-click) works on the lists of orders, refunds, document requests, weekly reports, tasks and invoices.',
+          'A row also opens with the Enter key. The same way of opening (double-click) works on the lists of orders, refunds, document requests, weekly reports, tasks and invoices.',
           'Anyone who can approve or refuse absences may propose.',
         ],
         keywords: ['absence', 'leave', 'annual', 'other dates', 'proposal', 'preview', 'double-click', 'reason', 'request'],

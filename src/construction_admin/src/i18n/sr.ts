@@ -5202,6 +5202,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.webshift1125.offline': "Bez signala se početak i kraj smjene spremaju na telefonu s tačnim vremenom pritiska i šalju se čim se veza vrati (do 24 sata). Stranica se otvara i bez veze nakon prvog posjeta. Pošalji sada u plavom okviru šalje odmah.",
   'releaseNotes.absence1126.title': "Odsustva: pregled i prijedlog drugog datuma",
   'releaseNotes.absence1126.preview': "Dvoklik (ili dodir) otvara pregled stavke: za odsustvo s razlogom radnika i stanjem godišnjeg, a isto sada rade i liste narudžbi, refundacija, zahtjeva za dokumente, sedmičnih izvještaja, zadataka i faktura. Iz pregleda se odmah može odobriti, odbiti ili poslati dalje.",
+  'releaseNotes.absence1126.keyboard': "Pregled se na listama otvara i tasterom Enter, a uz prijedlog drugog datuma u listi odsustava piše koliko dana čeka odgovor.",
   'releaseNotes.absence1126.propose': "Ako datum godišnjeg ne odgovara planu, uz zahtjev na čekanju ponudite drugi datum. Radnik na svom ekranu bira Prihvatam ili Ostajem pri svom; prihvatanje mijenja samo datume, a odobravanje ostaje vaša odluka.",
   'releaseNotes.contractors1126.title': "Kooperanti: firma, angažman i ljubičasta oznaka",
   'releaseNotes.contractors1126.fields': "Pri unosu kooperanta upisuju se firma za koju radi, poslovna jedinica s kojom sarađuje, telefon i e-mail, te početak i kraj angažmana umjesto datuma zaposlenja. Kooperant je uvijek radnik u hijerarhiji: ne može dobiti višu ulogu ni viši rang.",
