@@ -22,7 +22,7 @@ afterwards, together.
 
 1. GitHub → **Actions** → posljednji zeleni run na grani
    `claude/construction-workforce-phase-1-diz0zx`
-2. Dole, **Artifacts** → `construction-organizer-debug-apk`
+2. Dole, **Artifacts** → `qplan-debug-apk`
 3. Raspakuj, prebaci `app-debug.apk` na telefon, otvori iz menadžera fajlova.
    Android će tražiti dozvolu za „nepoznate izvore" — to je normalno za
    debug-potpisan build. / Unzip, copy `app-debug.apk` to the phone, open it

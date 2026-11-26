@@ -75,7 +75,7 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
     ref.watch(outboxControllerProvider.select((_) => 0));
 
     return MaterialApp.router(
-      title: 'Construction Organizer',
+      title: 'QPlan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

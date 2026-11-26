@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Construction Organizer';
+  String get appName => 'QPlan';
 
   @override
   String get commonCancel => 'Cancel';

@@ -1,6 +1,6 @@
 {
-  "name": "Construction Organizer",
-  "short_name": "Organizer",
+  "name": "QPlan",
+  "short_name": "QPlan",
   "description": "Workforce, projects, costs and schedule for a construction company.",
   "start_url": "/",
   "scope": "/",

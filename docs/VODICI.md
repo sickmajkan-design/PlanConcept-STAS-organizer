@@ -1,4 +1,4 @@
-# Vodiči za korištenje platforme
+# Vodiči za korištenje platforme QPlan
 
 Sve na srpskom (ijekavica). Isti sadržaj, kraće, nalazi se u aplikaciji: izbornik **Uputstva**, ili **Ctrl+K** pa upišite riječ.
 

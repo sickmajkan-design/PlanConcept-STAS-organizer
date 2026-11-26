@@ -40,7 +40,7 @@
       refetches everything on the first request that succeeds.
     -->
     <application
-        android:label="Construction Organizer"
+        android:label="QPlan"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false">

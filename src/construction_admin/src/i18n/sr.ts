@@ -492,7 +492,7 @@ export const sr: Record<MessageKey, Message> = {
   'time.daysAgo': { one: 'prije {count} dan', few: 'prije {count} dana', other: 'prije {count} dana' },
 
   // --- Navigation -----------------------------------------------------------
-  'nav.appName': 'Construction Organizer',
+  'nav.appName': 'QPlan',
   'nav.home': 'Početna',
   'nav.liveMap': 'Mapa uživo',
   'nav.employees': 'Zaposleni',
@@ -669,7 +669,7 @@ export const sr: Record<MessageKey, Message> = {
   // --- Authentication -------------------------------------------------------
   'auth.signIn': 'Prijavi se',
   'auth.signInTitle': 'Prijava',
-  'auth.signInSubtitle': 'Upravljanje radnom snagom na gradilištu',
+  'auth.signInSubtitle': 'Ko, gdje, s čim i kad: na jednom mjestu',
   'auth.email': 'E-mail',
   'auth.password': 'Lozinka',
   'auth.currentPassword': 'Trenutna lozinka',
@@ -5281,10 +5281,6 @@ export const sr: Record<MessageKey, Message> = {
   'customers.suggestSeveral': 'Projekti su u više država ({codes}): izaberi ručno.',
   'customers.suggestNone': 'Svaki kupac ima državu.',
   'customers.suggestApply': 'Upiši označene ({count})',
-  'releaseNotes.contractors1126.title': "Kooperanti: firma, angažman i ljubičasta oznaka",
-  'releaseNotes.contractors1126.fields': "Pri unosu kooperanta upisuju se firma za koju radi, poslovna jedinica s kojom sarađuje, telefon i e-mail, te početak i kraj angažmana umjesto datuma zaposlenja. Kooperant je uvijek radnik u hijerarhiji: ne može dobiti višu ulogu ni viši rang.",
-  'releaseNotes.contractors1126.purple': "Kooperanti su svuda označeni ljubičastom bojom i oznakom Kooperant: u listi zaposlenih, na kartici radnika, u Rasporedu i svim prikazima Planiranja, na mapi uživo, u radnom vremenu, odsustvima, troškovima, smještaju i refundacijama, u Excel izvozima (ljubičasta ćelija s imenom, uz kolone Vrsta, Firma i Kraj angažmana u izvozu zaposlenih) i u Android aplikaciji (verzija 1.1.38).",
-  'releaseNotes.contractors1126.end': "Kada angažman istekne, kooperant postaje Raskinut ugovor, a njegov nalog za prijavu se gasi; sati i troškovi ostaju. Kod postojećih kooperanata treba dopisati firmu.",
   'releaseNotes.equipment1126.title': "Raspored: oprema na gradilištima i kod radnika",
   'releaseNotes.equipment1126.sites': "U prikazu Gradilišta uz svako gradilište stoje ikonice opreme: vozila, koferi, aku setovi, mjerni setovi i setovi za kablove. Hover otvara prozor s tim ko šta drži i šta je slobodno na gradilištu.",
   'releaseNotes.equipment1126.people': "Uz svakog radnika stoje ikonice opreme koju drži. Narandžasta tačka znači da je oprema vezana za drugo gradilište ili da je kod slobodnog ili odsutnog radnika. U Slobodnima i Odsutnima se vidi šta drže, a nova kartica Slobodna oprema pokazuje ono što ne drži niko.",
@@ -5298,6 +5294,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.dated1126.title': "Raspored: oprema za bilo koji dan",
   'releaseNotes.dated1126.days': "Raspored sada pokazuje ko je držao koje vozilo i alat na dan koji gledate. Raniji dan dolazi iz evidencije koja se vodi od sada (raniji dani nisu poznati pa se ne prikazuju); kasniji dan pokazuje današnje držaoce uz primijenjene planirane promjene.",
   'releaseNotes.dated1126.plan': "Kad odlučujete o opremi birate od kojeg dana važi. Kasniji dan samo zakazuje: oprema ostaje gdje jeste do tog jutra, a onda je sistem prebaci. Planirane promjene su pod tablom desno, gdje ih možete otkazati.",
+  'releaseNotes.qplan1127.title': "QPlan: nova imena platforme",
+  'releaseNotes.qplan1127.name': "Platforma i aplikacija se sada zovu QPlan, s novim znakom: zaobljeno Q s tri trake rasporeda. Vidjećete ga na kartici preglednika, u meniju, na stranici za prijavu i na telefonu. Ostalo se ne mijenja: ista prijava, isti podaci.",
   'action.serverStatus': 'Stanje servera',
   'storage.details': 'Stanje servera',
   'serverStatus.title': 'Stanje servera',

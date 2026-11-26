@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" role="img" aria-label="QPlan">
+  <rect x="14" y="12" width="66" height="66" rx="22" fill="none" stroke="#E65100" stroke-width="16"/>
+  <rect x="34" y="38" width="26" height="12" rx="6" fill="#37474F"/>
+  <path d="M68 68 L93 93" fill="none" stroke="#37474F" stroke-width="16" stroke-linecap="round"/>
+</svg>

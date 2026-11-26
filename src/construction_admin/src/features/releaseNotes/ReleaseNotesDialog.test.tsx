@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Subcontractors: firm, engagement and a purple marking');
+    await screen.findByText('QPlan: the platform has a new name');
     expect(screen.getByText('Schedule: equipment on any day')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

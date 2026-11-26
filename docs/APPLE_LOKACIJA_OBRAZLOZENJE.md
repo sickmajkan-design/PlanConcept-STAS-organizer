@@ -5,7 +5,7 @@ Za App Store Connect. Tekstovi su na engleskom jer ih čita Appleov pregled. Žu
 (`docs/PRIVACY.md` §6): bez odluke vlasnika i pravnika ne šaljemo aplikaciju na pregled.
 
 ## App Review notes (polje "Notes")
-Construction Organizer is a B2B workforce app. Accounts are created by an employer; there is no public sign-up.
+QPlan is a B2B workforce app. Accounts are created by an employer; there is no public sign-up.
 Demo account: <korisnik / lozinka / adresa servera>.
 
 Background location: the employer's office sees which employees are on which construction site (live map and proof of

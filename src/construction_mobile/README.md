@@ -1,6 +1,6 @@
 # construction_mobile
 
-Flutter app for field staff of the Construction Workforce Management System.
+Flutter app for field staff of QPlan.
 Talks to `Construction.API`.
 
 ## Stack

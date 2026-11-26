@@ -25,6 +25,7 @@ import { useEnumLabel } from '../i18n/enumLabels';
 import { locales, localeNames } from '../i18n/types';
 import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
+import { QPlanMark } from '../components/QPlanMark';
 import { initialsOf } from '../utils/formatting';
 import { CommandPalette } from './CommandPalette';
 import { PhoneMenu } from './PhoneMenu';
@@ -409,7 +410,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <MissingLogoMark size={48} />
           ) : (
             <Avatar variant="rounded" sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 20 }}>
-              {brand.name.slice(0, 1)}
+              {brand.kind === 'company' ? <QPlanMark size={30} tone="white" /> : brand.name.slice(0, 1)}
             </Avatar>
           )}
         </IconButton>
@@ -458,7 +459,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     variant="rounded"
                     sx={{ width: 220, height: 220, bgcolor: 'primary.main', fontSize: 64 }}
                   >
-                    {brand.name.slice(0, 1)}
+                    {brand.kind === 'company' ? <QPlanMark size={150} tone="white" /> : brand.name.slice(0, 1)}
                   </Avatar>
                 )}
 
@@ -763,7 +764,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   variant="rounded"
                   sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 22, flexShrink: 0 }}
                 >
-                  {brand.name.slice(0, 1)}
+                  {brand.kind === 'company' ? <QPlanMark size={32} tone="white" /> : brand.name.slice(0, 1)}
                 </Avatar>
               )}
               {showBrandName && (

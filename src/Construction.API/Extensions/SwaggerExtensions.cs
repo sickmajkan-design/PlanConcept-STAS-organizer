@@ -35,7 +35,7 @@ public static class SwaggerExtensions
 
             options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Construction Workforce Management API",
+                Title = "QPlan API",
                 Version = "v1",
                 Description =
                     "Phase 1 API: authentication, employees, projects, vehicles, tools, " +

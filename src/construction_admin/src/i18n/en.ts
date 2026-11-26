@@ -468,7 +468,7 @@ export const en = {
   'time.daysAgo': { one: '{count} d ago', other: '{count} d ago' },
 
   // --- Navigation -----------------------------------------------------------
-  'nav.appName': 'Construction Organizer',
+  'nav.appName': 'QPlan',
   'nav.home': 'Home',
   'nav.liveMap': 'Live map',
   'nav.employees': 'Employees',
@@ -645,7 +645,7 @@ export const en = {
   // --- Authentication -------------------------------------------------------
   'auth.signIn': 'Sign in',
   'auth.signInTitle': 'Sign in',
-  'auth.signInSubtitle': 'Construction workforce management',
+  'auth.signInSubtitle': 'Who, where, with what and when: in one place',
   'auth.email': 'Email',
   'auth.password': 'Password',
   'auth.currentPassword': 'Current password',
@@ -5237,10 +5237,6 @@ export const en = {
   'customers.suggestSeveral': 'Its projects are in several countries ({codes}): choose by hand.',
   'customers.suggestNone': 'Every customer has a country.',
   'customers.suggestApply': 'Write {count}',
-  'releaseNotes.contractors1126.title': "Subcontractors: firm, engagement and a purple marking",
-  'releaseNotes.contractors1126.fields': "When entering a subcontractor you now record the firm they work for, the business unit they work with, phone and email, and the start and end of the engagement instead of an employment date. A subcontractor is always a worker in the hierarchy: no higher role and no higher rank.",
-  'releaseNotes.contractors1126.purple': "Subcontractors are marked in purple, with the label Subcontractor, everywhere: in the list of employees, on the employee page, in the Schedule and every Planning view, on the live map, in working hours, absences, costs, housing and refunds, in Excel exports (a purple name cell, plus the columns Type, Firm and Engagement end in the employee export) and in the Android app (version 1.1.38).",
-  'releaseNotes.contractors1126.end': "When the engagement ends, the subcontractor becomes Contract terminated and their sign-in is switched off; hours and costs stay. For existing subcontractors the firm still has to be filled in.",
   'releaseNotes.equipment1126.title': "Schedule: equipment on sites and with workers",
   'releaseNotes.equipment1126.sites': "In the Sites view each site now shows icons of its equipment: vehicles, tool cases, battery sets, measuring sets and cable sets. Hovering opens a card with who holds what and what is free on the site.",
   'releaseNotes.equipment1126.people': "Beside each worker are the icons of the equipment they hold. An orange dot means the equipment is tied to another site or is with a free or absent worker. Free and Absent show what they hold, and the new Free equipment card shows what nobody holds.",
@@ -5254,6 +5250,8 @@ export const en = {
   'releaseNotes.dated1126.title': "Schedule: equipment on any day",
   'releaseNotes.dated1126.days': "The Schedule now shows who held each vehicle and tool on the day you look at. A past day comes from the history kept from now on (earlier days are not known and are left out); a later day shows today's holders with the planned changes applied.",
   'releaseNotes.dated1126.plan': "When you decide about equipment you pick the day it takes effect. A later day only plans it: the equipment stays where it is until that morning, then the system moves it. Planned changes are listed on the right of the board, where you can cancel them.",
+  'releaseNotes.qplan1127.title': "QPlan: the platform has a new name",
+  'releaseNotes.qplan1127.name': "The platform and the app are now called QPlan, with a new mark: a rounded Q with three schedule bars. You will see it in the browser tab, the menu, the sign-in page and on the phone. Nothing else changes: same sign-in, same data.",
   'action.serverStatus': 'Server status',
   'storage.details': 'Server status',
   'serverStatus.title': 'Server status',

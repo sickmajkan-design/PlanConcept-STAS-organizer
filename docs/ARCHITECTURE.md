@@ -1,4 +1,4 @@
-# Architecture — Construction Workforce Management System
+# Architecture — QPlan
 
 A production-grade workforce management platform (inspired by STAS Organizer) for
 construction companies with hundreds of employees. **Phase 1 only.**

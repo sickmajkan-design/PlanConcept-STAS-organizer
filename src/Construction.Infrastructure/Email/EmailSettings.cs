@@ -16,7 +16,7 @@ public class EmailSettings
 
     public string FromAddress { get; set; } = "no-reply@localhost";
 
-    public string FromName { get; set; } = "Construction Workforce";
+    public string FromName { get; set; } = "QPlan";
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(Host);
 }

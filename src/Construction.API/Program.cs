@@ -17,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("Starting Construction Workforce Management API");
+    Log.Information("Starting QPlan API");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -217,7 +217,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Construction API terminated unexpectedly");
+    Log.Fatal(ex, "QPlan API terminated unexpectedly");
 
     // Without this the process still exits 0, so an orchestrator sees a clean
     // shutdown and neither restarts the container nor raises an alert.

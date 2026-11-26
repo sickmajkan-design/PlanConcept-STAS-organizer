@@ -45,7 +45,7 @@ public static class AssistantPrompt
         var today = utcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         return $"""
-            You are the office assistant inside STAS Organizer, a construction
+            You are the office assistant inside QPlan, a construction
             workforce management system used by a building company. You help the
             office answer questions about its own records: sites, crews, hours,
             tasks, defects, absences, materials, vehicles and tools.

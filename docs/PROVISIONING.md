@@ -80,7 +80,7 @@ container.
 ### 2.1 Napravi keystore — jednom, zauvek / Create the keystore — once, for good
 
 ```
-keytool -genkey -v -keystore ~/stas-organizer-upload.jks \
+keytool -genkey -v -keystore ~/qplan-upload.jks \
   -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 

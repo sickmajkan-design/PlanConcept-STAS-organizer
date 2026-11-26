@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/qplan_mark.dart';
+
 /// Shown while the stored session is restored from secure storage.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.engineering, size: 72, color: scheme.primary),
+            const QPlanMark(size: 80),
             const SizedBox(height: 24),
             Text(
-              'Construction Organizer',
+              'QPlan',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 32),

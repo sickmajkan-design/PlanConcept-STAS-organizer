@@ -1,4 +1,3 @@
-import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 
 import { darkLogoSx } from '../features/companySettings/darkLogoSx';
@@ -7,6 +6,7 @@ import { useCompanyBrandingQuery } from '../features/companySettings/useCompanyS
 import { ColorModeToggle } from './ColorModeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { OfflineBanner } from './OfflineBanner';
+import { QPlanMark } from './QPlanMark';
 import type { ReactNode } from 'react';
 
 /**
@@ -55,7 +55,7 @@ export function AuthCard({
                 sx={[{ width: 56, height: 56, objectFit: 'contain' }, darkLogoSx]}
               />
             ) : (
-              <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />
+              <QPlanMark size={56} />
             )}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               {/* Someone who cannot read this screen cannot get past it to

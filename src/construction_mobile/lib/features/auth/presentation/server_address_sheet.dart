@@ -100,7 +100,7 @@ class _ServerAddressSheetState extends ConsumerState<ServerAddressSheet> {
             autocorrect: false,
             decoration: InputDecoration(
               labelText: context.l10n.serverAddressLabel,
-              hintText: 'https://organizer.example.com',
+              hintText: 'https://qplan.example.com',
               prefixIcon: const Icon(Icons.dns_outlined),
               errorText: _error,
             ),

@@ -19,7 +19,7 @@ public static class PasswordRules
         "iloveyou", "monkey", "dragon", "master", "login", "secret", "changeme", "abc", "abcdef", "asdf", "asdfgh",
         "zxcvbn", "football", "baseball", "sunshine", "princess", "trustno", "lozinka", "sifra", "zaporka", "srbija",
         "hrvatska", "bosna", "beograd", "sarajevo", "zagreb", "gradiliste", "radnik", "firma", "zima", "ljeto",
-        "proljece", "jesen", "construction", "organizer"
+        "proljece", "jesen", "construction", "organizer", "qplan"
     };
 
     /// <summary>True when the password is one of the commonly chosen ones, ignoring digits, symbols and case.</summary>

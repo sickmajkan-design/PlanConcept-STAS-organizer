@@ -12,7 +12,7 @@ public class MfaSettings
     /// <summary>Base64 of 32 random bytes. Supplied as <c>Auth__Mfa__EncryptionKey</c>, never committed.</summary>
     public string EncryptionKey { get; set; } = string.Empty;
 
-    public string Issuer { get; set; } = "Construction";
+    public string Issuer { get; set; } = "QPlan";
 
     /// <summary>Role names that are expected to use a second factor, e.g. SuperAdmin and Admin.</summary>
     public string[] RequiredRoles { get; set; } = [];
@@ -47,7 +47,7 @@ public class MfaService : IMfaService
             }
         }
 
-        Issuer = string.IsNullOrWhiteSpace(settings.Issuer) ? "Construction" : settings.Issuer.Trim();
+        Issuer = string.IsNullOrWhiteSpace(settings.Issuer) ? "QPlan" : settings.Issuer.Trim();
 
         _required = settings.RequiredRoles
             .Select(name => Enum.TryParse<UserRole>(name, ignoreCase: true, out var role) ? role : (UserRole?)null)

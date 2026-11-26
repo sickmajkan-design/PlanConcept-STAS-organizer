@@ -1,7 +1,6 @@
 # construction_admin
 
-React admin console for office staff of the Construction Workforce Management
-System. Talks to `Construction.API`.
+React admin console for office staff of QPlan. Talks to `Construction.API`.
 
 ## Stack
 

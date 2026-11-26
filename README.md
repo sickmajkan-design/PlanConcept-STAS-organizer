@@ -1,4 +1,4 @@
-# Construction Workforce Management System
+# QPlan (workforce management platform)
 
 Production-grade workforce management platform for construction companies
 (inspired by STAS Organizer). Backend: ASP.NET Core 9 + PostgreSQL, Clean
