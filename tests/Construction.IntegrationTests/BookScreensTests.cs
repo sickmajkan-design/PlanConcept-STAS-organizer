@@ -476,13 +476,16 @@ public class BookScreensTests : IntegrationTestBase
     public async Task An_import_can_make_the_people_the_system_does_not_know()
     {
         var tag = Guid.NewGuid().ToString("N")[..8];
-        var year = 2040 + Math.Abs(tag.GetHashCode() % 50);
+        // Year and month both drawn at random: the database is shared, and one ledger exists per month.
+        var hash = Math.Abs(tag.GetHashCode() % 732);
+        var year = 2040 + hash / 12;
+        var month = 1 + hash % 12;
 
         var result = await AsSuperAdminAsync(scope => scope.Send(new CommitBookImportCommand(new BookImportInput
         {
             FileName = "uvoz.xlsx",
             Year = year,
-            Month = 3,
+            Month = month,
             CreateUnknownEmployees = true,
             Rows =
             [
