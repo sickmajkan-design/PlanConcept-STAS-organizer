@@ -1,3 +1,4 @@
+import { PersonName } from '../../../components/PersonName';
 import { CheckOutlined, CloseOutlined } from '@mui/icons-material';
 import { Box, IconButton, Stack, Tooltip } from '@mui/material';
 import { useState } from 'react';
@@ -59,7 +60,7 @@ export function AbsenceRequestsWidget({ instanceId: _instanceId, onRemove, onExp
               return (
                 <InsetRow
                   key={absence.id}
-                  primary={absence.employeeName}
+                  primary={<PersonName id={absence.employeeId} name={absence.employeeName} isContractor={absence.employeeIsContractor} />}
                   secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} - ${formatDate(absence.endDate)} · ${t('dashboard.absenceRequests.days', { count: absence.dayCount })}`}
                   action={
                     <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>

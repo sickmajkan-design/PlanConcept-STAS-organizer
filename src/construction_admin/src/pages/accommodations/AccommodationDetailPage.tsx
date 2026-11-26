@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import {
   GroupAddOutlined,
   AddOutlined,
@@ -431,7 +432,7 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
                     <TableCell>
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                         <MuiLink component={RouterLink} to={paths.employeeDetail(stay.employeeId)}>
-                          {stay.employeeName}
+                          <PersonName id={stay.employeeId} name={stay.employeeName} />
                         </MuiLink>
                         {isCurrent(stay) && <Chip size="small" color="success" variant="outlined" label={t('rates.active')} />}
                       </Stack>
@@ -1161,7 +1162,7 @@ function CostSummaryCard({ accommodationId }: { accommodationId: string }) {
                           <TableRow key={row.employeeId}>
                             <TableCell>
                               <MuiLink component={RouterLink} to={paths.employeeDetail(row.employeeId)}>
-                                {row.employeeName}
+                                <PersonName id={row.employeeId} name={row.employeeName} />
                               </MuiLink>
                             </TableCell>
                             <TableCell align="right">{row.personDays}</TableCell>

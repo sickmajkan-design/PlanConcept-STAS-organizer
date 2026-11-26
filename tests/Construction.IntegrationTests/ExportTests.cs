@@ -106,6 +106,55 @@ public class ExportTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_subcontractor_is_marked_purple_in_the_exports_and_listed_with_the_firm()
+    {
+        var contractor = await InScope(scope => TestData.SeedEmployeeAsync(scope, firstName: "Kenan", lastName: "Kooperant"));
+        var plain = await InScope(scope => TestData.SeedEmployeeAsync(scope, firstName: "Marko", lastName: "Radnik"));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await InScope(async scope =>
+        {
+            await scope.Db.Employees.Where(e => e.Id == contractor.Id).ExecuteUpdateAsync(e => e
+                .SetProperty(x => x.Type, EmployeeType.Subcontractor)
+                .SetProperty(x => x.ContractorCompany, "Zidar d.o.o."));
+            return 0;
+        });
+
+        await SeedApprovedShiftAsync(contractor.Id, project.Id, March, hours: 8);
+        await SeedApprovedShiftAsync(plain.Id, project.Id, March, hours: 8);
+
+        var hours = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new ExportTimeEntriesQuery { From = March, To = March.AddDays(7) });
+        });
+
+        var sheet = Open(hours);
+        var rows = Enumerable.Range(1, sheet.LastRowUsed()!.RowNumber())
+            .Where(r => sheet.Cell(r, 1).GetString() is "Kenan Kooperant" or "Marko Radnik")
+            .ToDictionary(r => sheet.Cell(r, 1).GetString());
+
+        Assert.Equal("#EFE4F8", "#" + sheet.Cell(rows["Kenan Kooperant"], 1).Style.Fill.BackgroundColor.Color.Name.Substring(2).ToUpperInvariant());
+        Assert.True(sheet.Cell(rows["Kenan Kooperant"], 1).Style.Font.Bold);
+        Assert.NotEqual("FFEFE4F8", sheet.Cell(rows["Marko Radnik"], 1).Style.Fill.BackgroundColor.Color.Name.ToUpperInvariant());
+
+        var people = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new ExportEmployeesQuery());
+        });
+
+        var list = Open(people);
+        var row = Enumerable.Range(1, list.LastRowUsed()!.RowNumber())
+            .Single(r => list.Cell(r, 2).GetString() == "Kenan Kooperant");
+
+        // The three columns appended after the unit: type, firm, end of the engagement.
+        Assert.Equal("Kooperant", list.Cell(row, 9).GetString());
+        Assert.Equal("Zidar d.o.o.", list.Cell(row, 10).GetString());
+    }
+
+    [Fact]
     public async Task A_timesheet_export_writes_the_date_as_a_date()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));

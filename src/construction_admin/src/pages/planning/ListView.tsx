@@ -1,4 +1,5 @@
 import { Chip, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
+import { PersonName } from '../../components/PersonName';
 import { useState } from 'react';
 
 import { SearchField } from '../../components/SearchField';
@@ -53,7 +54,9 @@ export function ListView({ plan, day, setSite, readOnly }: ViewProps & { day: nu
               const cell = p.cells[day];
               return (
                 <tr key={p.id} style={{ borderTop: '1px solid rgba(128,128,128,.25)' }}>
-                  <td style={{ padding: '6px 12px', fontWeight: 500 }}>{p.name}</td>
+                  <td style={{ padding: '6px 12px', fontWeight: 500 }}>
+                    <PersonName id={p.id} name={p.name} isContractor={p.isContractor} />
+                  </td>
                   <td style={{ padding: '6px 12px' }}>
                     <Typography variant="body2" color="text.secondary">
                       {p.position}

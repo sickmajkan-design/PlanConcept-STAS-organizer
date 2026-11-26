@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { KeyboardArrowDownOutlined, KeyboardArrowRightOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -362,7 +363,9 @@ function EmployeeGroupRow({
           </IconButton>
         </TableCell>
         <TableCell>
-          <Typography variant="body2">{group.employeeName}</Typography>
+          <Typography variant="body2">
+            <PersonName id={group.employeeId} name={group.employeeName} />
+          </Typography>
           {!hasBreakdown && (
             <Typography variant="caption" color="text.secondary">
               {group.projects[0]?.projectName ? <ProjectLabel name={group.projects[0].projectName} projectId={group.projects[0].projectId} /> : t('timeEntries.noProject')}

@@ -218,7 +218,7 @@ export const helpTopics: HelpTopic[] = [
           'Sačuvajte, pa kooperanta rasporedite na gradilište kao i svakog radnika.',
         ],
         example:
-          'Kenan radi za firmu Zidar d.o.o. i sarađuje s jedinicom Sjever. U listi zaposlenih, u Rasporedu i u radnom vremenu stoji uz njegovo ime ljubičasta oznaka Kooperant.',
+          'Kenan radi za firmu Zidar d.o.o. i sarađuje s jedinicom Sjever. U listi zaposlenih, u Rasporedu, na mapi, u radnom vremenu, Excel izvozima i u Android aplikaciji stoji uz njegovo ime ljubičasta oznaka Kooperant.',
         tips: [
           'Kooperant je uvijek radnik u hijerarhiji: ne može dobiti višu ulogu naloga ni viši rang na organizacionoj šemi.',
           'Kada angažman istekne, status prelazi na Raskinut ugovor, nalog za prijavu se gasi, a sati i troškovi ostaju. Za produženje upišite novi kraj, vratite status na Aktivan i ponovo uključite nalog.',
@@ -237,7 +237,7 @@ export const helpTopics: HelpTopic[] = [
           'Save, then assign the subcontractor to a site like any worker.',
         ],
         example:
-          'Kenan works for the firm Zidar d.o.o. and works with the North unit. In the employee list, the Schedule and working hours the purple label Subcontractor stands beside his name.',
+          'Kenan works for the firm Zidar d.o.o. and works with the North unit. In the employee list, the Schedule, the map, working hours, Excel exports and the Android app the purple label Subcontractor stands beside his name.',
         tips: [
           'A subcontractor is always a worker in the hierarchy: no higher account role and no higher rank on the org chart.',
           'When the engagement ends, the status changes to Contract terminated, the sign-in is switched off, and hours and costs stay. To extend, enter a new end, set the status back to Active and switch the account on again.',

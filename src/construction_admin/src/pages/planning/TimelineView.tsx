@@ -1,4 +1,5 @@
 import { ExpandMoreOutlined, FilterListOutlined } from '@mui/icons-material';
+import { PersonName } from '../../components/PersonName';
 import { Badge, Box, Button, ButtonBase, FormControlLabel, MenuItem, Paper, Popover, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo, useState } from 'react';
@@ -385,7 +386,7 @@ function NameCell({ person, disabled }: { person: PlanPerson; disabled: boolean 
       sx={isOver ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2, bgcolor: (theme: { palette: { primary: { main: string } } }) => alpha(theme.palette.primary.main, 0.1) + ' !important' } : undefined}
     >
       <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
-        {person.name}
+        <PersonName id={person.id} name={person.name} isContractor={person.isContractor} />
       </Typography>
       <Typography variant="caption" color="text.secondary" noWrap>
         {person.position}

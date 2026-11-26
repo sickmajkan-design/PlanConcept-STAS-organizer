@@ -1,3 +1,4 @@
+import { PersonName } from '../../../components/PersonName';
 import { Avatar, Box, Stack, useTheme } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
@@ -96,7 +97,7 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
                       {initialsOf(...splitName(absence.employeeName))}
                     </Avatar>
                   }
-                  primary={absence.employeeName}
+                  primary={<PersonName id={absence.employeeId} name={absence.employeeName} isContractor={absence.employeeIsContractor} />}
                   secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} - ${formatDate(absence.endDate)}`}
                 />
               ))}

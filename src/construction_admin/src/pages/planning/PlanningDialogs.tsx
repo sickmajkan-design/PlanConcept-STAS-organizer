@@ -1,4 +1,5 @@
 import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { PersonName } from '../../components/PersonName';
 import {
   Alert,
   Autocomplete,
@@ -216,7 +217,9 @@ export function WorkerDialog({
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ pb: 0.5 }}>{person.name}</DialogTitle>
+      <DialogTitle sx={{ pb: 0.5 }}>
+        <PersonName id={person.id} name={person.name} isContractor={person.isContractor} />
+      </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {person.position} · {formatDate(from)}

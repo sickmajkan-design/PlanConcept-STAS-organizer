@@ -5205,7 +5205,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.absence1126.propose': "Ako datum godišnjeg ne odgovara planu, uz zahtjev na čekanju ponudite drugi datum. Radnik na svom ekranu bira Prihvatam ili Ostajem pri svom; prihvatanje mijenja samo datume, a odobravanje ostaje vaša odluka.",
   'releaseNotes.contractors1126.title': "Kooperanti: firma, angažman i ljubičasta oznaka",
   'releaseNotes.contractors1126.fields': "Pri unosu kooperanta upisuju se firma za koju radi, poslovna jedinica s kojom sarađuje, telefon i e-mail, te početak i kraj angažmana umjesto datuma zaposlenja. Kooperant je uvijek radnik u hijerarhiji: ne može dobiti višu ulogu ni viši rang.",
-  'releaseNotes.contractors1126.purple': "Kooperanti su svuda označeni ljubičastom bojom i oznakom Kooperant: u listi zaposlenih, na kartici radnika, u Rasporedu i Planiranju, u radnom vremenu i u odsustvima.",
+  'releaseNotes.contractors1126.purple': "Kooperanti su svuda označeni ljubičastom bojom i oznakom Kooperant: u listi zaposlenih, na kartici radnika, u Rasporedu i svim prikazima Planiranja, na mapi uživo, u radnom vremenu, odsustvima, troškovima, smještaju i refundacijama, u Excel izvozima (ljubičasta ćelija s imenom, uz kolone Vrsta, Firma i Kraj angažmana u izvozu zaposlenih) i u Android aplikaciji (verzija 1.1.38).",
   'releaseNotes.contractors1126.end': "Kada angažman istekne, kooperant postaje Raskinut ugovor, a njegov nalog za prijavu se gasi; sati i troškovi ostaju. Kod postojećih kooperanata treba dopisati firmu.",
   'action.serverStatus': 'Stanje servera',
   'storage.details': 'Stanje servera',

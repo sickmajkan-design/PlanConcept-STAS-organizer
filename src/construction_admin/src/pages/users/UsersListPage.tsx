@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import {
   AddOutlined,
   BlockOutlined,
@@ -105,6 +106,7 @@ export function UsersListPage() {
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || '—',
+        renderCell: (params) => (params.value === '—' ? '—' : <PersonName id={params.row.employeeId} name={params.value as string} />),
       },
       {
         field: 'isActive',

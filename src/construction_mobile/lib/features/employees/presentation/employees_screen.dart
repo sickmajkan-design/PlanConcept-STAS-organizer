@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/widgets/contractor_badge.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -75,11 +76,15 @@ class _EmployeeCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: theme.colorScheme.primaryContainer,
+                backgroundColor: employee.type == 'Subcontractor'
+                    ? ContractorColors.main
+                    : theme.colorScheme.primaryContainer,
                 child: Text(
                   employee.initials,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: employee.type == 'Subcontractor'
+                        ? Colors.white
+                        : theme.colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -89,11 +94,20 @@ class _EmployeeCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      employee.fullName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          employee.fullName,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: employee.type == 'Subcontractor' ? ContractorColors.name(context) : null,
+                          ),
+                        ),
+                        if (employee.type == 'Subcontractor') const ContractorBadge(dense: true),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(

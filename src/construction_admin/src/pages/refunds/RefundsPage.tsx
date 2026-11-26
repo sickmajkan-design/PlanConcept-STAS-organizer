@@ -1,4 +1,5 @@
-﻿import { AddOutlined } from '@mui/icons-material';
+﻿import { PersonName } from '../../components/PersonName';
+import { AddOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -134,7 +135,14 @@ export function RefundsPage() {
 
   const columns: GridColDef<Refund>[] = useMemo(
     () => [
-      { field: 'employeeName', headerName: t('refunds.employee'), flex: 1, minWidth: 160, sortable: false },
+      {
+        field: 'employeeName',
+        headerName: t('refunds.employee'),
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params) => <PersonName id={params.row.employeeId} name={params.value as string} />,
+      },
       { field: 'description', headerName: t('refunds.reason'), flex: 2, minWidth: 220, sortable: false },
       {
         field: 'amount',

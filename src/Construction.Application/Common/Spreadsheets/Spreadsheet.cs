@@ -42,7 +42,19 @@ public sealed record SpreadsheetColumn(string Header, SpreadsheetValueKind Kind)
 public sealed record SpreadsheetSheet(
     string Name,
     IReadOnlyList<SpreadsheetColumn> Columns,
-    IReadOnlyList<IReadOnlyList<object?>> Rows);
+    IReadOnlyList<IReadOnlyList<object?>> Rows,
+    IReadOnlySet<(int Row, int Column)>? ContractorCells = null);
+
+/// <summary>The cells that name a subcontractor, which the writer shows in purple like the panel does.</summary>
+public static class ContractorMarks
+{
+    /// <summary>One cell in <paramref name="column"/> for each row whose flag is true (rows counted from zero).</summary>
+    public static IReadOnlySet<(int Row, int Column)> Of(IEnumerable<bool> flags, int column = 0) =>
+        flags.Select((isContractor, row) => (isContractor, row))
+            .Where(x => x.isContractor)
+            .Select(x => (x.row, column))
+            .ToHashSet();
+}
 
 /// <summary>
 /// A workbook, described without reference to any spreadsheet library.

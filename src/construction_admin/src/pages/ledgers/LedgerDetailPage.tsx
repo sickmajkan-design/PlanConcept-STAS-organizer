@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { LedgerBranchChip } from '../../features/branches/LedgerBranchChip';
 import {
   AddOutlined,
@@ -1474,7 +1475,11 @@ function RowLine({
             </Stack>
             {subjectName && (
               <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                {subjectName}
+                {row.employeeName && row.employeeId ? (
+                  <PersonName id={row.employeeId} name={row.employeeName} />
+                ) : (
+                  subjectName
+                )}
               </Typography>
             )}
             <Select

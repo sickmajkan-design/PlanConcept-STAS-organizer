@@ -1,3 +1,4 @@
+import { PersonName } from '../../../components/PersonName';
 import { AccessTimeOutlined } from '@mui/icons-material';
 import { Avatar, Box, Stack } from '@mui/material';
 
@@ -94,7 +95,7 @@ export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExp
                       {initialsOf(...splitName(entry.employeeName))}
                     </Avatar>
                   }
-                  primary={entry.employeeName}
+                  primary={<PersonName id={entry.employeeId} name={entry.employeeName} isContractor={entry.employeeIsContractor} />}
                   secondary={`${entry.projectName ?? '—'} · ${formatTimeOfDay(entry.startedAt)} (${formatRelative(entry.startedAt)})`}
                   action={<AccessTimeOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />}
                 />

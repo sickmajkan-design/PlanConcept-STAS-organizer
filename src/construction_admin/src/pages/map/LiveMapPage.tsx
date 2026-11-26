@@ -31,6 +31,9 @@ import { useT } from '../../i18n/useI18n';
 import { canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { PersonName } from '../../components/PersonName';
+import { useContractorIds } from '../../features/employees/useContractorIds';
+import { contractorColor } from '../../theme';
 
 
 /** Zagreb — a reasonable default center until real fixes are loaded. */
@@ -70,6 +73,7 @@ export function LiveMapPage() {
   const total = page?.totalCount ?? 0;
   const truncated = total > shown;
 
+  const contractors = useContractorIds();
   const selected = locations?.find((l) => l.employeeId === selectedEmployeeId);
 
   return (
@@ -145,8 +149,8 @@ export function LiveMapPage() {
                   onClick={() => setSelectedEmployeeId(location.employeeId)}
                 >
                   <Pin
-                    background="#e65100"
-                    borderColor="#bf360c"
+                    background={contractors.has(location.employeeId) ? contractorColor.main : '#e65100'}
+                    borderColor={contractors.has(location.employeeId) ? contractorColor.text : '#bf360c'}
                     glyphColor="#fff"
                   />
                 </AdvancedMarker>
@@ -159,7 +163,7 @@ export function LiveMapPage() {
                 >
                   <Stack spacing={0.5} sx={{ minWidth: 160 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                      {selected.fullName}
+                      <PersonName id={selected.employeeId} name={selected.fullName} />
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {selected.position} · {selected.employeeNumber}

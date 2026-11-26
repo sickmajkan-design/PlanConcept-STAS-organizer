@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
 
@@ -46,7 +47,9 @@ export function AbsencePreviewDialog({
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 0.5 }}>
               <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-                <Typography variant="h6">{absence.employeeName}</Typography>
+                <Typography variant="h6">
+                  <PersonName id={absence.employeeId} name={absence.employeeName} isContractor={absence.employeeIsContractor} />
+                </Typography>
                 <StatusChip status={absence.status} kind="absenceStatus" />
               </Stack>
               <Field label={t('absences.type')}>{enumLabel('absenceType', absence.type)}</Field>

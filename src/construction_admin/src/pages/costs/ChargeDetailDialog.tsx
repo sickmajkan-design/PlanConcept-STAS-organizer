@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import {
   CalendarMonthOutlined,
   CloseOutlined,
@@ -323,7 +324,7 @@ export function ChargeDetailDialog({
                         >
                           <Box sx={{ minWidth: 0 }}>
                             <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                              {person.employeeName}
+                              <PersonName id={person.employeeId} name={person.employeeName} />
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {t('charge.days', { days: person.personDays })}

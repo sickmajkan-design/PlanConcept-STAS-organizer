@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { CloseOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -171,7 +172,7 @@ export function ProjectCostDialog({
                   data.labour.map((line) => (
                     <CostLine
                       key={line.employeeId}
-                      primary={line.employeeName}
+                      primary={<PersonName id={line.employeeId} name={line.employeeName} />}
                       secondary={
                         line.unpricedMinutes > 0
                           ? t('costs.unpricedLine', { hours: hoursText(line.unpricedMinutes) })
@@ -296,7 +297,7 @@ export function ProjectCostDialog({
                             sx={{ py: 0.5, justifyContent: 'space-between', alignItems: 'baseline' }}
                           >
                             <Typography variant="body2">
-                              {person.employeeName}
+                              <PersonName id={person.employeeId} name={person.employeeName} />
                               <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                                 {t('costs.personDaysShort', { days: person.personDays })}
                               </Typography>

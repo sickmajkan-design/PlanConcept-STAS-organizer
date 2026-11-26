@@ -29,6 +29,10 @@ internal static class SpreadsheetTheme
     public static readonly XLColor AccentColor = XLColor.FromHtml("#E65100");
 
     public static readonly XLColor ZebraFill = XLColor.FromHtml("#F5F6F8");
+
+    /// <summary>A subcontractor's name: the panel's purple (see contractorColor in theme.ts).</summary>
+    public static readonly XLColor ContractorFill = XLColor.FromHtml("#EFE4F8");
+    public static readonly XLColor ContractorText = XLColor.FromHtml("#4A1D7A");
     public static readonly XLColor BorderColor = XLColor.FromHtml("#D7DAE0");
     public static readonly XLColor FooterText = XLColor.FromHtml("#6B7280");
     public const string FontFamily = "Calibri";
@@ -219,6 +223,13 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
                 else if (isZebra)
                 {
                     cell.Style.Fill.BackgroundColor = SpreadsheetTheme.ZebraFill;
+                }
+
+                if (!isTotalRow && sheet.ContractorCells?.Contains((row, column)) == true)
+                {
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Font.FontColor = SpreadsheetTheme.ContractorText;
+                    cell.Style.Fill.BackgroundColor = SpreadsheetTheme.ContractorFill;
                 }
             }
         }

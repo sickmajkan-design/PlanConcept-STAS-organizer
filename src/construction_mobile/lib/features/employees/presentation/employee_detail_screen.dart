@@ -1,3 +1,4 @@
+import '../../../core/widgets/contractor_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -221,11 +222,15 @@ class _Header extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 32,
-              backgroundColor: theme.colorScheme.primaryContainer,
+              backgroundColor: employee.type == 'Subcontractor'
+                  ? ContractorColors.main
+                  : theme.colorScheme.primaryContainer,
               child: Text(
                 employee.initials,
                 style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.onPrimaryContainer,
+                  color: employee.type == 'Subcontractor'
+                      ? Colors.white
+                      : theme.colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -249,7 +254,15 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  StatusChip(status: employee.status, kind: EnumKind.employeeStatus),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      StatusChip(status: employee.status, kind: EnumKind.employeeStatus),
+                      if (employee.type == 'Subcontractor') const ContractorBadge(),
+                    ],
+                  ),
                 ],
               ),
             ),

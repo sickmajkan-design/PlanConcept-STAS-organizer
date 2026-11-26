@@ -170,6 +170,7 @@ public class ExportTimeEntriesQueryHandler
             .Select(t => new
             {
                 Employee = t.Employee.FirstName + " " + t.Employee.LastName,
+                IsContractor = t.Employee.Type == EmployeeType.Subcontractor,
                 Project = t.Project != null ? t.Project.Name : null,
                 t.StartedAt,
                 EndedAt = t.EndedAt!.Value,
@@ -212,7 +213,8 @@ public class ExportTimeEntriesQueryHandler
                 r.Status.ToString(),
                 r.Note,
                 r.Branch
-            ]).ToList());
+            ]).ToList(),
+            ContractorCells: ContractorMarks.Of(rows.Select(r => r.IsContractor)));
 
         return _writer.Render(sheet, "work-hours", request);
     }
@@ -386,6 +388,9 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 e.Phone,
                 e.Email,
                 e.EmploymentDate,
+                IsContractor = e.Type == EmployeeType.Subcontractor,
+                e.ContractorCompany,
+                e.EngagementEndDate,
                 Branch = e.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Name).FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
@@ -400,7 +405,10 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 new(ExportLabels.Get("phone", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("email", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("employedOn", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("employeeType", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("contractorCompany", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("engagementEnd", english), SpreadsheetValueKind.Date)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -411,8 +419,12 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 r.Phone,
                 r.Email,
                 r.EmploymentDate,
-                r.Branch
-            ]).ToList());
+                r.Branch,
+                ExportLabels.Get(r.IsContractor ? "typeSubcontractor" : "typeEmployee", english),
+                r.ContractorCompany,
+                r.EngagementEndDate
+            ]).ToList(),
+            ContractorCells: ContractorMarks.Of(rows.Select(r => r.IsContractor), column: 1));
 
         return _writer.RenderSnapshot(
             sheet, "employees", _dateTimeProvider.Today, request.Language, request.BranchId);
@@ -1603,6 +1615,7 @@ public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, E
             .Select(a => new
             {
                 Employee = a.Employee.FirstName + " " + a.Employee.LastName,
+                IsContractor = a.Employee.Type == EmployeeType.Subcontractor,
                 a.Type,
                 a.Status,
                 a.StartDate,
@@ -1641,7 +1654,8 @@ public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, E
                 r.RequestedBy,
                 r.ReviewedBy,
                 r.ReviewNote
-            ]).ToList());
+            ]).ToList(),
+            ContractorCells: ContractorMarks.Of(rows.Select(r => r.IsContractor)));
 
         return _writer.Render(sheet, "absences", request);
     }
@@ -1725,6 +1739,7 @@ public class ExportFinanceEntriesQueryHandler
             .Select(e => new
             {
                 Employee = e.Employee.FirstName + " " + e.Employee.LastName,
+                IsContractor = e.Employee.Type == EmployeeType.Subcontractor,
                 e.Kind,
                 e.Amount,
                 e.OccurredOn,
@@ -1762,7 +1777,8 @@ public class ExportFinanceEntriesQueryHandler
                 r.Note,
                 r.RecordedBy,
                 r.Branch
-            ]).ToList());
+            ]).ToList(),
+            ContractorCells: ContractorMarks.Of(rows.Select(r => r.IsContractor)));
 
         return _writer.Render(sheet, "finance-entries", request);
     }

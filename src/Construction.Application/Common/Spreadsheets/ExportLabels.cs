@@ -50,6 +50,11 @@ public static class ExportLabels
         ["sheet.rentalRates"] = ("Troškovi zakupa i lizinga", "Lease and rental costs"),
 
         ["employee"] = ("Radnik", "Employee"),
+        ["employeeType"] = ("Vrsta", "Type"),
+        ["typeEmployee"] = ("Radnik", "Employee"),
+        ["typeSubcontractor"] = ("Kooperant", "Subcontractor"),
+        ["contractorCompany"] = ("Firma kooperanta", "Subcontractor firm"),
+        ["engagementEnd"] = ("Kraj angažmana", "Engagement end"),
         ["project"] = ("Gradilište", "Site"),
         ["branch"] = ("Poslovna jedinica", "Business unit"),
         ["vehicle"] = ("Vozilo", "Vehicle"),

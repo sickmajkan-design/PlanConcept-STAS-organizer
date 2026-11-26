@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -95,6 +96,7 @@ export function RatesPage() {
         headerName: t('rates.employee'),
         flex: 1,
         minWidth: 180,
+        renderCell: (params) => <PersonName id={params.row.employeeId} name={params.value as string} />,
       },
       {
         field: 'rateType',

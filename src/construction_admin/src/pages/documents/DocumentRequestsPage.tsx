@@ -1,3 +1,4 @@
+import { PersonName } from '../../components/PersonName';
 import { AddOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -171,7 +172,9 @@ function ReviewDialog({ requestId, onClose }: { requestId: string | null; onClos
         ) : (
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
-              <Typography sx={{ fontWeight: 600 }}>{request.employeeName}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>
+                <PersonName id={request.employeeId} name={request.employeeName} />
+              </Typography>
               <Chip size="small" variant="outlined" label={enumLabel('attachmentCategory', request.category)} />
               <StatusBadge request={request} />
               {request.dueDate && (
@@ -392,7 +395,14 @@ export function DocumentRequestsPage() {
 
   const columns: GridColDef<DocumentRequest>[] = useMemo(
     () => [
-      { field: 'employeeName', headerName: t('docRequests.col.person'), flex: 1, minWidth: 160, sortable: false },
+      {
+        field: 'employeeName',
+        headerName: t('docRequests.col.person'),
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params) => <PersonName id={params.row.employeeId} name={params.value as string} />,
+      },
       { field: 'title', headerName: t('docRequests.col.document'), flex: 1.5, minWidth: 200, sortable: false },
       {
         field: 'category',

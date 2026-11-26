@@ -5161,7 +5161,7 @@ export const en = {
   'releaseNotes.absence1126.propose': "If the dates of annual leave do not fit the plan, offer other dates on a waiting request. The employee picks Accept or Keep my dates on their own screen; accepting changes the dates only, and granting stays your decision.",
   'releaseNotes.contractors1126.title': "Subcontractors: firm, engagement and a purple marking",
   'releaseNotes.contractors1126.fields': "When entering a subcontractor you now record the firm they work for, the business unit they work with, phone and email, and the start and end of the engagement instead of an employment date. A subcontractor is always a worker in the hierarchy: no higher role and no higher rank.",
-  'releaseNotes.contractors1126.purple': "Subcontractors are marked in purple, with the label Subcontractor, everywhere: in the list of employees, on the employee page, in the Schedule and Planning, in working hours and in absences.",
+  'releaseNotes.contractors1126.purple': "Subcontractors are marked in purple, with the label Subcontractor, everywhere: in the list of employees, on the employee page, in the Schedule and every Planning view, on the live map, in working hours, absences, costs, housing and refunds, in Excel exports (a purple name cell, plus the columns Type, Firm and Engagement end in the employee export) and in the Android app (version 1.1.38).",
   'releaseNotes.contractors1126.end': "When the engagement ends, the subcontractor becomes Contract terminated and their sign-in is switched off; hours and costs stay. For existing subcontractors the firm still has to be filled in.",
   'action.serverStatus': 'Server status',
   'storage.details': 'Server status',
