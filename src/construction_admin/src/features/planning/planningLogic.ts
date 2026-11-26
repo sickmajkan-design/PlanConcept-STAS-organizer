@@ -1,4 +1,5 @@
 import type { PlanningData, PlanningProject } from '../../api/planning';
+import { indexEquipment, type EquipmentIndex } from './equipment';
 
 /*
  * The rules of the scheduling screen, kept apart from the screen. Everything here works on a window
@@ -69,6 +70,8 @@ export interface Plan {
   people: PlanPerson[];
   projects: PlanningProject[];
   projectById: Map<string, PlanningProject>;
+  /** Vehicles and tools as they are held now. */
+  equipment: EquipmentIndex;
   positions: string[];
   certificateNames: string[];
   /** Whether anybody works on each day of the window: some site does, by its own calendar. */
@@ -188,6 +191,7 @@ export function buildPlan(data: PlanningData, nameOrder: NameOrder = 'first'): P
     people,
     projects: data.projects,
     projectById: new Map(data.projects.map((p) => [p.id, p])),
+    equipment: indexEquipment(data.equipment),
     positions: data.positions,
     isWork,
     holidays,

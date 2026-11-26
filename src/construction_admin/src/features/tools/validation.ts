@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { zodMsg } from '../../i18n/zodMessage';
-import { toolOwnershipTypes, toolStatuses } from '../../api/types';
+import { toolGroups, toolOwnershipTypes, toolStatuses } from '../../api/types';
 
 /** Mirrors the API's ToolCommandBaseValidator so the form catches errors early. */
 export const toolFormSchema = z.object({
@@ -30,6 +30,7 @@ export const toolFormSchema = z.object({
     .or(z.literal('')),
   branchId: z.string().optional().or(z.literal('')),
   status: z.enum(toolStatuses),
+  group: z.enum(toolGroups),
   ownershipType: z.enum(toolOwnershipTypes),
 });
 

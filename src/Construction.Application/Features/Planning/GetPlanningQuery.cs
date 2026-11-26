@@ -48,6 +48,12 @@ public class PlanningDto
 
     public IReadOnlyList<PlanningEmployeeDto> Employees { get; init; } = [];
 
+    /// <summary>
+    /// Vehicles and tools as they are held NOW (who has each, and which site it is on), for the unit in view. It is the
+    /// present state, not a history, so for another day the screen shows it as "state today".
+    /// </summary>
+    public IReadOnlyList<PlanningEquipmentDto> Equipment { get; init; } = [];
+
     /// <summary>Every position an employee currently holds, to offer when a project's needs are edited.</summary>
     public IReadOnlyList<string> Positions { get; init; } = [];
 
@@ -65,6 +71,30 @@ public class PlanningDto
 
     /// <summary>True when the caller is held to one business unit, whether or not it has a name.</summary>
     public bool IsScoped { get; init; }
+}
+
+/// <summary>One vehicle or tool, as much as the planning screen needs to draw an icon and say what it is.</summary>
+public class PlanningEquipmentDto
+{
+    public Guid Id { get; init; }
+
+    /// <summary>"Vehicle" or "Tool".</summary>
+    public string Kind { get; init; } = null!;
+
+    /// <summary>"Vehicle", "Kit" (a kofer), "BatterySet", "MeasuringSet", "CableSet" or "Other".</summary>
+    public string Group { get; init; } = null!;
+
+    /// <summary>Registration and make for a vehicle, the name for a tool.</summary>
+    public string Label { get; init; } = null!;
+
+    /// <summary>The vehicle's or tool's own status, so the screen can say when one is in service or broken.</summary>
+    public string Status { get; init; } = null!;
+
+    /// <summary>The person who holds it. Null: nobody does.</summary>
+    public Guid? EmployeeId { get; init; }
+
+    /// <summary>The site it is on. Null: none.</summary>
+    public Guid? ProjectId { get; init; }
 }
 
 public class PlanningProjectDto
@@ -262,6 +292,42 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             })
             .ToListAsync(cancellationToken);
 
+        // shortcut: every item in the unit is sent (a few hundred); a company with thousands would need paging or a
+        // per-site request.
+        var vehicles = await _context.Vehicles
+            .AsNoTracking()
+            .InBranch(branchId)
+            .Where(v => v.Status != VehicleStatus.RentedOut)
+            .OrderBy(v => v.RegistrationNumber)
+            .Select(v => new PlanningEquipmentDto
+            {
+                Id = v.Id,
+                Kind = "Vehicle",
+                Group = "Vehicle",
+                Label = v.Brand + " " + v.Model + " · " + v.RegistrationNumber,
+                Status = v.Status.ToString(),
+                EmployeeId = v.AssignedEmployeeId,
+                ProjectId = v.AssignedProjectId,
+            })
+            .ToListAsync(cancellationToken);
+
+        var tools = await _context.Tools
+            .AsNoTracking()
+            .InBranch(branchId)
+            .Where(t => t.Status != ToolStatus.RentedOut && t.Status != ToolStatus.Retired && t.Status != ToolStatus.Lost)
+            .OrderBy(t => t.Name)
+            .Select(t => new PlanningEquipmentDto
+            {
+                Id = t.Id,
+                Kind = "Tool",
+                Group = t.IsKit ? "Kit" : t.Group.ToString(),
+                Label = t.Name,
+                Status = t.Status.ToString(),
+                EmployeeId = t.AssignedEmployeeId,
+                ProjectId = t.AssignedProjectId,
+            })
+            .ToListAsync(cancellationToken);
+
         var certificates = await _context.EmployeeCertificates
             .AsNoTracking()
             .Where(c => ids.Contains(c.EmployeeId))
@@ -302,6 +368,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             To = to,
             Today = _clock.Today,
             Projects = projects,
+            Equipment = vehicles.Concat(tools).ToList(),
             Positions = positions,
             CertificateNames = certificateNames,
             Holidays = holidays,

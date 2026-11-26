@@ -70,12 +70,26 @@ export interface PlanningCertificate {
   validUntil: string | null;
 }
 
+/** One vehicle or tool as it is held now. */
+export interface PlanningEquipment {
+  id: string;
+  kind: 'Vehicle' | 'Tool' | string;
+  /** "Vehicle", "Kit" (a kofer), "BatterySet", "MeasuringSet", "CableSet" or "Other". */
+  group: string;
+  label: string;
+  status: string;
+  employeeId: string | null;
+  projectId: string | null;
+}
+
 export interface PlanningData {
   from: string;
   to: string;
   today: string;
   projects: PlanningProject[];
   employees: PlanningEmployee[];
+  /** Vehicles and tools as held now, for the unit in view. */
+  equipment?: PlanningEquipment[];
   positions: string[];
   certificateNames?: string[];
   holidays?: PlanningHoliday[];

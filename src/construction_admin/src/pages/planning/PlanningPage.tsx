@@ -32,6 +32,8 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
+import { equipmentSummary, type EquipmentAlert } from '../../features/planning/equipment';
+import type { MessageKey } from '../../i18n/en';
 import type { NameOrder } from '../../features/planning/planningLogic';
 import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningQuery } from '../../features/planning/usePlanning';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -126,6 +128,8 @@ export function PlanningPage() {
   const [mode, setMode] = useState<RangeMode>('M');
   const [range, setRange] = useState(() => rangeFor('M', today, { from: today, to: today }));
   const [panel, setPanel] = useState<Panel | null>(null);
+  /** An equipment alert the planner clicked: the day view highlights what it concerns. */
+  const [eqAlert, setEqAlert] = useState<EquipmentAlert | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
@@ -402,7 +406,7 @@ export function PlanningPage() {
 
         {plan && (
           <Box data-tour="summary">
-            <Summary plan={plan} view={view} day={dayIndex} range={range} />
+            <Summary plan={plan} view={view} day={dayIndex} range={range} eqAlert={eqAlert} setEqAlert={setEqAlert} />
           </Box>
         )}
       </Stack>
@@ -420,7 +424,7 @@ export function PlanningPage() {
           enabled={!readOnly && (view === 'day' || view === 'timeline')}
           onDrop={(payload, target) => !readOnly && setPanel({ kind: 'move', personId: payload.personId, target, from: payload.from, to: payload.to })}
         >
-          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
           {view === 'need' && <NeedView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
@@ -477,7 +481,21 @@ const VIEW_ICONS: Record<'day' | 'timeline' | 'need' | 'cost' | 'list', React.Re
 
 const wrapChip = { height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } } as const;
 
-function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: number; range: { from: string; to: string } }) {
+function Summary({
+  plan,
+  view,
+  day,
+  range,
+  eqAlert,
+  setEqAlert,
+}: {
+  plan: Plan;
+  view: View;
+  day: number;
+  range: { from: string; to: string };
+  eqAlert: EquipmentAlert | null;
+  setEqAlert: (alert: EquipmentAlert | null) => void;
+}) {
   const t = useT();
 
   if (view === 'day' || view === 'list') {
@@ -497,6 +515,26 @@ function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: numb
         {plan.date(day) >= plan.today && unconfirmedCount(plan, day) > 0 && (
           <Chip color="warning" variant="outlined" label={t('planning.pill.unconfirmed', { count: unconfirmedCount(plan, day) })} />
         )}
+        {view === 'day' &&
+          (['free', 'mismatch', 'idle'] as const).map((alert) => {
+            const count = equipmentSummary(plan, day)[alert];
+            if (count === 0) return null;
+
+            const on = eqAlert === alert;
+
+            return (
+              <Chip
+                key={alert}
+                color="warning"
+                variant={on ? 'filled' : 'outlined'}
+                // Pressed: the same inverted look as a selected filter, so the label stays readable.
+                sx={on ? { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.primary' } } : undefined}
+                onClick={() => setEqAlert(on ? null : alert)}
+                aria-pressed={on}
+                label={t(`planning.eq.pill.${alert}` as MessageKey, { count })}
+              />
+            );
+          })}
       </Stack>
     );
   }

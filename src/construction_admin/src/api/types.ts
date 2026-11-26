@@ -743,9 +743,14 @@ export type ToolStatus = (typeof toolStatuses)[number];
 
 export const toolOwnershipTypes = ['Owned', 'Rented', 'Leased'] as const;
 
+/** The kind of equipment the Schedule draws an icon for. A kit (kofer) needs none: it is recognised by itself. */
+export const toolGroups = ['Other', 'BatterySet', 'MeasuringSet', 'CableSet'] as const;
+export type ToolGroup = (typeof toolGroups)[number];
+
 export type ToolOwnershipType = (typeof toolOwnershipTypes)[number];
 
 export interface Tool {
+  group: ToolGroup;
   id: string;
   /** The business unit the tool belongs to in its own right; null follows its project. */
   branchId: string | null;
@@ -782,6 +787,8 @@ export interface Tool {
 }
 
 export interface ToolInput {
+  /** Left out, an older value stays. */
+  group?: ToolGroup;
   /** Only when creating: makes it a case of tools. Never changed afterwards. */
   isKit?: boolean;
   branchId?: string | null;

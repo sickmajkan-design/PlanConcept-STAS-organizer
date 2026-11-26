@@ -23,7 +23,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { ToolInput } from '../../api/types';
-import { toolOwnershipTypes, toolStatuses } from '../../api/types';
+import { toolGroups, toolOwnershipTypes, toolStatuses } from '../../api/types';
+import type { MessageKey } from '../../i18n/en';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateTool, useToolQuery, useUpdateTool } from '../../features/tools/useTools';
 import { toolFormSchema, type ToolFormValues } from '../../features/tools/validation';
@@ -38,6 +39,7 @@ const emptyValues: ToolFormValues = {
   serialNumber: '',
   qrCode: '',
   status: 'Available',
+  group: 'Other',
   ownershipType: 'Owned',
   branchId: '',
 };
@@ -75,6 +77,7 @@ export function ToolFormPage() {
         serialNumber: existing.serialNumber ?? '',
         qrCode: existing.qrCode ?? '',
         status: existing.status,
+        group: existing.group ?? 'Other',
         ownershipType: existing.ownershipType,
         branchId: existing.branchId ?? '',
       });
@@ -96,6 +99,7 @@ export function ToolFormPage() {
       serialNumber: values.serialNumber || null,
       qrCode: values.qrCode || null,
       status: values.status,
+      group: values.group,
       ownershipType: values.ownershipType,
       branchId: values.branchId || null,
       ...(isEdit ? {} : { isKit }),
@@ -180,6 +184,23 @@ export function ToolFormPage() {
                   )}
                 />
               </Grid>
+              {!isKit && !(isEdit && existing?.isKit) && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="group"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField {...field} select fullWidth label={t('tools.group')} helperText={t('tools.groupHint')}>
+                        {toolGroups.map((value) => (
+                          <MenuItem key={value} value={value}>
+                            {t(`toolGroup.${value}` as MessageKey)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name="serialNumber"

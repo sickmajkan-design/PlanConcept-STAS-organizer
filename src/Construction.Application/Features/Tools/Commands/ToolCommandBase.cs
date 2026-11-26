@@ -17,6 +17,9 @@ public abstract record ToolCommandBase
 
     public string? Category { get; init; }
 
+    /// <summary>Null leaves the group as it is (an older client that does not know the field); a new tool then gets Other.</summary>
+    public ToolGroup? Group { get; init; }
+
     public string? SerialNumber { get; init; }
 
     public string? QrCode { get; init; }
@@ -43,6 +46,10 @@ public abstract class ToolCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.QrCode)
             .MaximumLength(256);
+
+        RuleFor(x => x.Group)
+            .IsInEnum().WithMessage("Group is not a valid tool group.")
+            .When(x => x.Group is not null);
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid tool status.");

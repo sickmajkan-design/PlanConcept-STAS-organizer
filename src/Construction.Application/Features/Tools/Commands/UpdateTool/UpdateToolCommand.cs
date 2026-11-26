@@ -64,6 +64,12 @@ public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolD
         tool.Branch = branch;
         tool.Name = request.Name.Trim();
         tool.Category = request.Category?.Trim();
+
+        if (request.Group is { } group)
+        {
+            tool.Group = group;
+        }
+
         tool.SerialNumber = serialNumber;
         tool.QrCode = qrCode;
         tool.Status = request.Status;

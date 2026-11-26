@@ -202,6 +202,52 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'raspored-oprema',
+    group: 'work',
+    path: paths.schedule,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Raspored: oprema, slobodno i upozorenja',
+        summary:
+          'Raspored pokazuje ne samo ko je na kom gradilištu nego i šta je na koga zaduženo: vozila, kofere, aku setove, mjerne setove i setove za kablove.',
+        steps: [
+          'Otvorite Planiranje, Raspored, prikaz Gradilišta.',
+          'Uz naziv gradilišta stoje ikonice s brojem opreme. Pređite mišem preko njih: prozor pokazuje gradilište, radnike s njihovom opremom i šta je slobodno na gradilištu.',
+          'Uz svakog radnika pređite preko ikonica opreme da vidite tačne nazive. Narandžasta tačka znači da oprema nije tamo gdje bi trebalo da bude.',
+          'Iznad table kliknite na stavku (slobodna oprema, pogrešno gradilište, kod slobodnih i odsutnih) da se istakne ono što se tiče te stavke.',
+        ],
+        example:
+          'Ibrahim je prebačen na drugo gradilište, a kofer K-09 je ostao vezan za prvo. Uz njega stoji narandžasta tačka, a prozor kaže "Vezano za drugo gradilište: Amalienstrasse". Kliknete na stavku Oprema na pogrešnom gradilištu i vidite sve takve slučajeve.',
+        tips: [
+          'Oprema prikazuje stanje danas. Za drugi dan se vidi oprema onih koji su tada na gradilištu.',
+          'Vrsta setova (aku set, mjerni set, set za kablove) bira se u formi alata, u polju Vrsta u Rasporedu. Kofer se prepoznaje sam.',
+          'Oprema koja ne pripada nijednoj osobi ni gradilištu stoji u kartici Slobodna oprema.',
+        ],
+        keywords: ['raspored', 'oprema', 'vozilo', 'kofer', 'aku set', 'mjerni set', 'slobodno', 'zaduženo'],
+      },
+      en: {
+        title: 'Schedule: equipment, free and warnings',
+        summary:
+          'The Schedule shows not only who is on which site but also what is assigned to whom: vehicles, tool cases, battery sets, measuring sets and cable sets.',
+        steps: [
+          'Open Planning, Schedule, the Sites view.',
+          'Beside a site name are icons with the number of equipment. Point at them: the card shows the site, the workers with their equipment and what is free on the site.',
+          'Beside each worker point at the equipment icons to see exact names. An orange dot means the equipment is not where it should be.',
+          'Above the board click an item (free equipment, wrong site, with free and absent workers) to highlight what concerns it.',
+        ],
+        example:
+          'Ibrahim was moved to another site, but tool case K-09 stayed tied to the first. An orange dot stands beside him and the card says "Tied to another site: Amalienstrasse". Click the item Equipment on the wrong site and you see every such case.',
+        tips: [
+          'Equipment shows the state today. For another day you see the equipment of those who are on a site that day.',
+          'The kind of sets (battery set, measuring set, cable set) is chosen in the tool form, in the field Kind on the Schedule. A tool case is recognised by itself.',
+          'Equipment that belongs to no person and no site is in the card Free equipment.',
+        ],
+        keywords: ['schedule', 'equipment', 'vehicle', 'tool case', 'battery set', 'measuring set', 'free', 'assigned'],
+      },
+    },
+  },
+  {
     id: 'kooperanti',
     group: 'work',
     path: paths.employeeNew,

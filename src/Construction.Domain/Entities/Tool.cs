@@ -9,6 +9,9 @@ public class Tool : BaseEntity, ISoftDeletable, IAuditable
 
     public string? Category { get; set; }
 
+    /// <summary>The kind of equipment the planning screen draws it as; see <see cref="ToolGroup"/>.</summary>
+    public ToolGroup Group { get; set; } = ToolGroup.Other;
+
     public string? SerialNumber { get; set; }
 
     /// <summary>Value encoded in the QR label attached to the physical tool.</summary>

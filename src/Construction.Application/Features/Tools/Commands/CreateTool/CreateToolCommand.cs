@@ -1,3 +1,4 @@
+using Construction.Domain.Enums;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -47,6 +48,7 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
             Branch = branch,
             Name = request.Name.Trim(),
             Category = request.Category?.Trim(),
+            Group = request.Group ?? ToolGroup.Other,
             SerialNumber = serialNumber,
             QrCode = qrCode,
             Status = request.Status,

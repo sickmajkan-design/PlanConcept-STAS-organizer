@@ -11,6 +11,9 @@ public class ToolDto
 
     public string? Category { get; init; }
 
+    /// <summary>"Other", "BatterySet", "MeasuringSet" or "CableSet": see <c>ToolGroup</c>.</summary>
+    public string Group { get; init; } = null!;
+
     public string? SerialNumber { get; init; }
 
     public string? QrCode { get; init; }
@@ -83,6 +86,7 @@ public static class ToolMapping
             Id = tool.Id,
             Name = tool.Name,
             Category = tool.Category,
+            Group = tool.Group.ToString(),
             SerialNumber = tool.SerialNumber,
             QrCode = tool.QrCode,
             Status = tool.Status.ToString(),

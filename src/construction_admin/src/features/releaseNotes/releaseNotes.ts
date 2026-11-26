@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-26.88';
+export const RELEASE_ID = '2026-11-26.89';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,12 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'schedule1123',
-    titleKey: 'releaseNotes.schedule1123.title',
-    itemKeys: ['releaseNotes.schedule1123.view'],
-    audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
-  },
   {
     id: 'names1125',
     titleKey: 'releaseNotes.names1125.title',
@@ -60,6 +54,16 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.contractors1126.fields',
       'releaseNotes.contractors1126.purple',
       'releaseNotes.contractors1126.end',
+    ],
+    audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
+  },
+  {
+    id: 'equipment1126',
+    titleKey: 'releaseNotes.equipment1126.title',
+    itemKeys: [
+      'releaseNotes.equipment1126.sites',
+      'releaseNotes.equipment1126.people',
+      'releaseNotes.equipment1126.alerts',
     ],
     audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
   },
