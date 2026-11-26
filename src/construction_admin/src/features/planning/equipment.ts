@@ -123,7 +123,7 @@ export function personFlags(plan: Plan, person: PlanPerson, day: number): { mism
 export type EquipmentAlert = 'free' | 'mismatch' | 'idle';
 
 /** Everything a planner can click in the pill row to highlight: equipment trouble, or who is late / in the wrong place. */
-export type BoardAlert = EquipmentAlert | 'late' | 'wrong';
+export type BoardAlert = EquipmentAlert | 'late' | 'wrong' | 'unconfirmed' | 'short';
 
 export interface EquipmentSummary {
   /** Items on a site and held by nobody. */

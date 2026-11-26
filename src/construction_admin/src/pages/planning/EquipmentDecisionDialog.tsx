@@ -40,12 +40,15 @@ export function EquipmentDecisionDialog({
   plan,
   personId,
   day,
+  move,
   onClose,
 }: {
   plan: Plan;
   personId: string;
   /** The day the board is on: who is free, and where people are, is read for it. */
   day: number;
+  /** The move this question comes before: made when the answer is saved, not at all when the question is declined. */
+  move?: { from: string; proceed: () => Promise<void> };
   onClose: () => void;
 }) {
   const t = useT();
@@ -66,7 +69,11 @@ export function EquipmentDecisionDialog({
   const [failure, setFailure] = useState<string | null>(null);
   // From when the decision counts: today (now), or a later day it is planned for.
   const today = plan.today;
-  const [from, setFrom] = useState(() => (plan.date(day) > today ? plan.date(day) : today));
+  const [from, setFrom] = useState(() => {
+    const start = move?.from ?? plan.date(day);
+
+    return start > today ? start : today;
+  });
 
   // Nothing held (or the person is gone): there is nothing to decide.
   useEffect(() => {
@@ -100,12 +107,14 @@ export function EquipmentDecisionDialog({
       return;
     }
 
-    if (request.items.length === 0) {
-      onClose();
-      return;
-    }
-
     try {
+      await move?.proceed();
+
+      if (request.items.length === 0) {
+        onClose();
+        return;
+      }
+
       await decideEquipment.mutateAsync({ items: request.items, effectiveFrom: from > today ? from : undefined });
       onClose();
     } catch (error) {
@@ -218,9 +227,9 @@ export function EquipmentDecisionDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('planning.eqd.later')}</Button>
+        <Button onClick={onClose}>{move ? t('planning.eqd.cancelMove') : t('planning.eqd.later')}</Button>
         <Button variant="contained" loading={decideEquipment.isPending} onClick={() => void submit()}>
-          {from > today ? t('planning.eqd.savePlanned') : t('planning.eqd.save')}
+          {move ? t('planning.eqd.moveAndSave') : from > today ? t('planning.eqd.savePlanned') : t('planning.eqd.save')}
         </Button>
       </DialogActions>
     </Dialog>

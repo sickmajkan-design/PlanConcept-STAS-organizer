@@ -262,6 +262,12 @@ export function DayView({
 
       return !!a && (eqAlert === 'late' ? isLate(a) : isWrongPlace(a));
     }
+    if (eqAlert === 'unconfirmed') {
+      const c = p.cells[day];
+
+      return work && date >= plan.today && !!c.project && !c.away && !c.acknowledged;
+    }
+    if (eqAlert === 'short') return false;
 
     return matchesAlert(eqAlert, equipmentOf(p)?.flags ?? {});
   };
@@ -300,7 +306,7 @@ export function DayView({
               target={{ kind: 'site', projectId: site.id }}
               disabled={dropOff || here}
               fits={carried ? fillsGap(plan, site.id, carried, date, date) : undefined}
-              mark={!!eqAlert && (eqAlert === 'late' || eqAlert === 'wrong' ? crew.some(markPerson) : matchesAlert(eqAlert, siteHit))}
+              mark={!!eqAlert && (eqAlert === 'short' ? work && short > 0 : eqAlert === 'late' || eqAlert === 'wrong' || eqAlert === 'unconfirmed' ? crew.some(markPerson) : matchesAlert(eqAlert, siteHit))}
             >
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: siteColor(site.id), flex: 'none' }} />

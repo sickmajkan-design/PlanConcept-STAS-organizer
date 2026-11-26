@@ -54,7 +54,7 @@ export const releaseSections: ReleaseSection[] = [
   {
     id: 'attendance1126',
     titleKey: 'releaseNotes.attendance1126.title',
-    itemKeys: ['releaseNotes.attendance1126.icons', 'releaseNotes.attendance1126.alerts'],
+    itemKeys: ['releaseNotes.attendance1126.icons', 'releaseNotes.attendance1126.alerts', 'releaseNotes.attendance1126.card'],
     audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
   },
   {

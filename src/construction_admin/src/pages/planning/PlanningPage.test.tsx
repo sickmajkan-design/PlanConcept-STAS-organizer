@@ -161,6 +161,38 @@ describe('PlanningPage', () => {
     });
   }, SCREEN_TIMEOUT);
 
+  describe('freeing somebody who holds equipment', () => {
+    const car = { id: 'car1', kind: 'Vehicle', group: 'Vehicle', label: 'Golf · ZG-1', status: 'Assigned', employeeId: 'e1', projectId: HALL };
+
+    const free = async () => {
+      network.reply('/planning', 200, plan({ employees: [person('e1', 'Ana Novak', 'Zidar', HALL)], equipment: [car] }));
+      network.reply('/planning/assign', 204);
+      network.reply('/planning/equipment', 200, 1);
+
+      await renderPage();
+      await userEvent.click(await screen.findByRole('button', { name: /^List/ }));
+      await userEvent.click(await screen.findByRole('combobox', { name: 'Ana Novak' }));
+      await userEvent.click(await screen.findByRole('option', { name: 'Free' }));
+    };
+
+    it('asks about the equipment first and makes the move only when the answer is saved', async () => {
+      await free();
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Move and save' }));
+
+      await waitFor(() => expect(network.calls.some((c) => c.url.includes('/planning/assign'))).toBe(true));
+    }, SCREEN_TIMEOUT);
+
+    it('leaves everything as it was when the question is declined', async () => {
+      await free();
+
+      await userEvent.click(await screen.findByRole('button', { name: "Don't move them" }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(network.calls.some((c) => c.url.includes('/planning/assign'))).toBe(false);
+    }, SCREEN_TIMEOUT);
+  });
+
   it('offers a guided tour the first time and walks through the views, switching them as it goes', async () => {
     network.reply('/planning', 200, plan());
 
@@ -225,7 +257,7 @@ describe('PlanningPage', () => {
     await renderPage();
     await userEvent.click(await screen.findByRole('button', { name: /By site/ }));
 
-    expect(await screen.findByText('1 have not confirmed')).toBeDefined();
+    expect(await screen.findByRole('button', { name: /1\s*Not confirmed/ })).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('downloads the schedule on paper for the period on screen, in the language of the screen', async () => {

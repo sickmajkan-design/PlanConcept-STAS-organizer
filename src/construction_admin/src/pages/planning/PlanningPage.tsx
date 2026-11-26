@@ -32,8 +32,8 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
+import { AttentionCard, type AttentionItem } from './AttentionCard';
 import { equipmentOnDay, equipmentSummary, heldBy, type BoardAlert } from '../../features/planning/equipment';
-import type { MessageKey } from '../../i18n/en';
 import type { NameOrder } from '../../features/planning/planningLogic';
 import { attendanceMap, isLate, isWrongPlace, type PersonAttendance } from '../../features/planning/attendance';
 import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningAttendance, usePlanningEquipmentOn, usePlanningQuery } from '../../features/planning/usePlanning';
@@ -134,6 +134,8 @@ export function PlanningPage() {
   const [eqAlert, setEqAlert] = useState<BoardAlert | null>(null);
   /** Somebody whose equipment the planner is to decide about: just freed, or away. */
   const [equipmentFor, setEquipmentFor] = useState<string | null>(null);
+  /** A move that frees somebody who holds equipment waits here for the decision about it; the move is made when it is given. */
+  const [moveAsk, setMoveAsk] = useState<{ personId: string; from: string; proceed: () => Promise<void>; done: () => void } | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
@@ -169,10 +171,29 @@ export function PlanningPage() {
           const person = plan.people.find((p) => p.id === personId);
           const before = segmentsOf(plan, personId, from, to);
 
-          await mutations.assign.mutateAsync({ employeeId: personId, projectId, from, to, onlyFreeDays: options?.onlyFree });
+          const move = () => mutations.assign.mutateAsync({ employeeId: personId, projectId, from, to, onlyFreeDays: options?.onlyFree });
 
-          // Freed from a site while holding equipment: ask what to do with it, rather than leave it quietly with them.
-          if (projectId === null && heldBy(plan, personId).length > 0) setEquipmentFor(personId);
+          // Freed from a site while holding equipment: ask what to do with it first, rather than leave it quietly with them.
+          // Declining the question leaves everything as it was.
+          if (projectId === null && heldBy(plan, personId).length > 0) {
+            let moved = false;
+
+            await new Promise<void>((resolve) =>
+              setMoveAsk({
+                personId,
+                from,
+                proceed: async () => {
+                  await move();
+                  moved = true;
+                },
+                done: resolve,
+              }),
+            );
+
+            if (!moved) return;
+          } else {
+            await move();
+          }
 
           const site = projectId ? plan.projectById.get(projectId)?.name : null;
           setUndo({
@@ -431,8 +452,11 @@ export function PlanningPage() {
 
         {plan && (
           <Box data-tour="summary">
-            <Summary plan={dayPlan ?? plan} view={view} day={dayIndex} range={range} eqAlert={eqAlert} setEqAlert={setEqAlert} attendance={attendance} />
+            <Summary plan={dayPlan ?? plan} view={view} day={dayIndex} range={range} />
           </Box>
+        )}
+        {plan && view === 'day' && dayIndex >= 0 && plan.isWork[dayIndex] && (
+          <AttentionCard items={attentionItems(dayPlan ?? plan, dayIndex, attendance, t)} active={eqAlert} onPick={setEqAlert} />
         )}
       </Stack>
 
@@ -468,6 +492,19 @@ export function PlanningPage() {
           {panel?.kind === 'worker' && <WorkerDialog key={`${panel.personId}${panel.from}${panel.to}`} plan={plan} personId={panel.personId} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'site' && <SiteDialog key={`${panel.projectId}${panel.from}${panel.to}${panel.position ?? ''}`} plan={plan} projectId={panel.projectId} from={panel.from} to={panel.to} position={panel.position} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'move' && <MoveDialog key={`${panel.personId}${panel.from}${panel.to}${panel.target.kind}`} plan={plan} personId={panel.personId} target={panel.target} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
+          {moveAsk && (
+            <EquipmentDecisionDialog
+              key={`move-${moveAsk.personId}`}
+              plan={plan}
+              personId={moveAsk.personId}
+              day={Math.max(0, plan.indexOf(moveAsk.from))}
+              move={{ from: moveAsk.from, proceed: moveAsk.proceed }}
+              onClose={() => {
+                moveAsk.done();
+                setMoveAsk(null);
+              }}
+            />
+          )}
           {equipmentFor && <EquipmentDecisionDialog key={equipmentFor} plan={plan} personId={equipmentFor} day={Math.max(0, dayIndex)} onClose={() => setEquipmentFor(null)} />}
           {panel?.kind === 'replace' && <ReplaceDialog plan={plan} item={panel.item} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'needs' && <NeedsDialog key={panel.projectId} plan={plan} projectId={panel.projectId} actions={actions} onClose={() => setPanel(null)} />}
@@ -505,6 +542,24 @@ const VIEW_ICONS: Record<'day' | 'timeline' | 'need' | 'cost' | 'list', React.Re
   list: <ListOutlined fontSize="small" />,
 };
 
+/** What needs a second look on the day shown, in the order the planner should see it; kinds with nothing to show are left out. */
+function attentionItems(plan: Plan, day: number, attendance: Map<string, PersonAttendance> | undefined, t: ReturnType<typeof useT>): AttentionItem[] {
+  const eq = equipmentSummary(plan, day);
+  const att = attendance ? [...attendance.values()] : [];
+  const unconfirmed = plan.date(day) >= plan.today ? unconfirmedCount(plan, day) : 0;
+  const all: AttentionItem[] = [
+    { key: 'late', label: t('planning.attn.late'), count: att.filter(isLate).length, tone: 'warning' },
+    { key: 'wrong', label: t('planning.attn.wrong'), count: att.filter(isWrongPlace).length, tone: 'error' },
+    { key: 'unconfirmed', label: t('planning.attn.unconfirmed'), count: unconfirmed, tone: 'warning' },
+    { key: 'free', label: t('planning.attn.free'), count: eq.free, tone: 'warning' },
+    { key: 'mismatch', label: t('planning.attn.mismatch'), count: eq.mismatch, tone: 'warning' },
+    { key: 'short', label: t('planning.attn.short'), count: missing(plan, day), tone: 'error' },
+    { key: 'idle', label: t('planning.attn.idle'), count: eq.idle, tone: 'warning' },
+  ];
+
+  return all.filter((item) => item.count > 0);
+}
+
 const wrapChip = { height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } } as const;
 
 function Summary({
@@ -512,17 +567,11 @@ function Summary({
   view,
   day,
   range,
-  eqAlert,
-  setEqAlert,
-  attendance,
 }: {
   plan: Plan;
   view: View;
   day: number;
   range: { from: string; to: string };
-  eqAlert: BoardAlert | null;
-  setEqAlert: (alert: BoardAlert | null) => void;
-  attendance?: Map<string, PersonAttendance>;
 }) {
   const t = useT();
 
@@ -540,50 +589,6 @@ function Summary({
         <Chip label={t('planning.pill.free', { count: free })} variant="outlined" />
         <Chip label={t('planning.pill.away', { count: away })} color={away ? 'warning' : 'default'} variant={away ? 'filled' : 'outlined'} />
         <Chip label={miss ? t('planning.pill.openSlots', { count: miss }) : t('planning.pill.allFilled')} color={miss ? 'error' : 'success'} />
-        {plan.date(day) >= plan.today && unconfirmedCount(plan, day) > 0 && (
-          <Chip color="warning" variant="outlined" label={t('planning.pill.unconfirmed', { count: unconfirmedCount(plan, day) })} />
-        )}
-        {view === 'day' &&
-          (['free', 'mismatch', 'idle'] as const).map((alert) => {
-            const count = equipmentSummary(plan, day)[alert];
-            if (count === 0) return null;
-
-            const on = eqAlert === alert;
-
-            return (
-              <Chip
-                key={alert}
-                color="warning"
-                variant={on ? 'filled' : 'outlined'}
-                // Pressed: the same inverted look as a selected filter, so the label stays readable.
-                sx={on ? { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.primary' } } : undefined}
-                onClick={() => setEqAlert(on ? null : alert)}
-                aria-pressed={on}
-                label={t(`planning.eq.pill.${alert}` as MessageKey, { count })}
-              />
-            );
-          })}
-        {view === 'day' &&
-          attendance &&
-          (['late', 'wrong'] as const).map((alert) => {
-            const test = alert === 'late' ? isLate : isWrongPlace;
-            const count = [...attendance.values()].filter(test).length;
-            if (count === 0) return null;
-
-            const on = eqAlert === alert;
-
-            return (
-              <Chip
-                key={alert}
-                color={alert === 'late' ? 'warning' : 'error'}
-                variant={on ? 'filled' : 'outlined'}
-                sx={on ? { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.primary' } } : undefined}
-                onClick={() => setEqAlert(on ? null : alert)}
-                aria-pressed={on}
-                label={t(`planning.att.pill.${alert}` as MessageKey, { count })}
-              />
-            );
-          })}
       </Stack>
     );
   }
