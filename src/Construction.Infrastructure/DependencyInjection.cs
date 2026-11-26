@@ -64,6 +64,7 @@ public static class DependencyInjection
         // lifetime of the process.
         services.AddScoped<AuditTrailInterceptor>();
         services.AddSingleton<LedgerLockInterceptor>();
+        services.AddScoped<EquipmentHoldInterceptor>();
 
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
@@ -78,7 +79,8 @@ public static class DependencyInjection
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>(),
                 serviceProvider.GetRequiredService<SoftDeleteInterceptor>(),
                 serviceProvider.GetRequiredService<AuditTrailInterceptor>(),
-                serviceProvider.GetRequiredService<LedgerLockInterceptor>());
+                serviceProvider.GetRequiredService<LedgerLockInterceptor>(),
+                serviceProvider.GetRequiredService<EquipmentHoldInterceptor>());
         });
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());

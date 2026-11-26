@@ -4,8 +4,12 @@ import { alpha } from '@mui/material/styles';
 import { useState, type ReactNode } from 'react';
 
 import { useEnumLabel } from '../../i18n/enumLabels';
+import { usePlanningActions } from '../../features/planning/usePlanning';
 import { useT } from '../../i18n/useI18n';
-import { heldBy, personFlags, siteEquipment, type EquipmentAlert, type EquipmentItem } from '../../features/planning/equipment';
+import type { PlannedEquipmentChange } from '../../api/planning';
+import { isLate, isWrongPlace, type PersonAttendance } from '../../features/planning/attendance';
+import { AttendanceIcon } from './attendanceUi';
+import { heldBy, personFlags, siteEquipment, type BoardAlert, type EquipmentItem } from '../../features/planning/equipment';
 import { EquipmentIcon } from '../../components/EquipmentIcon';
 import {
   EquipmentCluster,
@@ -48,8 +52,11 @@ function PersonButton({
   plan,
   bind,
   mark,
+  attendance,
 }: {
   person: PlanPerson;
+  /** Clock-in and position of the person today, when the board shows today. */
+  attendance?: PersonAttendance;
   day: number;
   date: string;
   /** What the person holds, with the card to show on hover. */
@@ -135,6 +142,12 @@ function PersonButton({
       {equipment && bind && (
         <EquipmentCluster plan={plan} person={person} day={day} items={equipment.items} mismatch={equipment.mismatch} idle={equipment.idle} bind={bind} />
       )}
+      {attendance && bind && (
+        <Stack direction="row" spacing={0.25} sx={{ flex: 'none', alignItems: 'center' }}>
+          <AttendanceIcon kind="clock" att={attendance} bind={bind} />
+          {attendance.pin && <AttendanceIcon kind="pin" att={attendance} bind={bind} />}
+        </Stack>
+      )}
       {showConfirmation && cell.project && !cell.away && (
         <Tooltip title={cell.acknowledged ? t('planning.ack.confirmed') : t('planning.ack.waiting')}>
           {cell.acknowledged ? (
@@ -202,10 +215,13 @@ export function DayView({
   readOnly,
   eqAlert,
   onDecideEquipment,
-}: ViewProps & { day: number; eqAlert?: EquipmentAlert | null; onDecideEquipment?: (personId: string) => void }) {
+  attendance,
+  planned,
+}: ViewProps & { planned?: PlannedEquipmentChange[]; day: number; eqAlert?: BoardAlert | null; onDecideEquipment?: (personId: string) => void; attendance?: Map<string, PersonAttendance> }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { person: carried } = useDragInfo();
+  const { cancelPlanned } = usePlanningActions();
   const hover = useHoverCard(!!carried);
   const date = plan.date(day);
   const sites = plan.projects.filter((p) => (!p.startDate || date >= p.startDate) && (!p.endDate || date <= p.endDate));
@@ -239,11 +255,25 @@ export function DayView({
       </Box>
     ) : null;
   // A site-level alert (free equipment) leaves the people as they are; the person-level ones mark who they are about.
-  const markPerson = (p: PlanPerson) => !!eqAlert && eqAlert !== 'free' && matchesAlert(eqAlert, equipmentOf(p)?.flags ?? {});
+  const markPerson = (p: PlanPerson) => {
+    if (!eqAlert || eqAlert === 'free') return false;
+    if (eqAlert === 'late' || eqAlert === 'wrong') {
+      const a = attendance?.get(p.id);
+
+      return !!a && (eqAlert === 'late' ? isLate(a) : isWrongPlace(a));
+    }
+
+    return matchesAlert(eqAlert, equipmentOf(p)?.flags ?? {});
+  };
 
   return (
     <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,1fr) 280px' }, alignItems: 'start' }}>
       <Box data-tour="day-sites" sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
+        {date !== plan.today && (
+          <Typography variant="caption" color="text.secondary" sx={{ gridColumn: '1 / -1' }}>
+            {t(date < plan.today ? 'planning.eq.pastNote' : 'planning.eq.futureNote')}
+          </Typography>
+        )}
         {!readOnly && work && (
           <Typography variant="caption" color="text.secondary" sx={{ gridColumn: '1 / -1' }}>
             {t('planning.dnd.hint')}
@@ -270,7 +300,7 @@ export function DayView({
               target={{ kind: 'site', projectId: site.id }}
               disabled={dropOff || here}
               fits={carried ? fillsGap(plan, site.id, carried, date, date) : undefined}
-              mark={!!eqAlert && matchesAlert(eqAlert, siteHit)}
+              mark={!!eqAlert && (eqAlert === 'late' || eqAlert === 'wrong' ? crew.some(markPerson) : matchesAlert(eqAlert, siteHit))}
             >
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: siteColor(site.id), flex: 'none' }} />
@@ -298,7 +328,7 @@ export function DayView({
               )}
               <Stack sx={{ p: 0.75 }} spacing={0.25}>
                 {crew.map((p) => (
-                  <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} showConfirmation={date >= plan.today} onOpen={() => openWorker(p.id, date, date)} equipment={equipmentOf(p)} plan={plan} bind={hover.bind} mark={markPerson(p)} />
+                  <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} showConfirmation={date >= plan.today} onOpen={() => openWorker(p.id, date, date)} equipment={equipmentOf(p)} plan={plan} bind={hover.bind} mark={markPerson(p)} attendance={attendance?.get(p.id)} />
                 ))}
                 {work &&
                   slots.map((position, i) => {
@@ -414,6 +444,40 @@ export function DayView({
                   </Typography>
                 </Stack>
               ))}
+            </Box>
+          </Paper>
+        )}
+
+        {planned && planned.length > 0 && (
+          <Paper variant="outlined" sx={{ borderRadius: 2.5, p: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              {t('planning.eq.plannedTitle')} <span>{planned.length}</span>
+            </Typography>
+            <Box sx={{ maxHeight: 240, overflowY: 'auto', overscrollBehavior: 'contain', mt: 0.5 }}>
+              {planned.map((c) => {
+                const item = plan.equipment.items.find((i) => i.id === c.itemId);
+                const to = c.employeeId
+                  ? (plan.people.find((p) => p.id === c.employeeId)?.name ?? '?')
+                  : c.projectId
+                    ? (plan.projectById.get(c.projectId)?.name ?? '?')
+                    : t('planning.eq.toStoreShort');
+
+                return (
+                  <Stack key={c.id} direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.5 }}>
+                    <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary', flex: 'none' }}>
+                      {item && <EquipmentIcon group={item.group} size={20} />}
+                    </Box>
+                    <Typography variant="body2" sx={{ minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}>
+                      {t('planning.eq.plannedLine', { item: item?.label ?? '?', to, date: formatDate(c.effectiveFrom) })}
+                    </Typography>
+                    {!readOnly && (
+                      <Button size="small" color="inherit" disabled={cancelPlanned.isPending} onClick={() => cancelPlanned.mutate(c.id)} sx={{ textTransform: 'none', flex: 'none' }}>
+                        {t('planning.eq.cancelPlanned')}
+                      </Button>
+                    )}
+                  </Stack>
+                );
+              })}
             </Box>
           </Paper>
         )}

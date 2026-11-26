@@ -1,9 +1,9 @@
-import type { PlanningEquipment, PlanningProject } from '../../api/planning';
+import type { PlanningEquipment, PlanningEquipmentOn, PlanningProject } from '../../api/planning';
 import type { Plan, PlanPerson } from './planningLogic';
 
 /*
- * Who holds which vehicle and tool, for the planning screen. The API sends the present state (not a history), so for
- * another day the screen follows the holder: a person's equipment is on the site they are posted to that day.
+ * Who holds which vehicle and tool, for the planning screen. The plan carries the present state; another day's holders come from a request of their own
+ * (the history for an earlier day, the planned changes for a later one).
  * Plain data and plain functions, tested without a browser.
  */
 
@@ -57,6 +57,11 @@ export function indexEquipment(list: PlanningEquipment[] | undefined): Equipment
     projectId: e.projectId ?? null,
   }));
 
+  return groupItems(items);
+}
+
+/** Sorts items into "held by a person", "on a site" and "in the store". */
+function groupItems(items: EquipmentItem[]): EquipmentIndex {
   const byEmployee = new Map<string, EquipmentItem[]>();
   const onSite = new Map<string, EquipmentItem[]>();
   const store: EquipmentItem[] = [];
@@ -116,6 +121,9 @@ export function personFlags(plan: Plan, person: PlanPerson, day: number): { mism
 }
 
 export type EquipmentAlert = 'free' | 'mismatch' | 'idle';
+
+/** Everything a planner can click in the pill row to highlight: equipment trouble, or who is late / in the wrong place. */
+export type BoardAlert = EquipmentAlert | 'late' | 'wrong';
 
 export interface EquipmentSummary {
   /** Items on a site and held by nobody. */
@@ -183,4 +191,21 @@ export function choiceRequest(
     })),
     missingReceiver: chosen.some(({ state }) => state.choice === 'HandOver' && !state.to),
   };
+}
+
+/**
+ * The same items with the holders of another day. An earlier day comes from the history, which does not reach back for
+ * every item: an item it knows nothing about is left out rather than guessed. A later day keeps every item.
+ */
+export function equipmentOnDay(index: EquipmentIndex, on: PlanningEquipmentOn, isPast: boolean): EquipmentIndex {
+  const holders = new Map(on.items.map((h) => [h.id, h]));
+  const items = index.items
+    .filter((item) => !isPast || holders.has(item.id))
+    .map((item) => {
+      const h = holders.get(item.id);
+
+      return h ? { ...item, employeeId: h.employeeId, projectId: h.projectId } : item;
+    });
+
+  return groupItems(items);
 }

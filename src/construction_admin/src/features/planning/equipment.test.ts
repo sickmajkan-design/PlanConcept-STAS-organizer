@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlanningData, PlanningEquipment } from '../../api/planning';
-import { choiceRequest, equipmentSummary, groupCounts, heldBy, personFlags, siteEquipment, suggestReceiver } from './equipment';
+import { choiceRequest, equipmentOnDay, equipmentSummary, groupCounts, heldBy, personFlags, siteEquipment, suggestReceiver } from './equipment';
 import { buildPlan } from './planningLogic';
 
 const DAY = '2031-06-10';
@@ -141,5 +141,24 @@ describe('the decision about equipment', () => {
     expect(request.missingReceiver).toBe(false);
     expect(choiceRequest(items, { v1: { choice: 'HandOver', to: null } }).missingReceiver).toBe(true);
     expect(choiceRequest(items, {}).items).toEqual([]);
+  });
+});
+
+describe('equipment on another day', () => {
+  const base = () => plan([item('car', 'Vehicle', 'ana', 'A'), item('kit', 'Kit', null, null)]).equipment;
+
+  it('moves items to the holders of a later day and keeps every item', () => {
+    const later = equipmentOnDay(base(), { date: '2031-06-12', items: [{ kind: 'Vehicle', id: 'car', employeeId: 'ivo', projectId: 'B' }], planned: [] }, false);
+
+    expect(later.byEmployee.get('ivo')?.map((i) => i.id)).toEqual(['car']);
+    expect(later.byEmployee.get('ana')).toBeUndefined();
+    expect(later.store.map((i) => i.id)).toEqual(['kit']);
+  });
+
+  it('leaves out, for an earlier day, the items the history does not know', () => {
+    const past = equipmentOnDay(base(), { date: '2031-06-01', items: [{ kind: 'Vehicle', id: 'car', employeeId: null, projectId: null }], planned: [] }, true);
+
+    expect(past.items.map((i) => i.id)).toEqual(['car']);
+    expect(past.store.map((i) => i.id)).toEqual(['car']);
   });
 });

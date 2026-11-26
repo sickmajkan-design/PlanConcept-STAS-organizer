@@ -37,6 +37,35 @@ export function usePlanningQuery(from: string, to: string, nameOrder: NameOrder 
 }
 
 /**
+ * Who has clocked in today and where they are. It changes by the minute while the plan does not, so it is a request of its
+ * own, repeated every minute while the board is on today and the tab is in view.
+ */
+export function usePlanningEquipmentOn(date: string | null) {
+  const { branchId } = useBranchFilter();
+
+  return useQuery({
+    queryKey: [...planningKeys.all, 'equipment', branchId ?? null, date],
+    queryFn: () => planningApi.equipmentOn(date!, { branchId }),
+    enabled: !!date,
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function usePlanningAttendance(enabled: boolean) {
+  const { branchId } = useBranchFilter();
+
+  return useQuery({
+    queryKey: [...planningKeys.all, 'attendance', branchId ?? null],
+    queryFn: () => planningApi.attendance({ branchId }),
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: enabled ? 60_000 : false,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/**
  * The actions behind the screen. A posting also moves the person's tools and vehicles to their new
  * site, and shows on the employee and project pages, so those caches are refreshed along with the plan.
  */
@@ -50,7 +79,8 @@ export function usePlanningActions() {
   };
 
   const assign = useMutation({ mutationFn: (input: AssignInput) => planningApi.assign(input), onSuccess: refresh });
-  const decideEquipment = useMutation({ mutationFn: (items: EquipmentChoiceInput[]) => planningApi.decideEquipment(items), onSuccess: refresh });
+  const decideEquipment = useMutation({ mutationFn: ({ items, effectiveFrom }: { items: EquipmentChoiceInput[]; effectiveFrom?: string }) => planningApi.decideEquipment(items, effectiveFrom), onSuccess: refresh });
+  const cancelPlanned = useMutation({ mutationFn: (id: string) => planningApi.cancelPlannedEquipment(id), onSuccess: refresh });
   const swap = useMutation({ mutationFn: (input: SwapInput) => planningApi.swap(input), onSuccess: refresh });
   const setNeeds = useMutation({
     mutationFn: ({ projectId, needs, requiredCertificates }: { projectId: string; needs: PlanningNeed[]; requiredCertificates?: string[] }) =>
@@ -58,5 +88,5 @@ export function usePlanningActions() {
     onSuccess: refresh,
   });
 
-  return { assign, swap, setNeeds, decideEquipment };
+  return { assign, swap, setNeeds, decideEquipment, cancelPlanned };
 }

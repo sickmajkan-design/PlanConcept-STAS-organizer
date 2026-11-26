@@ -32,10 +32,11 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
-import { equipmentSummary, heldBy, type EquipmentAlert } from '../../features/planning/equipment';
+import { equipmentOnDay, equipmentSummary, heldBy, type BoardAlert } from '../../features/planning/equipment';
 import type { MessageKey } from '../../i18n/en';
 import type { NameOrder } from '../../features/planning/planningLogic';
-import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningQuery } from '../../features/planning/usePlanning';
+import { attendanceMap, isLate, isWrongPlace, type PersonAttendance } from '../../features/planning/attendance';
+import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningAttendance, usePlanningEquipmentOn, usePlanningQuery } from '../../features/planning/usePlanning';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
@@ -130,7 +131,7 @@ export function PlanningPage() {
   const [range, setRange] = useState(() => rangeFor('M', today, { from: today, to: today }));
   const [panel, setPanel] = useState<Panel | null>(null);
   /** An equipment alert the planner clicked: the day view highlights what it concerns. */
-  const [eqAlert, setEqAlert] = useState<EquipmentAlert | null>(null);
+  const [eqAlert, setEqAlert] = useState<BoardAlert | null>(null);
   /** Somebody whose equipment the planner is to decide about: just freed, or away. */
   const [equipmentFor, setEquipmentFor] = useState<string | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
@@ -260,6 +261,24 @@ export function PlanningPage() {
   };
 
   const dayIndex = plan ? plan.indexOf(focusDay) : -1;
+
+  // Who held which equipment on the day shown: the plan carries only today's state.
+  const shownDate = plan && view === 'day' && dayIndex >= 0 ? plan.date(dayIndex) : null;
+  const equipmentOn = usePlanningEquipmentOn(shownDate).data;
+  const dayPlan = useMemo(() => {
+    if (!plan || !equipmentOn || !shownDate || equipmentOn.date !== shownDate) return plan;
+    if (shownDate === plan.today) return plan;
+
+    return { ...plan, equipment: equipmentOnDay(plan.equipment, equipmentOn, shownDate < plan.today) };
+  }, [plan, equipmentOn, shownDate]);
+
+  // Clock-in and position only mean something for today, so they are asked for only while today is on screen.
+  const showAttendance = view === 'day' && !!plan && dayIndex >= 0 && plan.date(dayIndex) === plan.today;
+  const attendanceData = usePlanningAttendance(showAttendance).data;
+  const attendance = useMemo(
+    () => (showAttendance && plan ? attendanceMap(plan, attendanceData, dayIndex) : undefined),
+    [showAttendance, plan, attendanceData, dayIndex],
+  );
 
   // What goes on paper: the period on screen (as much of it as fits a page), or the week around the day shown.
   const exportRange = periodView
@@ -412,7 +431,7 @@ export function PlanningPage() {
 
         {plan && (
           <Box data-tour="summary">
-            <Summary plan={plan} view={view} day={dayIndex} range={range} eqAlert={eqAlert} setEqAlert={setEqAlert} />
+            <Summary plan={dayPlan ?? plan} view={view} day={dayIndex} range={range} eqAlert={eqAlert} setEqAlert={setEqAlert} attendance={attendance} />
           </Box>
         )}
       </Stack>
@@ -430,7 +449,7 @@ export function PlanningPage() {
           enabled={!readOnly && (view === 'day' || view === 'timeline')}
           onDrop={(payload, target) => !readOnly && setPanel({ kind: 'move', personId: payload.personId, target, from: payload.from, to: payload.to })}
         >
-          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} onDecideEquipment={setEquipmentFor} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} attendance={attendance} onDecideEquipment={setEquipmentFor} plan={dayPlan ?? plan} planned={equipmentOn?.planned} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
           {view === 'need' && <NeedView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
@@ -495,13 +514,15 @@ function Summary({
   range,
   eqAlert,
   setEqAlert,
+  attendance,
 }: {
   plan: Plan;
   view: View;
   day: number;
   range: { from: string; to: string };
-  eqAlert: EquipmentAlert | null;
-  setEqAlert: (alert: EquipmentAlert | null) => void;
+  eqAlert: BoardAlert | null;
+  setEqAlert: (alert: BoardAlert | null) => void;
+  attendance?: Map<string, PersonAttendance>;
 }) {
   const t = useT();
 
@@ -539,6 +560,27 @@ function Summary({
                 onClick={() => setEqAlert(on ? null : alert)}
                 aria-pressed={on}
                 label={t(`planning.eq.pill.${alert}` as MessageKey, { count })}
+              />
+            );
+          })}
+        {view === 'day' &&
+          attendance &&
+          (['late', 'wrong'] as const).map((alert) => {
+            const test = alert === 'late' ? isLate : isWrongPlace;
+            const count = [...attendance.values()].filter(test).length;
+            if (count === 0) return null;
+
+            const on = eqAlert === alert;
+
+            return (
+              <Chip
+                key={alert}
+                color={alert === 'late' ? 'warning' : 'error'}
+                variant={on ? 'filled' : 'outlined'}
+                sx={on ? { bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.primary' } } : undefined}
+                onClick={() => setEqAlert(on ? null : alert)}
+                aria-pressed={on}
+                label={t(`planning.att.pill.${alert}` as MessageKey, { count })}
               />
             );
           })}

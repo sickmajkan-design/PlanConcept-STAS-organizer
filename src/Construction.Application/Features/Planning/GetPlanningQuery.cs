@@ -118,6 +118,14 @@ public class PlanningProjectDto
 
     public bool WorksSundays { get; init; }
 
+    /// <summary>Where the site is. Null: no coordinates, so nobody can be said to be on or off it.</summary>
+    public double? Latitude { get; init; }
+
+    public double? Longitude { get; init; }
+
+    /// <summary>When the shift starts on the site. Null: not entered, so nobody is called late.</summary>
+    public TimeOnly? ShiftStartTime { get; init; }
+
     /// <summary>Whose public holidays the site keeps. Null: none.</summary>
     public string? CountryCode { get; init; }
 
@@ -283,6 +291,9 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 EndDate = p.EndDate,
                 WorksSaturdays = p.WorksSaturdays,
                 WorksSundays = p.WorksSundays,
+                Latitude = p.Latitude,
+                Longitude = p.Longitude,
+                ShiftStartTime = p.ShiftStartTime,
                 CountryCode = p.CountryCode,
                 Needs = p.StaffingNeeds
                     .OrderBy(n => n.Position)

@@ -26,6 +26,15 @@ public class PlanningController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>Who has clocked in today and how far from their site they are: the part of the board that changes by the minute.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/attendance")]
+    [HttpGet("/api/planning/attendance")]
+    [ProducesResponseType(typeof(PlanningAttendanceDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PlanningAttendanceDto>> Attendance([FromQuery] GetPlanningAttendanceQuery query, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>
     /// What the schedule will cost in labour, per site and month, beside what the approved hours have cost.
     /// Only for whoever may see what people are paid.
@@ -63,6 +72,27 @@ public class PlanningController : ApiControllerBase
     public async Task<IActionResult> Assign(SetEmployeeScheduleCommand command, CancellationToken cancellationToken)
     {
         await Mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Who held each vehicle and tool on one day (past, today or planned), and the changes still waiting for their day.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/equipment")]
+    [HttpGet("/api/planning/equipment")]
+    [ProducesResponseType(typeof(PlanningEquipmentOnDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PlanningEquipmentOnDto>> EquipmentOn([FromQuery] GetPlanningEquipmentQuery query, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Takes back a planned change of equipment before its day.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/planning/equipment/planned/{id:guid}")]
+    [HttpDelete("/api/planning/equipment/planned/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelPlannedEquipment(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new CancelPlannedEquipmentChangeCommand(id), cancellationToken);
+
         return NoContent();
     }
 

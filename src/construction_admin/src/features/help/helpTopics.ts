@@ -220,10 +220,11 @@ export const helpTopics: HelpTopic[] = [
         example:
           'Ibrahim je prebačen na drugo gradilište, a kofer K-09 je ostao vezan za prvo. Uz njega stoji narandžasta tačka, a prozor kaže "Vezano za drugo gradilište: Amalienstrasse". Kliknete na stavku Oprema na pogrešnom gradilištu i vidite sve takve slučajeve.',
         tips: [
-          'Oprema prikazuje stanje danas. Za drugi dan se vidi oprema onih koji su tada na gradilištu.',
+          'Oprema se prikazuje za dan koji gledate: raniji dan iz evidencije (vodi se od uvođenja ove mogućnosti), kasniji dan prema planiranim promjenama. U odluci o opremi birate od kojeg dana važi; kasniji dan samo zakazuje, a planirane promjene se otkazuju pod tablom desno.',
           'Vrsta setova (aku set, mjerni set, set za kablove) bira se u formi alata, u polju Vrsta u Rasporedu. Kofer se prepoznaje sam.',
           'Oprema koja ne pripada nijednoj osobi ni gradilištu stoji u kartici Slobodna oprema.',
           'Kad radnika oslobodite s gradilišta, Raspored pita šta s njegovom opremom: ostaje kod njega, predaje se drugome ili ide u skladište. Za slobodnog ili odsutnog radnika koji drži opremu stoji dugme Odluči o opremi. Ništa se ne mijenja samo od sebe.',
+          'Danas uz radnika stoje sat i pin. Sat: zeleno prijavljen, narandžasto kasni (15 minuta poslije početka smjene gradilišta), sivo još nije prijavljen. Pin: zeleno je do 100 m od gradilišta, crveno dalje. Pređite mišem za detalje; stavke Kasne i Nisu na gradilištu iznad table istaknu one o kojima je riječ.',
         ],
         keywords: ['raspored', 'oprema', 'vozilo', 'kofer', 'aku set', 'mjerni set', 'slobodno', 'zaduženo'],
       },
@@ -240,10 +241,11 @@ export const helpTopics: HelpTopic[] = [
         example:
           'Ibrahim was moved to another site, but tool case K-09 stayed tied to the first. An orange dot stands beside him and the card says "Tied to another site: Amalienstrasse". Click the item Equipment on the wrong site and you see every such case.',
         tips: [
-          'Equipment shows the state today. For another day you see the equipment of those who are on a site that day.',
+          'Equipment is shown for the day you look at: an earlier day from the history (kept since this feature arrived), a later day with the planned changes applied. In the equipment decision you pick the day it takes effect; a later day only plans it, and planned changes can be cancelled below the board on the right.',
           'The kind of sets (battery set, measuring set, cable set) is chosen in the tool form, in the field Kind on the Schedule. A tool case is recognised by itself.',
           'Equipment that belongs to no person and no site is in the card Free equipment.',
           'When you free a worker from a site, the Schedule asks what to do with their equipment: it stays with them, goes to someone else, or goes to the store. For a free or absent worker who holds equipment there is the button Decide about equipment. Nothing changes by itself.',
+          'Today a clock and a pin stand next to each worker. Clock: green clocked in, orange late (15 minutes after the site\'s shift start), grey not clocked in yet. Pin: green within 100 m of the site, red further away. Hover for the details; the pills Late and Not on the site above the board highlight who they are about.',
         ],
         keywords: ['schedule', 'equipment', 'vehicle', 'tool case', 'battery set', 'measuring set', 'free', 'assigned'],
       },

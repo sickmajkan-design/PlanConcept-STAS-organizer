@@ -149,6 +149,10 @@ public interface IApplicationDbContext
 
     DbSet<ToolKitEvent> ToolKitEvents { get; }
 
+    DbSet<EquipmentHold> EquipmentHolds { get; }
+
+    DbSet<PlannedEquipmentChange> PlannedEquipmentChanges { get; }
+
     DbSet<ToolRentalRate> ToolRentalRates { get; }
 
     DbSet<ToolRentalOut> ToolRentalsOut { get; }

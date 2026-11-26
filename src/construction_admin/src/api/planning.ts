@@ -12,6 +12,11 @@ export interface PlanningProject {
   endDate: string | null;
   worksSaturdays: boolean;
   worksSundays: boolean;
+  /** Where the site is. Null: no coordinates. */
+  latitude?: number | null;
+  longitude?: number | null;
+  /** When the shift starts there, `HH:mm:ss`. Null: not entered. */
+  shiftStartTime?: string | null;
   /** Whose public holidays the site keeps. */
   countryCode?: string | null;
   needs: PlanningNeed[];
@@ -80,6 +85,28 @@ export interface PlanningEquipment {
   status: string;
   employeeId: string | null;
   projectId: string | null;
+}
+
+/** One person's shift and position today, as the server saw them a moment ago. */
+export interface PlanningAttendanceRow {
+  employeeId: string;
+  /** The site they are posted to today. */
+  siteId: string | null;
+  /** `HH:mm` in company time. */
+  clockedInAt: string | null;
+  clockedOutAt: string | null;
+  /** Metres from the site when they clocked in. */
+  clockInMeters: number | null;
+  lastPingMinutesAgo: number | null;
+  lastPingMeters: number | null;
+  lastPingAccuracy: number | null;
+}
+
+export interface PlanningAttendance {
+  today: string;
+  /** `HH:mm` in company time. */
+  nowLocal: string;
+  rows: PlanningAttendanceRow[];
 }
 
 export interface PlanningData {
@@ -171,6 +198,30 @@ export interface EquipmentChoiceInput {
   toEmployeeId: string | null;
 }
 
+/** Who held one vehicle or tool on a day. */
+export interface PlanningHolder {
+  kind: string;
+  id: string;
+  employeeId: string | null;
+  projectId: string | null;
+}
+
+/** A change of holder decided for a later day, still waiting for it. */
+export interface PlannedEquipmentChange {
+  id: string;
+  kind: string;
+  itemId: string;
+  employeeId: string | null;
+  projectId: string | null;
+  effectiveFrom: string;
+}
+
+export interface PlanningEquipmentOn {
+  date: string;
+  items: PlanningHolder[];
+  planned: PlannedEquipmentChange[];
+}
+
 export const planningApi = {
   history: (query: { employeeId?: string; projectId?: string; take?: number } = {}) =>
     request<PlanningHistoryEntry[]>({ method: 'GET', url: '/api/v1/planning/history', params: query }),
@@ -192,9 +243,18 @@ export const planningApi = {
   assign: (input: AssignInput) =>
     request<void>({ method: 'POST', url: '/api/v1/planning/assign', data: input }),
 
+  attendance: (query: { branchId?: string } = {}) =>
+    request<PlanningAttendance>({ method: 'GET', url: '/api/v1/planning/attendance', params: { branchId: query.branchId } }),
+
   /** Returns how many items were changed. */
-  decideEquipment: (items: EquipmentChoiceInput[]) =>
-    request<number>({ method: 'POST', url: '/api/v1/planning/equipment', data: { items } }),
+  decideEquipment: (items: EquipmentChoiceInput[], effectiveFrom?: string) =>
+    request<number>({ method: 'POST', url: '/api/v1/planning/equipment', data: { items, effectiveFrom } }),
+
+  /** Who held what on one day, and the changes still waiting for their day. */
+  equipmentOn: (date: string, query: { branchId?: string } = {}) =>
+    request<PlanningEquipmentOn>({ method: 'GET', url: '/api/v1/planning/equipment', params: { date, branchId: query.branchId } }),
+
+  cancelPlannedEquipment: (id: string) => request<void>({ method: 'DELETE', url: `/api/v1/planning/equipment/planned/${id}` }),
 
   swap: (input: SwapInput) =>
     request<void>({ method: 'POST', url: '/api/v1/planning/swap', data: input }),

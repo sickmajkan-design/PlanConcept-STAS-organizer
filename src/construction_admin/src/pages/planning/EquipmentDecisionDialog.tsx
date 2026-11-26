@@ -64,6 +64,9 @@ export function EquipmentDecisionDialog({
     ),
   );
   const [failure, setFailure] = useState<string | null>(null);
+  // From when the decision counts: today (now), or a later day it is planned for.
+  const today = plan.today;
+  const [from, setFrom] = useState(() => (plan.date(day) > today ? plan.date(day) : today));
 
   // Nothing held (or the person is gone): there is nothing to decide.
   useEffect(() => {
@@ -103,7 +106,7 @@ export function EquipmentDecisionDialog({
     }
 
     try {
-      await decideEquipment.mutateAsync(request.items);
+      await decideEquipment.mutateAsync({ items: request.items, effectiveFrom: from > today ? from : undefined });
       onClose();
     } catch (error) {
       setFailure(toApiError(error).message);
@@ -201,13 +204,23 @@ export function EquipmentDecisionDialog({
             );
           })}
 
+          <TextField
+            size="small"
+            type="date"
+            label={t('planning.eqd.from')}
+            value={from}
+            onChange={(e) => setFrom(e.target.value || today)}
+            slotProps={{ htmlInput: { min: today }, inputLabel: { shrink: true } }}
+            helperText={from > today ? t('planning.eqd.fromLater') : t('planning.eqd.fromNow')}
+          />
+
           {failure && <Alert severity="error">{failure}</Alert>}
         </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('planning.eqd.later')}</Button>
         <Button variant="contained" loading={decideEquipment.isPending} onClick={() => void submit()}>
-          {t('planning.eqd.save')}
+          {from > today ? t('planning.eqd.savePlanned') : t('planning.eqd.save')}
         </Button>
       </DialogActions>
     </Dialog>

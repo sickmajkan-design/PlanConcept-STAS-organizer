@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canManageAssignments, canReviewAbsences } from '../../auth/authHelpers';
+import { canManageAssignments } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-26.90';
+export const RELEASE_ID = '2026-11-26.92';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,22 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'webshift1125',
-    titleKey: 'releaseNotes.webshift1125.title',
-    itemKeys: [
-      'releaseNotes.webshift1125.shift',
-      'releaseNotes.webshift1125.more',
-      'releaseNotes.webshift1125.offline',
-    ],
-    audience: (user) => !!user.employeeId,
-  },
-  {
-    id: 'absence1126',
-    titleKey: 'releaseNotes.absence1126.title',
-    itemKeys: ['releaseNotes.absence1126.preview', 'releaseNotes.absence1126.propose', 'releaseNotes.absence1126.keyboard'],
-    audience: (user) => canReviewAbsences(user),
-  },
   {
     id: 'contractors1126',
     titleKey: 'releaseNotes.contractors1126.title',
@@ -65,6 +49,18 @@ export const releaseSections: ReleaseSection[] = [
     id: 'decision1126',
     titleKey: 'releaseNotes.decision1126.title',
     itemKeys: ['releaseNotes.decision1126.ask'],
+    audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
+  },
+  {
+    id: 'attendance1126',
+    titleKey: 'releaseNotes.attendance1126.title',
+    itemKeys: ['releaseNotes.attendance1126.icons', 'releaseNotes.attendance1126.alerts'],
+    audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
+  },
+  {
+    id: 'dated1126',
+    titleKey: 'releaseNotes.dated1126.title',
+    itemKeys: ['releaseNotes.dated1126.days', 'releaseNotes.dated1126.plan'],
     audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
   },
 ];

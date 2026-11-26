@@ -1,5 +1,7 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
+using Construction.Domain.Entities;
 using Construction.Application.Features.Tools.Commands.AssignTool;
 using Construction.Application.Features.Tools.Commands.UnassignTool;
 using Construction.Application.Features.Vehicles.Commands.AssignVehicle;
@@ -51,6 +53,12 @@ public class EquipmentChoiceItem
 public record DecideEquipmentCommand : IRequest<int>
 {
     public IReadOnlyList<EquipmentChoiceItem> Items { get; init; } = [];
+
+    /// <summary>
+    /// The day the decision takes effect. Null or today or earlier: now. A later day: the changes are planned and applied
+    /// by the system that morning; the equipment stays where it is until then.
+    /// </summary>
+    public DateOnly? EffectiveFrom { get; init; }
 }
 
 public class DecideEquipmentCommandValidator : AbstractValidator<DecideEquipmentCommand>
@@ -63,6 +71,10 @@ public class DecideEquipmentCommandValidator : AbstractValidator<DecideEquipment
         RuleFor(x => x.Items)
             .Must(items => items.Select(i => i.Id).Distinct().Count() == items.Count)
             .WithMessage("The same item is listed twice.");
+
+        RuleFor(x => x.EffectiveFrom)
+            .Must(d => d is null || d.Value <= DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1))
+            .WithMessage("A change can be planned at most a year ahead.");
 
         RuleForEach(x => x.Items).ChildRules(item =>
         {
@@ -118,6 +130,11 @@ public class DecideEquipmentCommandHandler : IRequestHandler<DecideEquipmentComm
         var today = _clock.Today;
         var changed = 0;
 
+        if (request.EffectiveFrom is { } day && day > today)
+        {
+            return await PlanAsync(request, access, day, cancellationToken);
+        }
+
         foreach (var item in request.Items.Where(i => i.Choice != EquipmentChoice.Stay))
         {
             changed += item.Kind == "Vehicle"
@@ -126,6 +143,55 @@ public class DecideEquipmentCommandHandler : IRequestHandler<DecideEquipmentComm
         }
 
         return changed;
+    }
+
+    /// <summary>Records the decision for a later day; nothing moves until then.</summary>
+    private async Task<int> PlanAsync(DecideEquipmentCommand request, PlanningAccess access, DateOnly day, CancellationToken cancellationToken)
+    {
+        var planned = 0;
+
+        foreach (var item in request.Items.Where(i => i.Choice != EquipmentChoice.Stay))
+        {
+            var kind = item.Kind == "Vehicle" ? EquipmentKind.Vehicle : EquipmentKind.Tool;
+            var exists = kind == EquipmentKind.Vehicle
+                ? await _context.Vehicles.InBranch(access.IsScoped ? access.BranchId : null).AnyAsync(v => v.Id == item.Id, cancellationToken)
+                : await _context.Tools.InBranch(access.IsScoped ? access.BranchId : null).AnyAsync(t => t.Id == item.Id, cancellationToken);
+
+            if (!exists)
+            {
+                throw new NotFoundException(item.Kind, item.Id);
+            }
+
+            // A later decision about the same item on the same day replaces the earlier one.
+            var older = await _context.PlannedEquipmentChanges
+                .Where(c => c.Kind == kind && c.ItemId == item.Id && c.EffectiveFrom == day)
+                .ToListAsync(cancellationToken);
+            _context.PlannedEquipmentChanges.RemoveRange(older);
+
+            Guid? holder = null;
+            Guid? site = null;
+
+            if (item.Choice == EquipmentChoice.HandOver)
+            {
+                holder = item.ToEmployeeId;
+                site = await PostedProjectAsync(holder!.Value, day, cancellationToken);
+            }
+
+            _context.PlannedEquipmentChanges.Add(new PlannedEquipmentChange
+            {
+                Kind = kind,
+                ItemId = item.Id,
+                EmployeeId = holder,
+                ProjectId = site,
+                EffectiveFrom = day,
+                CreatedByUserId = _currentUser.UserId,
+            });
+            planned++;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return planned;
     }
 
     private async Task<Guid?> PostedProjectAsync(Guid employeeId, DateOnly today, CancellationToken cancellationToken) =>

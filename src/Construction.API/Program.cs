@@ -97,6 +97,7 @@ try
         builder.Configuration.GetSection(RetentionSettings.SectionName));
     builder.Services.AddHostedService<DataRetentionService>();
     builder.Services.AddHostedService<ContractorExpiryService>();
+    builder.Services.AddHostedService<PlannedEquipmentService>();
     builder.Services.AddSingleton<IPresenceTracker, PresenceTracker>();
     builder.Services.AddHostedService<PresenceFlushService>();
     builder.Services.AddHostedService<CompanyTimeZoneService>();
