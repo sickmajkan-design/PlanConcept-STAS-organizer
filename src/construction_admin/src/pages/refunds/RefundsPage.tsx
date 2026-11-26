@@ -22,6 +22,7 @@ import type { Refund } from '../../api/types';
 import { AttachmentList } from '../../components/AttachmentList';
 import { PageHeader } from '../../components/PageHeader';
 import { ReasonDialog } from '../../components/ReasonDialog';
+import { RecordPreviewDialog } from '../../components/RecordPreviewDialog';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import { useAuth } from '../../auth/useAuth';
@@ -31,7 +32,7 @@ import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useI18n } from '../../i18n/useI18n';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
 import { NewRefundDialog } from './NewRefundDialog';
 import { companyNow } from '../../utils/companyTime';
 
@@ -112,6 +113,7 @@ export function RefundsPage() {
   const [approving, setApproving] = useState<Refund | null>(null);
   const [declining, setDeclining] = useState<Refund | null>(null);
   const [receipt, setReceipt] = useState<Refund | null>(null);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
   useOpenOnParam('new', () => setCreating(true));
 
   const manages = canReviewRefunds(user);
@@ -127,6 +129,8 @@ export function RefundsPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useRefundsQuery(query);
+
+  const previewing = data?.items.find((r) => r.id === previewingId) ?? null;
 
   const columns: GridColDef<Refund>[] = useMemo(
     () => [
@@ -243,7 +247,68 @@ export function RefundsPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
         highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        onRowDoubleClick={(row) => setPreviewingId(row.id)}
       />
+
+      <RecordPreviewDialog
+        open={!!previewing}
+        title={t('preview.refundTitle')}
+        heading={previewing?.employeeName}
+        status={previewing && <StatusChip status={previewing.status} kind="refundStatus" />}
+        fields={
+          previewing
+            ? [
+                { label: t('refunds.amount'), value: `${formatMoney(previewing.amount, locale)} ${previewing.currency}` },
+                { label: t('refunds.expenseDate'), value: formatDate(previewing.expenseDate) },
+                { label: t('refunds.reason'), value: previewing.description },
+                { label: t('articleOrders.project'), value: previewing.projectName },
+                { label: t('preview.created'), value: formatDateTime(previewing.createdAt) },
+                { label: t('preview.decidedBy'), value: previewing.reviewedByName && `${previewing.reviewedByName}${previewing.reviewedAt ? ` · ${formatDateTime(previewing.reviewedAt)}` : ''}` },
+                { label: t('preview.decisionNote'), value: previewing.reviewNote },
+                {
+                  label: t('refunds.payrollColumn'),
+                  value: previewing.status === 'Approved' && previewing.payrollMonth ? `${String(previewing.payrollMonth).padStart(2, '0')}.${previewing.payrollYear}` : null,
+                },
+              ]
+            : []
+        }
+        actions={
+          previewing && previewing.status === 'Requested' ? (
+            <>
+              {manages && !(user && previewing.requestedByUserId === user.id) && (
+                <>
+                  <Button color="error" onClick={() => { setDeclining(previewing); setPreviewingId(null); }}>
+                    {t('refunds.action.decline')}
+                  </Button>
+                  <Button variant="contained" onClick={() => { setApproving(previewing); setPreviewingId(null); }}>
+                    {t('refunds.action.approve')}
+                  </Button>
+                </>
+              )}
+              {user && previewing.requestedByUserId === user.id && (
+                <Button disabled={review.isPending} onClick={() => review.mutate({ id: previewing.id, input: { status: 'Cancelled' } })}>
+                  {t('refunds.action.withdraw')}
+                </Button>
+              )}
+            </>
+          ) : undefined
+        }
+        onClose={() => setPreviewingId(null)}
+      >
+        {previewing && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              {t('refunds.receipt')}
+            </Typography>
+            <AttachmentList
+              ownerType="Refund"
+              ownerId={previewing.id}
+              categories={['Photo', 'Other']}
+              canUpload={manages || (!!user && previewing.requestedByUserId === user.id)}
+            />
+          </Box>
+        )}
+      </RecordPreviewDialog>
 
       <NewRefundDialog open={creating} onClose={() => setCreating(false)} />
       <ApproveDialog refund={approving} onClose={() => setApproving(null)} />

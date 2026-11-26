@@ -316,6 +316,7 @@ export function WorkItemsListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        onRowDoubleClick={(row) => navigate(paths.workItemEdit(row.id))}
       />
       )}
 

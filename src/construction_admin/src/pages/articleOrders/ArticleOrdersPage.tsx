@@ -1,10 +1,11 @@
 import { AddOutlined } from '@mui/icons-material';
-import { Alert, Box, FormControlLabel, Stack, Switch, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Chip, FormControlLabel, Stack, Switch, Tooltip, Typography } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 
 import type { ArticleOrder } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
+import { RecordPreviewDialog } from '../../components/RecordPreviewDialog';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import { ArticleOrderActions } from '../../features/articleOrders/ArticleOrderActions';
@@ -13,7 +14,7 @@ import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useT } from '../../i18n/useI18n';
-import { formatDate } from '../../utils/formatting';
+import { formatDate, formatDateTime } from '../../utils/formatting';
 import { NewArticleOrderDialog } from './NewArticleOrderDialog';
 import { ProjectLabel } from '../../components/ProjectLabel';
 
@@ -41,6 +42,7 @@ export function ArticleOrdersPage() {
   // The one question the page is opened to answer: what is still on its way.
   const [openOnly, setOpenOnly] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
   useOpenOnParam('new', () => setCreating(true));
 
   const query = useMemo(
@@ -54,6 +56,9 @@ export function ArticleOrdersPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useArticleOrdersQuery(query);
+
+  // Looked up in the list each time, so a step taken in the preview shows in it at once.
+  const previewing = data?.items.find((o) => o.id === previewingId) ?? null;
 
   const columns: GridColDef<ArticleOrder>[] = useMemo(
     () => [
@@ -140,7 +145,52 @@ export function ArticleOrdersPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
         highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        onRowDoubleClick={(row) => setPreviewingId(row.id)}
       />
+
+      <RecordPreviewDialog
+        open={!!previewing}
+        title={t('preview.orderTitle')}
+        heading={previewing?.requestedByName}
+        status={
+          previewing && (
+            <Stack direction="row" spacing={1}>
+              {previewing.urgent && <Chip size="small" color="error" label={t('articleOrders.urgentChip')} />}
+              <StatusChip status={previewing.status} kind="articleOrderStatus" />
+            </Stack>
+          )
+        }
+        fields={
+          previewing
+            ? [
+                { label: t('articleOrders.project'), value: previewing.projectName },
+                { label: t('articleOrders.note'), value: previewing.note },
+                { label: t('preview.decisionNote'), value: previewing.reviewNote },
+                { label: t('preview.created'), value: formatDateTime(previewing.createdAt) },
+                { label: t('preview.handledBy'), value: previewing.handledByName },
+                { label: t('preview.ordered'), value: previewing.orderedAt && formatDateTime(previewing.orderedAt) },
+                { label: t('preview.shipped'), value: previewing.shippedAt && formatDateTime(previewing.shippedAt) },
+                { label: t('preview.delivered'), value: previewing.deliveredAt && formatDateTime(previewing.deliveredAt) },
+              ]
+            : []
+        }
+        actions={previewing && <ArticleOrderActions order={previewing} />}
+        onClose={() => setPreviewingId(null)}
+      >
+        {previewing && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              {t('preview.itemsHeading')}
+            </Typography>
+            {previewing.items.map((item) => (
+              <Typography key={item.id} sx={{ overflowWrap: 'anywhere' }}>
+                {[item.quantity, item.unit].filter((part) => part !== null && part !== '').join(' ')} {item.name}
+                {item.note ? ` (${item.note})` : ''}
+              </Typography>
+            ))}
+          </Box>
+        )}
+      </RecordPreviewDialog>
 
       <NewArticleOrderDialog open={creating} onClose={() => setCreating(false)} />
     </Box>

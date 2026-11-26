@@ -46,6 +46,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
+import { AbsencePreviewDialog } from '../../features/absences/AbsencePreviewDialog';
 import { ApproveAbsenceDialog } from '../../features/absences/ApproveAbsenceDialog';
 import {
   useAbsenceBalanceQuery,
@@ -70,6 +71,15 @@ interface AbsenceViewState {
   pendingOnly: boolean;
   type: AbsenceType | '';
   quickDate: string | null;
+}
+
+/** Another date can be offered for annual leave that is waiting or granted, while no offer is open. */
+function canProposeAnother(absence: Absence) {
+  return (
+    (absence.status === 'Approved' || absence.status === 'Requested') &&
+    absence.type === 'AnnualLeave' &&
+    !absence.hasPendingEdit
+  );
 }
 
 export function AbsencesListPage() {
@@ -152,6 +162,9 @@ export function AbsencesListPage() {
   const [refusing, setRefusing] = useState<Absence | null>(null);
   const [proposingEdit, setProposingEdit] = useState<Absence | null>(null);
   const [confirmingEdit, setConfirmingEdit] = useState<Absence | null>(null);
+  const [previewing, setPreviewing] = useState<Absence | null>(null);
+  const { user } = useAuth();
+  const canReview = canReviewAbsences(user);
 
   const columns: GridColDef<Absence>[] = useMemo(
     () => [
@@ -344,8 +357,53 @@ export function AbsencesListPage() {
           sortModel={list.sortModel}
           onSortModelChange={list.setSortModel}
           highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+          onRowDoubleClick={setPreviewing}
         />
       )}
+
+      <AbsencePreviewDialog
+        absence={previewing}
+        onClose={() => setPreviewing(null)}
+        actions={
+          previewing && canReview ? (
+            <>
+              {canProposeAnother(previewing) && (
+                <Button
+                  startIcon={<EditCalendarOutlined />}
+                  onClick={() => {
+                    setProposingEdit(previewing);
+                    setPreviewing(null);
+                  }}
+                >
+                  {t('absences.proposeAnother')}
+                </Button>
+              )}
+              {previewing.status === 'Requested' && (
+                <>
+                  <Button
+                    color="warning"
+                    onClick={() => {
+                      setRefusing(previewing);
+                      setPreviewing(null);
+                    }}
+                  >
+                    {t('absences.reject')}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setApproving(previewing);
+                      setPreviewing(null);
+                    }}
+                  >
+                    {t('absences.approve')}
+                  </Button>
+                </>
+              )}
+            </>
+          ) : undefined
+        }
+      />
 
       <BookAbsenceDialog open={booking} onClose={() => setBooking(false)} />
       <ApproveDialog absence={approving} onClose={() => setApproving(null)} />
@@ -410,8 +468,7 @@ function RowActions({
   // — the only case the admin panel itself has something to click here.
   const awaitingOurConfirmation =
     canReview && absence.hasPendingEdit && absence.proposedByEmployee;
-  const canProposeEdit =
-    absence.status === 'Approved' && absence.type === 'AnnualLeave' && !absence.hasPendingEdit;
+  const canProposeEdit = canProposeAnother(absence);
 
   return (
     <Stack direction="row" spacing={0.5}>
@@ -599,7 +656,8 @@ function ProposeEditDialog({
     if (absence) {
       setStartDate(absence.startDate);
       setEndDate(absence.endDate);
-      setReason(absence.reason ?? '');
+      // On a waiting request the field is a message to the worker; the worker's own reason stays theirs.
+      setReason(absence.status === 'Requested' ? '' : (absence.reason ?? ''));
     }
   }, [absence]);
 
@@ -641,7 +699,7 @@ function ProposeEditDialog({
             fullWidth
             multiline
             minRows={2}
-            label={t('absences.proposeEditReason')}
+            label={t(absence?.status === 'Requested' ? 'absences.proposeEditMessage' : 'absences.proposeEditReason')}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             error={!!propose.error}

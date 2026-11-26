@@ -97,9 +97,11 @@ public class ProposeAbsenceEditCommandHandler
             throw new ForbiddenAccessException("You may not propose a change to this absence.");
         }
 
-        if (absence.Status != AbsenceStatus.Approved)
+        // A request still waiting is the common case: management sees the dates clash with the plan
+        // and offers others. Accepting changes the dates only; granting stays a separate decision.
+        if (absence.Status is not (AbsenceStatus.Approved or AbsenceStatus.Requested))
         {
-            throw new ConflictException("Only an already-approved absence can have a change proposed.");
+            throw new ConflictException("Only a pending or approved absence can have a change proposed.");
         }
 
         if (absence.Type != AbsenceType.AnnualLeave)

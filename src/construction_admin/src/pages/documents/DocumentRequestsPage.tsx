@@ -504,6 +504,7 @@ export function DocumentRequestsPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
         highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        onRowDoubleClick={(row) => setReviewing(row.id)}
       />
 
       <RequestDocumentDialog

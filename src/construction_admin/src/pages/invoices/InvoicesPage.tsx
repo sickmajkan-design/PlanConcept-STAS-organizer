@@ -226,6 +226,7 @@ export function InvoicesPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
         highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        onRowDoubleClick={setViewing}
       />
 
       <NewInvoiceDialog open={creating} onClose={() => setCreating(false)} />

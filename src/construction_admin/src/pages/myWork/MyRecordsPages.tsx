@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { absenceTypes, workItemPriorities, type AbsenceType, type WorkItem, type WorkItemPriority, type WorkItemStatus } from '../../api/types';
 import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
-import { useAbsenceBalanceQuery, useAbsencesQuery, useBookAbsence, useDeleteAbsence } from '../../features/absences/useAbsences';
+import { useAbsenceBalanceQuery, useAbsencesQuery, useBookAbsence, useConfirmAbsenceEdit, useDeleteAbsence } from '../../features/absences/useAbsences';
 import { useMyDocumentRequests, useSubmitDocumentRequest } from '../../features/documentRequests/useDocumentRequests';
 import { useRefundsQuery, useReviewRefund } from '../../features/refunds/useRefunds';
 import { useMyHousing } from '../../features/accommodations/useAccommodations';
@@ -139,6 +139,7 @@ export function MyAbsencesPage() {
   const balance = useAbsenceBalanceQuery(user?.employeeId ?? undefined, year);
   const list = useAbsencesQuery({ pageSize: 50, pageNumber: 1 });
   const remove = useDeleteAbsence();
+  const confirmEdit = useConfirmAbsenceEdit();
   const items = list.data?.items ?? [];
 
   const withdraw = async (id: string) => {
@@ -146,6 +147,16 @@ export function MyAbsencesPage() {
 
     try {
       await remove.mutateAsync(id);
+    } catch (error) {
+      setProblem((error as Error).message);
+    }
+  };
+
+  const answer = async (id: string, approve: boolean) => {
+    setProblem(null);
+
+    try {
+      await confirmEdit.mutateAsync({ id, input: { approve } });
     } catch (error) {
       setProblem((error as Error).message);
     }
@@ -195,6 +206,30 @@ export function MyAbsencesPage() {
             {a.reviewNote && (
               <Typography variant="body2" sx={{ mt: 0.5 }}>
                 {a.reviewNote}
+              </Typography>
+            )}
+            {a.hasPendingEdit && !a.proposedByEmployee && (
+              <Alert
+                severity="info"
+                sx={{ mt: 1 }}
+                action={
+                  <Stack direction="row" spacing={0.5}>
+                    <Button color="inherit" size="small" disabled={confirmEdit.isPending} onClick={() => answer(a.id, false)}>
+                      {t('myWork.absences.proposalDecline')}
+                    </Button>
+                    <Button color="inherit" size="small" sx={{ fontWeight: 700 }} disabled={confirmEdit.isPending} onClick={() => answer(a.id, true)}>
+                      {t('myWork.absences.proposalAccept')}
+                    </Button>
+                  </Stack>
+                }
+              >
+                {t('myWork.absences.proposal', { start: formatDate(a.proposedStartDate), end: formatDate(a.proposedEndDate) })}
+                {a.proposedReason ? ` ${t('myWork.absences.proposalReason', { reason: a.proposedReason })}` : ''}
+              </Alert>
+            )}
+            {a.hasPendingEdit && a.proposedByEmployee && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {t('myWork.absences.proposalWaiting', { start: formatDate(a.proposedStartDate), end: formatDate(a.proposedEndDate) })}
               </Typography>
             )}
             {a.status === 'Requested' && (

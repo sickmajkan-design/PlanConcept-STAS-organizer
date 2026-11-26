@@ -102,6 +102,14 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
                 cancellationToken);
         }
 
+        // A date proposal on a request that is now decided has nothing left to confirm.
+        absence.ProposedStartDate = null;
+        absence.ProposedEndDate = null;
+        absence.ProposedReason = null;
+        absence.ProposedByUserId = null;
+        absence.ProposedByEmployee = false;
+        absence.ProposedAt = null;
+
         absence.Status = request.Approve ? AbsenceStatus.Approved : AbsenceStatus.Rejected;
         absence.ReviewedByUserId = _currentUserService.UserId;
         absence.ReviewedAt = _dateTimeProvider.UtcNow;

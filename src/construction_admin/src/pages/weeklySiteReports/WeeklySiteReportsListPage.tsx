@@ -376,6 +376,7 @@ export function WeeklySiteReportsListPage() {
               onPaginationModelChange={list.setPaginationModel}
               sortModel={list.sortModel}
               onSortModelChange={list.setSortModel}
+              onRowDoubleClick={setPreviewing}
             />
           )}
         </Stack>

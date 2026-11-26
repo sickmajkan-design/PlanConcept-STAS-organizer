@@ -175,7 +175,7 @@ const ABSENCES: Pair[] = [
   ['This request was changed by someone else just now. Reload it and try again.', 'Ovaj zahtjev je upravo promijenio neko drugi. Učitajte ga ponovo i pokušajte opet.'],
   ['A change is already waiting on confirmation for this absence.', 'Za ovo odsustvo već čeka potvrdu jedna izmjena.'],
   ['There is no pending change on this absence.', 'Za ovo odsustvo nema izmjene na čekanju.'],
-  ['Only an already-approved absence can have a change proposed.', 'Izmjena se može predložiti samo za već odobreno odsustvo.'],
+  ['Only a pending or approved absence can have a change proposed.', 'Izmjena se može predložiti samo za odsustvo na čekanju ili već odobreno.'],
   ['Only annual leave supports this two-sided change flow.', 'Ovaj dvostrani postupak izmjene podržava samo godišnji odmor.'],
   ['You may not propose a change to this absence.', 'Ne možete predložiti izmjenu ovog odsustva.'],
   ['You cannot grant your own leave.', 'Ne možete odobriti vlastito odsustvo.'],

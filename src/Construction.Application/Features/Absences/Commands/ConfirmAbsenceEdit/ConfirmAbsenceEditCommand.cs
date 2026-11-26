@@ -90,7 +90,8 @@ public class ConfirmAbsenceEditCommandHandler
 
             absence.StartDate = absence.ProposedStartDate.Value;
             absence.EndDate = absence.ProposedEndDate.Value;
-            if (absence.ProposedReason is not null)
+            // On a request still waiting the text is a message to the employee, not a new reason.
+            if (absence.ProposedReason is not null && absence.Status == AbsenceStatus.Approved)
             {
                 absence.Reason = absence.ProposedReason;
             }

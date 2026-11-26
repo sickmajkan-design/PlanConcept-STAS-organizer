@@ -1238,6 +1238,58 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'odsustva-pregled',
+    group: 'work',
+    path: paths.absences,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Odsustva: pregled zahtjeva i drugi datum',
+        summary:
+          'Zahtjev za odsustvo otvorite dvoklikom da vidite razlog i stanje godišnjeg, pa ga odobrite, odbijte ili radniku ponudite drugi datum.',
+        steps: [
+          'Otvorite Planiranje, pa Odsustva. Dvoklik (na telefonu dodir) na red otvara pregled: razlog radnika, termin, stanje godišnjeg, ko je podnio zahtjev i ko je o njemu odlučio.',
+          'Iz pregleda zahtjev na čekanju odobrite ili odbijte (odbijanje traži obrazloženje).',
+          'Ako termin godišnjeg ne odgovara planu, pritisnite Predloži drugi datum, upišite nove datume i, po želji, poruku radniku.',
+          'Radnik na svom ekranu Moj rad vidi oba termina i bira Prihvatam ili Ostajem pri svom.',
+          'Kad radnik prihvati, mijenjaju se samo datumi. Zahtjev ostaje na čekanju dok ga vi ne odobrite.',
+          'Ako radnik ostane pri svom, zahtjev se vraća vama na odluku: odobrite, odbijte ili predložite novi termin.',
+        ],
+        example:
+          'Radnik traži godišnji od 26. do 30. decembra, a te sedmice je velika isporuka. U pregledu pritisnete Predloži drugi datum, upišete 14. do 18. decembra i poruku Tada je velika isporuka, molimo ranije. Radnik prihvati, a vi zatim odobrite novi termin.',
+        tips: [
+          'Drugi datum se nudi za godišnji odmor koji čeka ili je već odobren, a dok jedan prijedlog čeka odgovor ne može se dati drugi.',
+          'Ako sami odlučite o zahtjevu dok prijedlog čeka, prijedlog se briše.',
+          'Isti način otvaranja (dvoklik) radi i na listama narudžbi, refundacija, zahtjeva za dokumente, sedmičnih izvještaja, zadataka i faktura.',
+          'Predlagati smiju svi koji mogu odobriti ili odbiti odsustvo.',
+        ],
+        keywords: ['odsustvo', 'godišnji', 'drugi datum', 'prijedlog', 'pregled', 'dvoklik', 'razlog', 'termin', 'zahtjev'],
+      },
+      en: {
+        title: 'Absences: opening a request and proposing other dates',
+        summary:
+          'Double-click a request for time off to see the reason and the leave balance, then approve it, refuse it or offer the worker other dates.',
+        steps: [
+          'Open Planning, then Absences. A double-click (a tap on the phone) on a row opens a preview: the worker\'s reason, the dates, the leave balance, who submitted the request and who decided it.',
+          'From the preview approve or refuse a waiting request (refusing needs a reason).',
+          'If the dates of annual leave do not fit the plan, press Propose another date, enter the new dates and, if you like, a message to the worker.',
+          'The worker sees both dates on their My work screen and chooses Accept or Keep my dates.',
+          'When the worker accepts, only the dates change. The request stays waiting until you approve it.',
+          'If the worker keeps their dates, the request comes back to you to decide: approve, refuse or propose new dates.',
+        ],
+        example:
+          'A worker asks for annual leave from 26 to 30 December, but that week has a big delivery. In the preview you press Propose another date, enter 14 to 18 December and the message Big delivery that week, please earlier. The worker accepts, and you then approve the new dates.',
+        tips: [
+          'Other dates can be offered for annual leave that is waiting or already approved, and while one proposal waits for an answer another cannot be made.',
+          'If you decide the request yourself while a proposal waits, the proposal is removed.',
+          'The same way of opening (double-click) works on the lists of orders, refunds, document requests, weekly reports, tasks and invoices.',
+          'Anyone who can approve or refuse absences may propose.',
+        ],
+        keywords: ['absence', 'leave', 'annual', 'other dates', 'proposal', 'preview', 'double-click', 'reason', 'request'],
+      },
+    },
+  },
+  {
     id: 'koferi-alat',
     group: 'work',
     path: paths.tools,
