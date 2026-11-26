@@ -47,7 +47,8 @@ public class PlannedEquipmentService : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
-            var applied = await PlannedEquipmentApplier.ApplyDueAsync(context, CompanyTime.LocalDate(DateTime.UtcNow), cancellationToken);
+            var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            var applied = await PlannedEquipmentApplier.ApplyDueAsync(context, notifications, CompanyTime.LocalDate(DateTime.UtcNow), cancellationToken);
 
             if (applied > 0)
             {

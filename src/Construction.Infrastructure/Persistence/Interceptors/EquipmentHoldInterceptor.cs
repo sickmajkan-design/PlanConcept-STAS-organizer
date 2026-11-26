@@ -130,6 +130,8 @@ public class EquipmentHoldInterceptor : SaveChangesInterceptor
                 EmployeeId = change.EmployeeId,
                 ProjectId = change.ProjectId,
                 From = today,
+                // The audit-stamp interceptor has already run, so the time is set here.
+                CreatedAt = _clock.UtcNow,
             });
         }
     }

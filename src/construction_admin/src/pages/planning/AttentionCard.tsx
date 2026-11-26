@@ -22,12 +22,12 @@ export function AttentionCard({ items, active, onPick }: { items: AttentionItem[
   if (items.length === 0) return null;
 
   return (
-    <Paper variant="outlined" component="section" aria-label={t('planning.attn.title')} sx={{ borderRadius: 2.5, p: 1.75 }}>
+    <Paper variant="outlined" component="section" aria-label={t('planning.attn.title')} sx={{ borderRadius: 2.5, p: { xs: 1.25, sm: 1.75 } }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'baseline', flexWrap: 'wrap', mb: 1.25 }} useFlexGap>
         <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
           {t('planning.attn.title')}
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ flex: 1, display: { xs: 'none', sm: 'block' } }}>
           {t('planning.attn.hint')}
         </Typography>
         {active && (
@@ -49,9 +49,9 @@ export function AttentionCard({ items, active, onPick }: { items: AttentionItem[
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 1,
-                minHeight: 40,
-                pl: 0.75,
-                pr: 1.75,
+                minHeight: { xs: 34, sm: 40 },
+                pl: 0.5,
+                pr: { xs: 1.25, sm: 1.75 },
                 borderRadius: 2,
                 border: 2,
                 borderColor: `${item.tone}.main`,

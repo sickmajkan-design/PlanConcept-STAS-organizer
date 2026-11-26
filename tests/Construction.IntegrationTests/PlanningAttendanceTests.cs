@@ -99,7 +99,8 @@ public class PlanningAttendanceTests : IntegrationTestBase
         var p = Assert.Single(plan.Projects, x => x.Id == site.Id);
         Assert.Equal(SiteLat, p.Latitude);
         Assert.Equal(SiteLon, p.Longitude);
-        Assert.Equal(new TimeOnly(7, 0), p.ShiftStartTime);
+        // Stored in UTC, sent in company time.
+        Assert.Equal(Construction.Application.Common.CompanyTime.LocalTimeOfDay(Today.ToDateTime(new TimeOnly(7, 0), DateTimeKind.Utc)), p.ShiftStartTime);
     }
 
     [Fact]

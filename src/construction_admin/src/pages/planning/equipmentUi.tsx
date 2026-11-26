@@ -72,6 +72,22 @@ export function useHoverCard(paused = false): { bind: BindCard; element: ReactNo
     if (paused) setCard(null);
   }, [paused]);
 
+  // On a phone there is no "mouse leaves": a touch anywhere else closes the card.
+  const open = card?.anchor ?? null;
+  useEffect(() => {
+    if (!open) return;
+
+    const close = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (open.contains(target) || (target as HTMLElement).closest?.('[role="tooltip"]')) return;
+      setCard(null);
+    };
+
+    document.addEventListener('pointerdown', close);
+
+    return () => document.removeEventListener('pointerdown', close);
+  }, [open]);
+
   const element = card ? (
     <Popper open anchorEl={card.anchor} placement="bottom-start" sx={{ zIndex: 1400 }}>
       <Paper

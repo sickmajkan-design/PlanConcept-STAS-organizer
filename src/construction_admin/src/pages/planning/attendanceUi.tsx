@@ -121,6 +121,10 @@ export const AttendanceIcon = memo(function AttendanceIcon({
   );
 });
 
+/** A span as people read it: minutes under an hour, otherwise hours and minutes (13:07 h). */
+export const durationText = (minutes: number): string =>
+  minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')} h`;
+
 type T = (key: MessageKey, values?: Record<string, string | number>) => string;
 
 const key = (k: string) => k as MessageKey;
@@ -130,7 +134,7 @@ function clockTitle(att: PersonAttendance, t: T): string {
 
   if (c.state === 'in') return t(key('planning.att.in'), { time: c.at ?? '' });
   if (c.state === 'out') return t(key('planning.att.out'), { from: c.at ?? '', to: c.until ?? '' });
-  if (c.state === 'late') return t(key('planning.att.late'), { minutes: c.minutesLate ?? 0 });
+  if (c.state === 'late') return t(key('planning.att.late'), { duration: durationText(c.minutesLate ?? 0) });
 
   return t(key('planning.att.wait'));
 }
@@ -143,7 +147,7 @@ function clockLines(att: PersonAttendance, t: T): string[] {
   const c = att.clock;
 
   if (c.state === 'late')
-    return [t(key('planning.att.notIn')), t(key('planning.att.lateLine'), { start: c.start ?? '', minutes: c.minutesLate ?? 0 }), t(key('planning.att.limit'), { minutes: LATE_AFTER_MINUTES, limit: c.limit ?? '' })];
+    return [t(key('planning.att.notIn')), t(key('planning.att.lateLine'), { start: c.start ?? '', duration: durationText(c.minutesLate ?? 0) }), t(key('planning.att.limit'), { minutes: LATE_AFTER_MINUTES, limit: c.limit ?? '' })];
   if (c.state === 'wait')
     return c.start ? [t(key('planning.att.starts'), { start: c.start }), t(key('planning.att.notLateYet'))] : [t(key('planning.att.noStart')), t(key('planning.att.noStartNote'))];
   if (c.state === 'in' && c.start) return [t(key('planning.att.starts'), { start: c.start })];
@@ -155,7 +159,7 @@ function pinLines(att: PersonAttendance, t: T): string[] {
   const p = att.pin;
   if (!p) return [];
 
-  const ago = p.pingAgo != null ? t(key('planning.att.pingAgo'), { minutes: p.pingAgo }) : null;
+  const ago = p.pingAgo != null ? t(key('planning.att.pingAgo'), { duration: durationText(p.pingAgo) }) : null;
 
   switch (p.state) {
     case 'ok':

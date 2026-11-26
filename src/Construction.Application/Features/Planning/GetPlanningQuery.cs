@@ -123,8 +123,8 @@ public class PlanningProjectDto
 
     public double? Longitude { get; init; }
 
-    /// <summary>When the shift starts on the site. Null: not entered, so nobody is called late.</summary>
-    public TimeOnly? ShiftStartTime { get; init; }
+    /// <summary>When the shift starts on the site, in company time (the site stores UTC). Null: not entered, so nobody is called late.</summary>
+    public TimeOnly? ShiftStartTime { get; set; }
 
     /// <summary>Whose public holidays the site keeps. Null: none.</summary>
     public string? CountryCode { get; init; }
@@ -302,6 +302,13 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 RequiredCertificates = p.CertificateRequirements.OrderBy(r => r.Name).Select(r => r.Name).ToList(),
             })
             .ToListAsync(cancellationToken);
+
+        // The site stores its shift start in UTC; the screen compares it with the clock on the wall, so it is sent in company time.
+        var today = _clock.Today;
+        foreach (var p in projects.Where(p => p.ShiftStartTime is not null))
+        {
+            p.ShiftStartTime = Construction.Application.Common.CompanyTime.LocalTimeOfDay(today.ToDateTime(p.ShiftStartTime!.Value, DateTimeKind.Utc));
+        }
 
         // shortcut: every item in the unit is sent (a few hundred); a company with thousands would need paging or a
         // per-site request.

@@ -96,11 +96,12 @@ public class EquipmentHistoryTests : IntegrationTestBase
         Assert.Contains(planned.Planned, c => c.ItemId == vehicle.Id && c.EffectiveFrom == tomorrow && c.EmployeeId == ivo.Id);
 
         // Nothing is due yet; one day later it is.
-        Assert.Equal(0, await InScope(scope => PlannedEquipmentApplier.ApplyDueAsync(scope.Db, Today, default)));
-        Assert.Equal(1, await InScope(scope => PlannedEquipmentApplier.ApplyDueAsync(scope.Db, tomorrow, default)));
+        Assert.Equal(0, await InScope(scope => PlannedEquipmentApplier.ApplyDueAsync(scope.Db, scope.Get<Construction.Application.Common.Interfaces.INotificationService>(), Today, default)));
+        Assert.Equal(1, await InScope(scope => PlannedEquipmentApplier.ApplyDueAsync(scope.Db, scope.Get<Construction.Application.Common.Interfaces.INotificationService>(), tomorrow, default)));
 
         var now = await InScope(scope => scope.Db.Vehicles.AsNoTracking().SingleAsync(v => v.Id == vehicle.Id));
         Assert.Equal(ivo.Id, now.AssignedEmployeeId);
+        Assert.Equal(VehicleStatus.Assigned, now.Status);
         Assert.DoesNotContain((await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningEquipmentQuery { Date = Today }))).Planned, c => c.ItemId == vehicle.Id);
     }
 
@@ -121,5 +122,52 @@ public class EquipmentHistoryTests : IntegrationTestBase
 
         Assert.DoesNotContain((await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningEquipmentQuery { Date = Today }))).Planned, c => c.ItemId == vehicle.Id);
         Assert.Null(await HolderOn(vehicle.Id, Today.AddDays(3)));
+    }
+
+    private Task<int> ApplyOn(DateOnly day) =>
+        InScope(scope => PlannedEquipmentApplier.ApplyDueAsync(scope.Db, scope.Get<Construction.Application.Common.Interfaces.INotificationService>(), day, default));
+
+    private Task Plan(Guid vehicleId, Guid toEmployee, DateOnly day) =>
+        InScopeAs(UserRole.Admin, scope => scope.Send(new DecideEquipmentCommand
+        {
+            EffectiveFrom = day,
+            Items = [new EquipmentChoiceItem { Kind = "Vehicle", Id = vehicleId, Choice = EquipmentChoice.HandOver, ToEmployeeId = toEmployee }],
+        }));
+
+    [Fact]
+    public async Task A_plan_made_stale_by_a_change_by_hand_is_dropped_instead_of_overriding_it()
+    {
+        var vehicle = await InScope(scope => TestData.SeedVehicleAsync(scope));
+        var ana = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var ivo = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        await Task.Delay(20);
+        await Plan(vehicle.Id, ivo.Id, Today.AddDays(1));
+        await Task.Delay(20);
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new AssignVehicleCommand(vehicle.Id, ana.Id)));
+
+        Assert.Equal(0, await ApplyOn(Today.AddDays(1)));
+
+        var now = await InScope(scope => scope.Db.Vehicles.AsNoTracking().SingleAsync(v => v.Id == vehicle.Id));
+        Assert.Equal(ana.Id, now.AssignedEmployeeId);
+        Assert.False(await InScope(scope => scope.Db.PlannedEquipmentChanges.AnyAsync(c => c.ItemId == vehicle.Id)));
+    }
+
+    [Fact]
+    public async Task A_vehicle_that_went_into_service_is_not_handed_over_when_the_plan_comes_due()
+    {
+        var vehicle = await InScope(scope => TestData.SeedVehicleAsync(scope));
+        var ivo = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        await Plan(vehicle.Id, ivo.Id, Today.AddDays(1));
+        await InScope(async scope =>
+        {
+            await scope.Db.Vehicles.Where(v => v.Id == vehicle.Id).ExecuteUpdateAsync(v => v.SetProperty(x => x.Status, VehicleStatus.InService));
+            return 0;
+        });
+
+        Assert.Equal(0, await ApplyOn(Today.AddDays(1)));
+
+        var now = await InScope(scope => scope.Db.Vehicles.AsNoTracking().SingleAsync(v => v.Id == vehicle.Id));
+        Assert.Null(now.AssignedEmployeeId);
+        Assert.Equal(VehicleStatus.InService, now.Status);
     }
 }
