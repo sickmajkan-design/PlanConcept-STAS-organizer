@@ -92,6 +92,8 @@ public static class EmployeeDetailMapping
             Position = employee.Position,
             Status = employee.Status.ToString(),
             Type = employee.Type.ToString(),
+            ContractorCompany = employee.ContractorCompany,
+            EngagementEndDate = employee.EngagementEndDate,
             Rank = employee.Rank,
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,

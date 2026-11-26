@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Employees.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,7 +53,31 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
         employee.EmploymentDate = request.EmploymentDate;
         employee.Position = request.Position.Trim();
         employee.Status = request.Status;
+        if (request.Type == EmployeeType.Subcontractor)
+        {
+            var accountRole = await _context.Users
+                .Where(u => u.EmployeeId == employee.Id)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            ContractorRules.EnsureWorker(accountRole, employee.Rank);
+        }
+
         employee.Type = request.Type;
+
+        if (request.Type != EmployeeType.Subcontractor)
+        {
+            employee.ContractorCompany = null;
+            employee.EngagementEndDate = null;
+        }
+        else if (!string.IsNullOrWhiteSpace(request.ContractorCompany))
+        {
+            employee.ContractorCompany = request.ContractorCompany.Trim();
+            employee.EngagementEndDate = request.EngagementEndDate;
+        }
+
+        // Otherwise the request came from a client that does not know the contract fields (an installed phone
+        // app): leave the firm and the end of the engagement as they are rather than wiping them.
 
         await _context.SaveChangesAsync(cancellationToken);
 

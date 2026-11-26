@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Security check: site rules');
+    await screen.findByText('Subcontractors: firm, engagement and a purple marking');
     expect(screen.getByText('Absences: preview and proposing other dates')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

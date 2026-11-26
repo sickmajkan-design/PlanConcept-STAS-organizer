@@ -202,6 +202,52 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'kooperanti',
+    group: 'work',
+    path: paths.employeeNew,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Kooperanti: unos i oznaka',
+        summary:
+          'Kooperant radi po ugovoru za drugu firmu, ali je u platformi radnik. Vidi se po ljubičastoj boji i oznaci Kooperant na svakom mjestu gdje se pojavljuje.',
+        steps: [
+          'Otvorite Ljudi, Zaposleni, Dodaj zaposlenog i u polju Vrsta izaberite Kooperant.',
+          'Upišite ime, prezime, radno mjesto, telefon i e-mail, firmu za koju radi i poslovnu jedinicu s kojom sarađuje. Sve to je obavezno.',
+          'Upišite početak angažmana, a kraj samo ako je poznat; prazan kraj znači do daljnjeg.',
+          'Sačuvajte, pa kooperanta rasporedite na gradilište kao i svakog radnika.',
+        ],
+        example:
+          'Kenan radi za firmu Zidar d.o.o. i sarađuje s jedinicom Sjever. U listi zaposlenih, u Rasporedu i u radnom vremenu stoji uz njegovo ime ljubičasta oznaka Kooperant.',
+        tips: [
+          'Kooperant je uvijek radnik u hijerarhiji: ne može dobiti višu ulogu naloga ni viši rang na organizacionoj šemi.',
+          'Kada angažman istekne, status prelazi na Raskinut ugovor, nalog za prijavu se gasi, a sati i troškovi ostaju. Za produženje upišite novi kraj, vratite status na Aktivan i ponovo uključite nalog.',
+          'Kod kooperanata unesenih prije ove izmjene firma je prazna i treba je dopisati.',
+        ],
+        keywords: ['kooperant', 'podizvođač', 'ugovor', 'firma', 'angažman', 'ljubičasta', 'vanjski radnik'],
+      },
+      en: {
+        title: 'Subcontractors: entering and marking them',
+        summary:
+          'A subcontractor works under a contract for another firm, but is a worker in the platform. They are shown in purple, with the label Subcontractor, everywhere they appear.',
+        steps: [
+          'Open People, Employees, Add employee and in the Type field choose Subcontractor.',
+          'Enter first name, last name, position, phone and email, the firm they work for and the business unit they work with. All of these are required.',
+          'Enter the start of the engagement, and the end only if it is known; an empty end means until further notice.',
+          'Save, then assign the subcontractor to a site like any worker.',
+        ],
+        example:
+          'Kenan works for the firm Zidar d.o.o. and works with the North unit. In the employee list, the Schedule and working hours the purple label Subcontractor stands beside his name.',
+        tips: [
+          'A subcontractor is always a worker in the hierarchy: no higher account role and no higher rank on the org chart.',
+          'When the engagement ends, the status changes to Contract terminated, the sign-in is switched off, and hours and costs stay. To extend, enter a new end, set the status back to Active and switch the account on again.',
+          'For subcontractors entered before this change the firm is empty and has to be filled in.',
+        ],
+        keywords: ['subcontractor', 'contractor', 'contract', 'firm', 'engagement', 'purple', 'external worker'],
+      },
+    },
+  },
+  {
     id: 'dokumenti-dijeljenje',
     group: 'documents',
     path: paths.employees,

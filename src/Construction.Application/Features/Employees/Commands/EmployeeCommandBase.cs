@@ -32,6 +32,30 @@ public abstract record EmployeeCommandBase
 
     /// <summary>Direct employee or subcontractor.</summary>
     public EmployeeType Type { get; init; } = EmployeeType.Employee;
+
+    /// <summary>The contractor's firm. Required for a subcontractor, ignored for an employee.</summary>
+    public string? ContractorCompany { get; init; }
+
+    /// <summary>When the contractor's engagement ends; null means until further notice. Ignored for an employee.</summary>
+    public DateOnly? EngagementEndDate { get; init; }
+}
+
+/// <summary>What a subcontractor may and may not be, in one place so every path agrees.</summary>
+public static class ContractorRules
+{
+    /// <summary>A contractor is always a worker in the hierarchy: no higher login role, no higher rank.</summary>
+    public static void EnsureWorker(UserRole? role, OrganizationRank? rank)
+    {
+        if (role is { } r && r != UserRole.Worker)
+        {
+            throw new Common.Exceptions.ConflictException("A subcontractor can only have the Worker role.");
+        }
+
+        if (rank is { } k && k != OrganizationRank.Worker)
+        {
+            throw new Common.Exceptions.ConflictException("A subcontractor can only be a worker on the org chart.");
+        }
+    }
 }
 
 public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
@@ -80,5 +104,19 @@ public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Type is not a valid employee type.");
+
+        When(x => x.Type == EmployeeType.Subcontractor, () =>
+        {
+            // Required on creation (see CreateEmployeeCommandValidator). On an update an absent firm means an
+            // older client, such as an installed phone app, that does not know the field: see the handler.
+            RuleFor(x => x.ContractorCompany).MaximumLength(200);
+
+            RuleFor(x => x.Phone).NotEmpty().WithMessage("Phone is required for a subcontractor.");
+            RuleFor(x => x.Email).NotEmpty().WithMessage("Email is required for a subcontractor.");
+
+            RuleFor(x => x.EngagementEndDate)
+                .Must((cmd, end) => end is null || end >= cmd.EmploymentDate)
+                .WithMessage("The engagement cannot end before it starts.");
+        });
     }
 }

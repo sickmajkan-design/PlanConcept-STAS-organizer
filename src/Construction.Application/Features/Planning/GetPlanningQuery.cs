@@ -125,6 +125,9 @@ public class PlanningEmployeeDto
 
     public string Position { get; init; } = null!;
 
+    /// <summary>A subcontractor, shown in purple.</summary>
+    public bool IsContractor { get; init; }
+
     public IReadOnlyList<PlanningPostingDto> Postings { get; init; } = [];
 
     public IReadOnlyList<PlanningAbsenceDto> Absences { get; init; } = [];
@@ -210,6 +213,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 e.FirstName,
                 e.LastName,
                 e.Position,
+                IsContractor = e.Type == EmployeeType.Subcontractor,
                 Postings = e.ProjectAssignments
                     .Where(a => a.StartDate <= to && (a.EndDate == null || a.EndDate >= from))
                     .Select(a => new PlanningPostingDto { ProjectId = a.ProjectId, StartDate = a.StartDate, EndDate = a.EndDate, AcknowledgedAt = a.AcknowledgedAt })
@@ -311,6 +315,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 FirstName = e.FirstName,
                 LastName = e.LastName,
                 Position = e.Position.Trim(),
+                IsContractor = e.IsContractor,
                 Postings = e.Postings,
                 Absences = absences
                     .Where(a => a.EmployeeId == e.Id)

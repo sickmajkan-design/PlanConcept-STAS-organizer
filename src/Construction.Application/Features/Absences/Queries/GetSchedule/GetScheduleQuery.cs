@@ -187,7 +187,8 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
             {
                 e.Id,
                 Name = e.FirstName + " " + e.LastName,
-                e.Position
+                e.Position,
+                IsContractor = e.Type == EmployeeType.Subcontractor
             })
             .ToListAsync(cancellationToken);
 
@@ -199,6 +200,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
             EmployeeId = employee.Id,
             EmployeeName = employee.Name,
             Position = employee.Position,
+            IsContractor = employee.IsContractor,
             Assignments = assignmentsByEmployee[employee.Id]
                 .OrderBy(a => a.StartDate)
                 .Select(a => new ScheduleAssignmentDto

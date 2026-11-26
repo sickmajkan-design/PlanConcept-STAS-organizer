@@ -151,6 +151,12 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Email = email;
         user.Role = request.Role;
         user.Employee = await ResolveEmployeeAsync(user, request.EmployeeId, cancellationToken);
+
+        if (user.Employee?.Type == EmployeeType.Subcontractor)
+        {
+            Employees.Commands.ContractorRules.EnsureWorker(request.Role, null);
+        }
+
         user.EmployeeId = user.Employee?.Id;
         user.Customer = await ResolveCustomerAsync(request.CustomerId, cancellationToken);
         user.CustomerId = user.Customer?.Id;

@@ -50,6 +50,11 @@ public class SetEmployeeRankCommandHandler : IRequestHandler<SetEmployeeRankComm
             .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), request.Id);
 
+        if (employee.Type == EmployeeType.Subcontractor)
+        {
+            ContractorRules.EnsureWorker(null, request.Rank);
+        }
+
         employee.Rank = request.Rank;
 
         await _context.SaveChangesAsync(cancellationToken);

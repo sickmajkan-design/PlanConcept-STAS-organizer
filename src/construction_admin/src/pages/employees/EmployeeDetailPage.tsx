@@ -1,4 +1,6 @@
 import { EmployeeBranchCard } from '../../features/branches/EmployeeBranchCard';
+import { ContractorChip } from '../../components/ContractorChip';
+import { contractorColor } from '../../theme';
 import {
   MarkEmailReadOutlined,
   AddOutlined,
@@ -15,7 +17,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Divider,
   FormControl,
   Grid,
@@ -41,7 +42,6 @@ import { SiblingNavButtons } from '../../components/SiblingNavButtons';
 import { DocumentCountChip } from '../../components/DocumentCountChip';
 import { StatusChip } from '../../components/StatusChip';
 import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
-import { useEnumLabel } from '../../i18n/enumLabels';
 import {
   useAssignEmployeeToProject,
   useDeleteEmployee,
@@ -65,7 +65,6 @@ export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
-  const enumLabel = useEnumLabel();
   const { locale } = useI18n();
   const { user } = useAuth();
 
@@ -121,24 +120,20 @@ export function EmployeeDetailPage() {
             spacing={3}
             sx={{ alignItems: 'flex-start' }}
           >
-            <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: 24 }}>
+            <Avatar sx={{ width: 64, height: 64, bgcolor: employee.type === 'Subcontractor' ? contractorColor.main : 'primary.main', fontSize: 24 }}>
               {initialsOf(employee.firstName, employee.lastName)}
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
                 {employee.fullName}
               </Typography>
-              <Typography color="text.secondary">{employee.position}</Typography>
+              <Typography color="text.secondary">
+                {employee.position}
+                {employee.type === 'Subcontractor' && employee.contractorCompany && ` · ${employee.contractorCompany}`}
+              </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={employee.status} kind="employeeStatus" />
-                {employee.type === 'Subcontractor' && (
-                  <Chip
-                    size="small"
-                    color="warning"
-                    variant="outlined"
-                    label={enumLabel('employeeType', 'Subcontractor')}
-                  />
-                )}
+                {employee.type === 'Subcontractor' && <ContractorChip />}
                 <DocumentCountChip ownerType="Employee" ownerId={employee.id} />
                 <Typography variant="body2" color="text.secondary">
                   · {employee.employeeNumber}
@@ -212,7 +207,19 @@ export function EmployeeDetailPage() {
                 {t('employees.employment')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label={t('employees.employedSince')} value={formatDate(employee.employmentDate)} />
+                {employee.type === 'Subcontractor' && (
+                  <InfoRow label={t('employees.contractorCompany')} value={employee.contractorCompany} />
+                )}
+                <InfoRow
+                  label={employee.type === 'Subcontractor' ? t('employees.engagementStart') : t('employees.employedSince')}
+                  value={formatDate(employee.employmentDate)}
+                />
+                {employee.type === 'Subcontractor' && (
+                  <InfoRow
+                    label={t('employees.engagementEnd')}
+                    value={employee.engagementEndDate ? formatDate(employee.engagementEndDate) : t('employees.engagementOpen')}
+                  />
+                )}
                 <InfoRow
                   label={t('employees.dateOfBirth')}
                   value={employee.dateOfBirth ? formatDate(employee.dateOfBirth) : null}

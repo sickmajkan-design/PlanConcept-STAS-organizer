@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canAdministerAccounts, canManageAssignments, canReviewAbsences } from '../../auth/authHelpers';
+import { canManageAssignments, canReviewAbsences } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -25,12 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'scope1121',
-    titleKey: 'releaseNotes.scope1121.title',
-    itemKeys: ['releaseNotes.scope1121.scope'],
-    audience: (user) => canAdministerAccounts(user),
-  },
   {
     id: 'schedule1123',
     titleKey: 'releaseNotes.schedule1123.title',
@@ -58,6 +52,16 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.absence1126.title',
     itemKeys: ['releaseNotes.absence1126.preview', 'releaseNotes.absence1126.propose'],
     audience: (user) => canReviewAbsences(user),
+  },
+  {
+    id: 'contractors1126',
+    titleKey: 'releaseNotes.contractors1126.title',
+    itemKeys: [
+      'releaseNotes.contractors1126.fields',
+      'releaseNotes.contractors1126.purple',
+      'releaseNotes.contractors1126.end',
+    ],
+    audience: (user) => canManageAssignments(user) || user.role === 'Foreman',
   },
 ];
 

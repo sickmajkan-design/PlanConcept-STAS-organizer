@@ -12,6 +12,8 @@ public class AbsenceDto
 
     public string EmployeeName { get; init; } = null!;
 
+    public bool EmployeeIsContractor { get; init; }
+
     public AbsenceType Type { get; init; }
 
     public AbsenceStatus Status { get; init; }
@@ -66,6 +68,7 @@ public static class AbsenceMapping
             Id = absence.Id,
             EmployeeId = absence.EmployeeId,
             EmployeeName = absence.Employee.FirstName + " " + absence.Employee.LastName,
+            EmployeeIsContractor = absence.Employee.Type == EmployeeType.Subcontractor,
             Type = absence.Type,
             Status = absence.Status,
             StartDate = absence.StartDate,

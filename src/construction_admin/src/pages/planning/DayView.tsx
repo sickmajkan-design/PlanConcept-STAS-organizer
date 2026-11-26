@@ -14,6 +14,8 @@ import {
   type PlanPerson,
 } from '../../features/planning/planningLogic';
 import { fillsGap, useDragInfo, useDragSource, useDropTarget, type DropTarget } from './planningDnd';
+import { ContractorChip } from '../../components/ContractorChip';
+import { contractorColor, contractorNameColor } from '../../theme';
 import { AWAY_COLOR, initials, siteColor } from './planningUi';
 import type { ViewProps } from './planningTypes';
 import { formatDate } from '../../utils/formatting';
@@ -84,6 +86,7 @@ function PersonButton({
           fontWeight: 600,
           bgcolor: color ? alpha(color, 0.16) : 'transparent',
           color: color ?? 'text.secondary',
+          ...(person.isContractor && { outline: `2px solid ${contractorColor.main}`, outlineOffset: 1 }),
           border: color ? 'none' : '1px dashed',
           borderColor: 'divider',
         }}
@@ -91,9 +94,16 @@ function PersonButton({
         {initials(person.name)}
       </Avatar>
       <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
-          {person.name}
-        </Typography>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
+          <Typography
+            variant="body2"
+            noWrap
+            sx={{ fontWeight: 500, color: person.isContractor ? contractorNameColor : undefined }}
+          >
+            {person.name}
+          </Typography>
+          {person.isContractor && <ContractorChip sx={{ height: 18, fontSize: 11 }} />}
+        </Stack>
         <Typography variant="caption" color="text.secondary" noWrap>
           {awayLabel ?? person.position}
         </Typography>

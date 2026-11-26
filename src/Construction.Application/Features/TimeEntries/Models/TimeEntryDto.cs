@@ -45,6 +45,8 @@ public class TimeEntryDto
 
     public string EmployeeName { get; init; } = null!;
 
+    public bool EmployeeIsContractor { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public string? ProjectName { get; init; }
@@ -153,6 +155,7 @@ public static class TimeEntryMapping
             Id = entry.Id,
             EmployeeId = entry.EmployeeId,
             EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName,
+            EmployeeIsContractor = entry.Employee.Type == EmployeeType.Subcontractor,
             ProjectId = entry.ProjectId,
             ProjectName = entry.Project != null ? entry.Project.Name : null,
             StartedAt = entry.StartedAt,

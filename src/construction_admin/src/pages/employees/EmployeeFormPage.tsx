@@ -60,6 +60,8 @@ const emptyValues: EmployeeFormValues = {
   position: '',
   status: 'Active',
   type: 'Employee',
+  contractorCompany: '',
+  engagementEndDate: '',
 };
 
 export function EmployeeFormPage() {
@@ -94,6 +96,7 @@ export function EmployeeFormPage() {
     defaultValues: emptyValues,
   });
 
+  const isContractor = watch('type') === 'Subcontractor';
   const fullName = `${watch('firstName')} ${watch('lastName')}`.trim();
   const duplicates = useDuplicateWarning(searchSimilarEmployees, fullName, id);
 
@@ -111,6 +114,8 @@ export function EmployeeFormPage() {
         position: existing.position,
         status: existing.status,
         type: existing.type,
+        contractorCompany: existing.contractorCompany ?? '',
+        engagementEndDate: existing.engagementEndDate?.slice(0, 10) ?? '',
       });
       setRank(existing.rank ?? '');
       setSavedRank(existing.rank ?? '');
@@ -126,6 +131,11 @@ export function EmployeeFormPage() {
   }
 
   const onSubmit = async (values: EmployeeFormValues) => {
+    if (values.type === 'Subcontractor' && !isEdit && !values.branchId) {
+      setError('branchId', { message: t('validation.required') });
+      return;
+    }
+
     const input: EmployeeInput = {
       employeeNumber: values.employeeNumber.trim(),
       firstName: values.firstName.trim(),
@@ -138,6 +148,8 @@ export function EmployeeFormPage() {
       position: values.position.trim(),
       status: values.status,
       type: values.type,
+      contractorCompany: values.type === 'Subcontractor' ? values.contractorCompany || null : null,
+      engagementEndDate: values.type === 'Subcontractor' ? values.engagementEndDate || null : null,
       // Only a new employee is placed here; moving an existing one is done on their page, with a date.
       branchId: isEdit ? undefined : values.branchId || null,
     };
@@ -307,7 +319,30 @@ export function EmployeeFormPage() {
               </Grid>
               {!isEdit && (
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <BranchSelectField control={control} name="branchId" helperText={t('employees.branch.createHint')} />
+                  <BranchSelectField
+                    control={control}
+                    name="branchId"
+                    label={isContractor ? t('employees.contractorBranch') : undefined}
+                    error={errors.branchId?.message}
+                    helperText={isContractor ? undefined : t('employees.branch.createHint')}
+                  />
+                </Grid>
+              )}
+              {isContractor && (
+                <Grid size={{ xs: 12, sm: isEdit ? 12 : 6 }}>
+                  <Controller
+                    name="contractorCompany"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        label={t('employees.contractorCompany')}
+                        fullWidth
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message ?? t('employees.contractorNote')}
+                      />
+                    )}
+                  />
                 </Grid>
               )}
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -317,7 +352,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label={t('employees.employmentDate')}
+                      label={isContractor ? t('employees.engagementStart') : t('employees.employmentDate')}
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -327,6 +362,25 @@ export function EmployeeFormPage() {
                   )}
                 />
               </Grid>
+              {isContractor && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="engagementEndDate"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        label={t('employees.engagementEnd')}
+                        type="date"
+                        fullWidth
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message ?? t('employees.engagementEndHint')}
+                      />
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name="dateOfBirth"
@@ -390,7 +444,7 @@ export function EmployeeFormPage() {
                   helperText={t('employees.rankHint')}
                 >
                   <MenuItem value="">{t('hierarchy.defaultPlacement')}</MenuItem>
-                  {organizationRanks.map((value) => (
+                  {organizationRanks.filter((value) => !isContractor || value === 'Worker').map((value) => (
                     <MenuItem key={value} value={value}>
                       {enumLabel('organizationRank', value)}
                     </MenuItem>

@@ -22,6 +22,9 @@ public class ScheduleRowDto
 
     public string Position { get; init; } = null!;
 
+    /// <summary>A subcontractor, shown in purple.</summary>
+    public bool IsContractor { get; init; }
+
     public IReadOnlyCollection<ScheduleAssignmentDto> Assignments { get; init; } =
         Array.Empty<ScheduleAssignmentDto>();
 

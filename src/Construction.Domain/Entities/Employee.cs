@@ -28,6 +28,12 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>Direct employee or subcontractor — see <see cref="EmployeeType"/>.</summary>
     public EmployeeType Type { get; set; } = EmployeeType.Employee;
 
+    /// <summary>The contractor's own firm (they work under a contract). Only set for <see cref="EmployeeType.Subcontractor"/>.</summary>
+    public string? ContractorCompany { get; set; }
+
+    /// <summary>End of a contractor's engagement; its start is <see cref="EmploymentDate"/>. Null means until further notice.</summary>
+    public DateOnly? EngagementEndDate { get; set; }
+
     /// <summary>
     /// Annual leave days granted per calendar year. Compared against approved
     /// <see cref="AbsenceType.AnnualLeave"/> days taken to compute a balance.

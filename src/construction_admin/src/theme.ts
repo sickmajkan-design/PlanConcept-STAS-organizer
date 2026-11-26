@@ -1,4 +1,4 @@
-import { alpha, createTheme } from '@mui/material/styles';
+import { alpha, createTheme, type Theme } from '@mui/material/styles';
 
 /** Applies only on touch screens: a finger, not a mouse pointer. */
 const COARSE = '@media (pointer: coarse)';
@@ -14,7 +14,16 @@ const TOUCH_TARGET = 44;
  * leads, slate second — the same pair the buttons and headers already use —
  * then muted companions that stay distinguishable from each other.
  */
-export const chartPalette = ['#e65100', '#37474f', '#f9a825', '#78909c', '#8d6e63', '#00897b'];
+/**
+ * The colour of a subcontractor (kooperant) wherever a person appears. Purple appears nowhere else in
+ * the panel, so it always means "not our own worker". `text` on `soft` is 7:1 or better.
+ */
+export const contractorColor = { main: '#7b3fb8', soft: '#efe4f8', text: '#4a1d7a' };
+
+/** A subcontractor's name as text on the page: dark purple on light, a light purple on dark (the chip keeps its own light fill). */
+export const contractorNameColor = (theme: Theme): string => (theme.palette.mode === 'dark' ? '#d9b8f5' : contractorColor.text);
+
+export const chartPalette =['#e65100', '#37474f', '#f9a825', '#78909c', '#8d6e63', '#00897b'];
 
 /**
  * Material 3-leaning theme built around a high-visibility safety amber,

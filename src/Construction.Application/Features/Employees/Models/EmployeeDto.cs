@@ -33,6 +33,12 @@ public class EmployeeDto
     /// <summary>"Employee" or "Subcontractor" — see <c>EmployeeType</c>.</summary>
     public string Type { get; init; } = null!;
 
+    /// <summary>The contractor's own firm; null for an employee.</summary>
+    public string? ContractorCompany { get; init; }
+
+    /// <summary>End of a contractor's engagement (the start is <see cref="EmploymentDate"/>); null means open-ended.</summary>
+    public DateOnly? EngagementEndDate { get; init; }
+
     /// <summary>The org-chart rank picked for them, or null if none has been.</summary>
     public OrganizationRank? Rank { get; init; }
 
@@ -101,6 +107,8 @@ public static class EmployeeMapping
             Position = employee.Position,
             Status = employee.Status.ToString(),
             Type = employee.Type.ToString(),
+            ContractorCompany = employee.ContractorCompany,
+            EngagementEndDate = employee.EngagementEndDate,
             Rank = employee.Rank,
             CurrentProjectNames = employee.ProjectAssignments
                 .Where(assignment => assignment.EndDate == null)

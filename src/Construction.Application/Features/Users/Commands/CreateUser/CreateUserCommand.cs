@@ -100,6 +100,11 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
         var employee = await ResolveEmployeeAsync(request.EmployeeId, cancellationToken);
         var customer = await ResolveCustomerAsync(request.CustomerId, cancellationToken);
 
+        if (employee?.Type == EmployeeType.Subcontractor)
+        {
+            Employees.Commands.ContractorRules.EnsureWorker(request.Role, null);
+        }
+
         var user = new User
         {
             Email = email,

@@ -15,9 +15,15 @@ export function BranchSelectField<T extends FieldValues>({
   control,
   name,
   helperText,
+  label,
+  error,
 }: {
   control: Control<T>;
   name: Path<T>;
+  /** Overrides the default "Business unit" label. */
+  label?: string;
+  /** A validation message; shown in red in place of the helper text. */
+  error?: string;
   /** What "none" means on this form, e.g. that the record follows its project. */
   helperText?: string;
 }) {
@@ -31,9 +37,9 @@ export function BranchSelectField<T extends FieldValues>({
       name={name}
       control={control}
       render={({ field }) => (
-        <FormControl fullWidth>
-          <InputLabel id={labelId}>{t('branches.single')}</InputLabel>
-          <Select {...field} value={field.value ?? ''} labelId={labelId} label={t('branches.single')}>
+        <FormControl fullWidth error={!!error}>
+          <InputLabel id={labelId}>{label ?? t('branches.single')}</InputLabel>
+          <Select {...field} value={field.value ?? ''} labelId={labelId} label={label ?? t('branches.single')}>
             <MenuItem value="">
               <em>{t('common.none')}</em>
             </MenuItem>
@@ -46,7 +52,7 @@ export function BranchSelectField<T extends FieldValues>({
                 </MenuItem>
               ))}
           </Select>
-          {helperText && <FormHelperText>{helperText}</FormHelperText>}
+          {(error || helperText) && <FormHelperText>{error ?? helperText}</FormHelperText>}
         </FormControl>
       )}
     />

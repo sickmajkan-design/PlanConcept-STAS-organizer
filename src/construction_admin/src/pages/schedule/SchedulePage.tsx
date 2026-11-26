@@ -18,6 +18,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { ContractorChip } from '../../components/ContractorChip';
+import { contractorColor, contractorNameColor } from '../../theme';
 import { alpha } from '@mui/material/styles';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -335,13 +337,20 @@ function EmployeeRow({
       }}
     >
       <Stack direction="row" spacing={1.25} sx={{ p: 1, minWidth: 0, alignItems: 'center' }}>
-        <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'grey.400' }}>
+        <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: row.isContractor ? contractorColor.main : 'grey.400' }}>
           {initialsOfName(row.employeeName)}
         </Avatar>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="body2" noWrap sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-            {row.employeeName}
-          </Typography>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ fontWeight: 600, lineHeight: 1.3, color: row.isContractor ? contractorNameColor : undefined }}
+            >
+              {row.employeeName}
+            </Typography>
+            {row.isContractor && <ContractorChip sx={{ height: 18, fontSize: 11 }} />}
+          </Stack>
           <Typography variant="caption" color="text.secondary" noWrap component="div">
             {row.position}
           </Typography>

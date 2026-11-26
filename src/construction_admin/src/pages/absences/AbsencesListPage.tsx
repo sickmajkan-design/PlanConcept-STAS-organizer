@@ -23,6 +23,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { ContractorChip } from '../../components/ContractorChip';
 import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -173,6 +174,12 @@ export function AbsencesListPage() {
         headerName: t('absences.employee'),
         flex: 1,
         minWidth: 160,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+            <span>{params.value as string}</span>
+            {params.row.employeeIsContractor && <ContractorChip />}
+          </Stack>
+        ),
       },
       {
         field: 'type',

@@ -158,6 +158,10 @@ export interface Employee {
   status: EmployeeStatus;
   /** Direct employee or subcontractor. */
   type: EmployeeType;
+  /** The contractor's own firm; null for an employee. */
+  contractorCompany: string | null;
+  /** `YYYY-MM-DD`: end of a contractor's engagement (the start is employmentDate); null means open-ended. */
+  engagementEndDate: string | null;
   /** Where they sit on the org chart, if somebody picked. */
   rank: OrganizationRank | null;
   /** Every project this employee is currently posted to. Empty means unassigned. */
@@ -223,6 +227,8 @@ export interface EmployeeInput {
   position: string;
   status: EmployeeStatus;
   type: EmployeeType;
+  contractorCompany?: string | null;
+  engagementEndDate?: string | null;
   /** On creation only: the unit that employs them, from their employment date. */
   branchId?: string | null;
 }
@@ -990,6 +996,7 @@ export type WorkType = (typeof workTypes)[number];
 export interface TimeEntry {
   id: string;
   employeeId: string;
+  employeeIsContractor: boolean;
   employeeName: string;
   projectId: string | null;
   projectName: string | null;
@@ -1193,6 +1200,7 @@ export type AbsenceStatus = (typeof absenceStatuses)[number];
 export interface Absence {
   id: string;
   employeeId: string;
+  employeeIsContractor: boolean;
   employeeName: string;
   type: AbsenceType;
   status: AbsenceStatus;
@@ -1302,6 +1310,7 @@ export interface ScheduleAbsence {
 
 export interface ScheduleRow {
   employeeId: string;
+  isContractor: boolean;
   employeeName: string;
   position: string;
   assignments: ScheduleAssignment[];

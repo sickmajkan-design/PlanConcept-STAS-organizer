@@ -25,6 +25,7 @@ import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ContractorChip } from '../../components/ContractorChip';
 import { ExportButton } from '../../components/ExportButton';
 import { ImportEmployeesDialog } from '../../components/ImportEmployeesDialog';
 import { PageHeader } from '../../components/PageHeader';
@@ -112,7 +113,18 @@ export function EmployeesListPage() {
   const columns: GridColDef<Employee>[] = useMemo(
     () => [
       { field: 'employeeNumber', headerName: t('employees.number'), width: 110 },
-      { field: 'fullName', headerName: t('employees.name'), flex: 1, minWidth: 180 },
+      {
+        field: 'fullName',
+        headerName: t('employees.name'),
+        flex: 1,
+        minWidth: 180,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%', minWidth: 0 }}>
+            <span>{params.value as string}</span>
+            {params.row.type === 'Subcontractor' && <ContractorChip />}
+          </Stack>
+        ),
+      },
       { field: 'position', headerName: t('employees.position'), flex: 1, minWidth: 150 },
       {
         field: 'branchName',
@@ -135,7 +147,7 @@ export function EmployeesListPage() {
         width: 130,
         renderCell: (params) =>
           params.row.type === 'Subcontractor' ? (
-            <Chip size="small" color="warning" variant="outlined" label={enumLabel('employeeType', 'Subcontractor')} />
+            <ContractorChip />
           ) : (
             <Typography variant="body2" color="text.secondary">
               {enumLabel('employeeType', 'Employee')}

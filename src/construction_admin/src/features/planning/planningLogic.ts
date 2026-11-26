@@ -52,6 +52,7 @@ export interface PlanPerson {
   id: string;
   name: string;
   position: string;
+  isContractor: boolean;
   key: string;
   cells: PlanCell[];
   /** Certificates by name key, with the last valid day (null: never runs out). */
@@ -132,7 +133,7 @@ export function buildPlan(data: PlanningData, nameOrder: NameOrder = 'first'): P
 
     const stays = (e.stays ?? []).map((s) => ({ place: s.place, from: s.startDate, to: s.endDate }));
 
-    return { id: e.id, name: orderName(e, nameOrder), position: e.position, key: positionKey(e.position), cells, certificates, stays };
+    return { id: e.id, name: orderName(e, nameOrder), position: e.position, isContractor: !!e.isContractor, key: positionKey(e.position), cells, certificates, stays };
   });
 
   // The list follows the chosen order: by first name, or by surname.

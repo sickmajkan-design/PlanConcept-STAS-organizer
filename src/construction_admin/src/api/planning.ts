@@ -50,6 +50,7 @@ export interface PlanningEmployee {
   firstName?: string;
   lastName?: string;
   position: string;
+  isContractor?: boolean;
   postings: PlanningPosting[];
   absences: PlanningAbsence[];
   certificates?: PlanningCertificate[];

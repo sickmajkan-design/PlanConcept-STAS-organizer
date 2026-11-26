@@ -42,6 +42,9 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(e => e.Address)
             .HasMaxLength(512);
 
+        builder.Property(e => e.ContractorCompany)
+            .HasMaxLength(200);
+
         builder.Property(e => e.Position)
             .HasMaxLength(128)
             .IsRequired();

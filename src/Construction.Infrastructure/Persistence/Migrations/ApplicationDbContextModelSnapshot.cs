@@ -1820,6 +1820,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(20);
 
+                    b.Property<string>("ContractorCompany")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1839,6 +1843,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(32)");
 
                     b.Property<DateOnly>("EmploymentDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EngagementEndDate")
                         .HasColumnType("date");
 
                     b.Property<string>("FirstName")

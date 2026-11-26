@@ -52,6 +52,27 @@ export const employeeFormSchema = z
       .max(128, { error: zodMsg('validation.maxLength', { max: 128 }) }),
     status: z.enum(employeeStatuses),
     type: z.enum(employeeTypes),
+    contractorCompany: z
+      .string()
+      .trim()
+      .max(200, { error: zodMsg('validation.maxLength', { max: 200 }) })
+      .optional()
+      .or(z.literal('')),
+    engagementEndDate: z.string().optional().or(z.literal('')),
+  })
+  .superRefine((values, ctx) => {
+    if (values.type !== 'Subcontractor') return;
+    // The unit is only asked for on creation, so the form checks it on submit.
+    for (const key of ['contractorCompany', 'phone', 'email'] as const) {
+      if (!values[key]) ctx.addIssue({ code: 'custom', path: [key], message: zodMsg('validation.required')() });
+    }
+    if (values.engagementEndDate && values.employmentDate && values.engagementEndDate < values.employmentDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['engagementEndDate'],
+        message: zodMsg('employees.engagementEndBeforeStart')(),
+      });
+    }
   })
   .refine(
     (values) => {

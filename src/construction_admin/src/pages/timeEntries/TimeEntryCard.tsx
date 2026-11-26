@@ -8,6 +8,8 @@ import {
   TaskAltOutlined,
 } from '@mui/icons-material';
 import { Avatar, Box, Chip, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { ContractorChip } from '../../components/ContractorChip';
+import { contractorColor, contractorNameColor } from '../../theme';
 
 import type { TimeEntry } from '../../api/types';
 import type { MessageKey } from '../../i18n/en';
@@ -173,13 +175,20 @@ export function TimeEntryCard({
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
-        <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem' }}>
+        <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem', ...(entry.employeeIsContractor && { bgcolor: contractorColor.main, color: '#fff' }) }}>
           {employeeInitials(entry.employeeName)}
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-            {entry.employeeName}
-          </Typography>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, color: entry.employeeIsContractor ? contractorNameColor : undefined }}
+              noWrap
+            >
+              {entry.employeeName}
+            </Typography>
+            {entry.employeeIsContractor && <ContractorChip sx={{ height: 18, fontSize: 11 }} />}
+          </Stack>
           {showProject && (
             <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
               {entry.projectName ? <ProjectLabel name={entry.projectName} projectId={entry.projectId} noWrap /> : t('timeEntries.noProject')}

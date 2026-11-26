@@ -2,6 +2,8 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Employees.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +15,19 @@ public record CreateEmployeeCommand : EmployeeCommandBase, IRequest<EmployeeDto>
     public Guid? BranchId { get; init; }
 }
 
-public class CreateEmployeeCommandValidator : EmployeeCommandBaseValidator<CreateEmployeeCommand>;
+public class CreateEmployeeCommandValidator : EmployeeCommandBaseValidator<CreateEmployeeCommand>
+{
+    public CreateEmployeeCommandValidator()
+    {
+        RuleFor(x => x.ContractorCompany)
+            .NotEmpty().WithMessage("The firm the subcontractor works for is required.")
+            .When(x => x.Type == EmployeeType.Subcontractor);
+
+        RuleFor(x => x.BranchId)
+            .NotNull().WithMessage("The business unit the subcontractor works with is required.")
+            .When(x => x.Type == EmployeeType.Subcontractor);
+    }
+}
 
 public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, EmployeeDto>
 {
@@ -50,7 +64,9 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             EmploymentDate = request.EmploymentDate,
             Position = request.Position.Trim(),
             Status = request.Status,
-            Type = request.Type
+            Type = request.Type,
+            ContractorCompany = request.Type == EmployeeType.Subcontractor ? request.ContractorCompany?.Trim() : null,
+            EngagementEndDate = request.Type == EmployeeType.Subcontractor ? request.EngagementEndDate : null
         };
 
         var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
