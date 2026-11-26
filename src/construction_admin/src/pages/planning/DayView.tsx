@@ -194,7 +194,15 @@ function DropCard({
 }
 
 /** Who is where on one day, a card per site, with the places still to fill shown as dashed slots. */
-export function DayView({ plan, day, openWorker, openSite, readOnly, eqAlert }: ViewProps & { day: number; eqAlert?: EquipmentAlert | null }) {
+export function DayView({
+  plan,
+  day,
+  openWorker,
+  openSite,
+  readOnly,
+  eqAlert,
+  onDecideEquipment,
+}: ViewProps & { day: number; eqAlert?: EquipmentAlert | null; onDecideEquipment?: (personId: string) => void }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { person: carried } = useDragInfo();
@@ -221,6 +229,15 @@ export function DayView({ plan, day, openWorker, openSite, readOnly, eqAlert }: 
 
     return { items, flags, mismatch: flags.mismatch, idle: flags.idle };
   };
+  /** Under a free or absent person who still holds equipment: the way to decide about it. */
+  const decideRow = (p: PlanPerson) =>
+    !readOnly && onDecideEquipment && equipmentOf(p)?.idle ? (
+      <Box sx={{ pl: 5.5, pb: 0.75 }}>
+        <Button size="small" color="warning" variant="outlined" onClick={() => onDecideEquipment(p.id)} sx={{ textTransform: 'none', borderRadius: 999 }}>
+          {t('planning.eq.decide')}
+        </Button>
+      </Box>
+    ) : null;
   // A site-level alert (free equipment) leaves the people as they are; the person-level ones mark who they are about.
   const markPerson = (p: PlanPerson) => !!eqAlert && eqAlert !== 'free' && matchesAlert(eqAlert, equipmentOf(p)?.flags ?? {});
 
@@ -340,7 +357,12 @@ export function DayView({ plan, day, openWorker, openSite, readOnly, eqAlert }: 
             ) : (
               // The panel is sticky on desktop, so the list scrolls inside it and never hands the scroll over to the page.
               <Box sx={{ maxHeight: { md: 'calc(100vh - 260px)' }, overflowY: { md: 'auto' }, overscrollBehavior: 'contain' }}>
-                {shownFree.map((p) => <PersonButton key={p.id} person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} equipment={equipmentOf(p)} plan={plan} bind={hover.bind} mark={markPerson(p)} />)}
+                {shownFree.map((p) => (
+                  <Box key={p.id}>
+                    <PersonButton person={p} day={day} date={date} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} equipment={equipmentOf(p)} plan={plan} bind={hover.bind} mark={markPerson(p)} />
+                    {decideRow(p)}
+                  </Box>
+                ))}
               </Box>
             )}
           </Box>
@@ -356,8 +378,8 @@ export function DayView({ plan, day, openWorker, openSite, readOnly, eqAlert }: 
             </Typography>
           ) : (
             away.map((p) => (
+              <Box key={p.id}>
               <PersonButton
-                key={p.id}
                 person={p}
                 day={day}
                 date={date}
@@ -369,6 +391,8 @@ export function DayView({ plan, day, openWorker, openSite, readOnly, eqAlert }: 
                 bind={hover.bind}
                 mark={markPerson(p)}
               />
+              {decideRow(p)}
+              </Box>
             ))
           )}
         </Paper>

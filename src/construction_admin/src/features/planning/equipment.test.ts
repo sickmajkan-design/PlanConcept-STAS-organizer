@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlanningData, PlanningEquipment } from '../../api/planning';
-import { equipmentSummary, groupCounts, heldBy, personFlags, siteEquipment } from './equipment';
+import { choiceRequest, equipmentSummary, groupCounts, heldBy, personFlags, siteEquipment, suggestReceiver } from './equipment';
 import { buildPlan } from './planningLogic';
 
 const DAY = '2031-06-10';
@@ -109,5 +109,37 @@ describe('planning equipment', () => {
     const p = plan([item('v1', 'Vehicle', 'p1', 'A', 'InService'), item('t1', 'Kit', 'p1', 'A', 'UnderRepair'), item('t2', 'Kit', 'p1', 'A')]);
 
     expect(heldBy(p, 'p1').map((i) => i.notUsable)).toEqual([true, true, false]);
+  });
+});
+
+describe('the decision about equipment', () => {
+  it('suggests a free person with the same position, else any free person, else nobody', () => {
+    const p = plan([item('v1', 'Vehicle', 'p4', 'B')]);
+    const absent = p.people.find((x) => x.id === 'p4')!;
+
+    // p3 is free that day and has the same position
+    expect(suggestReceiver(p, absent, 0)?.id).toBe('p3');
+
+    const none = buildPlan({ ...({} as PlanningData), from: DAY, to: DAY, today: DAY, projects: [site('A')], employees: [person('x', [{ projectId: 'A' }]), person('y', [{ projectId: 'A' }], true)], positions: [] });
+    expect(suggestReceiver(none, none.people.find((x) => x.id === 'y')!, 0)).toBeNull();
+  });
+
+  it('sends only what changes, and notices a hand-over with nobody to receive it', () => {
+    const p = plan([item('v1', 'Vehicle', 'p1', 'A'), item('t1', 'Kit', 'p1', 'A'), item('t2', 'BatterySet', 'p1', 'A')]);
+    const items = heldBy(p, 'p1');
+
+    const request = choiceRequest(items, {
+      v1: { choice: 'HandOver', to: 'p3' },
+      t1: { choice: 'ToStore', to: null },
+      t2: { choice: 'Stay', to: null },
+    });
+
+    expect(request.items).toEqual([
+      { kind: 'Vehicle', id: 'v1', choice: 'HandOver', toEmployeeId: 'p3' },
+      { kind: 'Tool', id: 't1', choice: 'ToStore', toEmployeeId: null },
+    ]);
+    expect(request.missingReceiver).toBe(false);
+    expect(choiceRequest(items, { v1: { choice: 'HandOver', to: null } }).missingReceiver).toBe(true);
+    expect(choiceRequest(items, {}).items).toEqual([]);
   });
 });

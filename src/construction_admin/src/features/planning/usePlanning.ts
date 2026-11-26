@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import {
   planningApi,
   type AssignInput,
+  type EquipmentChoiceInput,
   type PlanningNeed,
   type SwapInput,
 } from '../../api/planning';
@@ -49,6 +50,7 @@ export function usePlanningActions() {
   };
 
   const assign = useMutation({ mutationFn: (input: AssignInput) => planningApi.assign(input), onSuccess: refresh });
+  const decideEquipment = useMutation({ mutationFn: (items: EquipmentChoiceInput[]) => planningApi.decideEquipment(items), onSuccess: refresh });
   const swap = useMutation({ mutationFn: (input: SwapInput) => planningApi.swap(input), onSuccess: refresh });
   const setNeeds = useMutation({
     mutationFn: ({ projectId, needs, requiredCertificates }: { projectId: string; needs: PlanningNeed[]; requiredCertificates?: string[] }) =>
@@ -56,5 +58,5 @@ export function usePlanningActions() {
     onSuccess: refresh,
   });
 
-  return { assign, swap, setNeeds };
+  return { assign, swap, setNeeds, decideEquipment };
 }

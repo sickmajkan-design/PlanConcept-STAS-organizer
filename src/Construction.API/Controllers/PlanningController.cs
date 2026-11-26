@@ -66,6 +66,17 @@ public class PlanningController : ApiControllerBase
         return NoContent();
     }
 
+    /// <summary>What to do with equipment when someone leaves a site or is away: keep, hand over or return to the store.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/equipment")]
+    [HttpPost("/api/planning/equipment")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<int>> DecideEquipment(DecideEquipmentCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
     /// <summary>Swaps what two employees are doing over a range of days.</summary>
     [HttpPost("/api/v{version:apiVersion}/planning/swap")]
     [HttpPost("/api/planning/swap")]

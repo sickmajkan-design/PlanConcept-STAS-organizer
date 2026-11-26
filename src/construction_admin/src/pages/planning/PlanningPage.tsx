@@ -32,7 +32,7 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
-import { equipmentSummary, type EquipmentAlert } from '../../features/planning/equipment';
+import { equipmentSummary, heldBy, type EquipmentAlert } from '../../features/planning/equipment';
 import type { MessageKey } from '../../i18n/en';
 import type { NameOrder } from '../../features/planning/planningLogic';
 import { MAX_WINDOW_DAYS, usePlanningActions, usePlanningQuery } from '../../features/planning/usePlanning';
@@ -45,6 +45,7 @@ import { DayView } from './DayView';
 import { ListView } from './ListView';
 import { NeedView } from './NeedView';
 import { HistoryDialog } from './HistoryDialog';
+import { EquipmentDecisionDialog } from './EquipmentDecisionDialog';
 import { MoveDialog } from './MoveDialog';
 import { NeedsDialog, ReplaceDialog, SiteDialog, WorkerDialog, type PlanningActions } from './PlanningDialogs';
 import { PlanningDndProvider, type DropTarget } from './planningDnd';
@@ -130,6 +131,8 @@ export function PlanningPage() {
   const [panel, setPanel] = useState<Panel | null>(null);
   /** An equipment alert the planner clicked: the day view highlights what it concerns. */
   const [eqAlert, setEqAlert] = useState<EquipmentAlert | null>(null);
+  /** Somebody whose equipment the planner is to decide about: just freed, or away. */
+  const [equipmentFor, setEquipmentFor] = useState<string | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
@@ -166,6 +169,9 @@ export function PlanningPage() {
           const before = segmentsOf(plan, personId, from, to);
 
           await mutations.assign.mutateAsync({ employeeId: personId, projectId, from, to, onlyFreeDays: options?.onlyFree });
+
+          // Freed from a site while holding equipment: ask what to do with it, rather than leave it quietly with them.
+          if (projectId === null && heldBy(plan, personId).length > 0) setEquipmentFor(personId);
 
           const site = projectId ? plan.projectById.get(projectId)?.name : null;
           setUndo({
@@ -424,7 +430,7 @@ export function PlanningPage() {
           enabled={!readOnly && (view === 'day' || view === 'timeline')}
           onDrop={(payload, target) => !readOnly && setPanel({ kind: 'move', personId: payload.personId, target, from: payload.from, to: payload.to })}
         >
-          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} onDecideEquipment={setEquipmentFor} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
           {view === 'need' && <NeedView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
@@ -443,6 +449,7 @@ export function PlanningPage() {
           {panel?.kind === 'worker' && <WorkerDialog key={`${panel.personId}${panel.from}${panel.to}`} plan={plan} personId={panel.personId} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'site' && <SiteDialog key={`${panel.projectId}${panel.from}${panel.to}${panel.position ?? ''}`} plan={plan} projectId={panel.projectId} from={panel.from} to={panel.to} position={panel.position} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'move' && <MoveDialog key={`${panel.personId}${panel.from}${panel.to}${panel.target.kind}`} plan={plan} personId={panel.personId} target={panel.target} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
+          {equipmentFor && <EquipmentDecisionDialog key={equipmentFor} plan={plan} personId={equipmentFor} day={Math.max(0, dayIndex)} onClose={() => setEquipmentFor(null)} />}
           {panel?.kind === 'replace' && <ReplaceDialog plan={plan} item={panel.item} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'needs' && <NeedsDialog key={panel.projectId} plan={plan} projectId={panel.projectId} actions={actions} onClose={() => setPanel(null)} />}
         </PlanningDndProvider>

@@ -163,6 +163,14 @@ export interface PlanningHistoryEntry {
   changes: Record<string, { from: string | null; to: string | null }>;
 }
 
+/** One decision about a vehicle or tool: stays, goes to another person, or back to the store. */
+export interface EquipmentChoiceInput {
+  kind: 'Vehicle' | 'Tool';
+  id: string;
+  choice: 'Stay' | 'HandOver' | 'ToStore';
+  toEmployeeId: string | null;
+}
+
 export const planningApi = {
   history: (query: { employeeId?: string; projectId?: string; take?: number } = {}) =>
     request<PlanningHistoryEntry[]>({ method: 'GET', url: '/api/v1/planning/history', params: query }),
@@ -183,6 +191,10 @@ export const planningApi = {
 
   assign: (input: AssignInput) =>
     request<void>({ method: 'POST', url: '/api/v1/planning/assign', data: input }),
+
+  /** Returns how many items were changed. */
+  decideEquipment: (items: EquipmentChoiceInput[]) =>
+    request<number>({ method: 'POST', url: '/api/v1/planning/equipment', data: { items } }),
 
   swap: (input: SwapInput) =>
     request<void>({ method: 'POST', url: '/api/v1/planning/swap', data: input }),

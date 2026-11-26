@@ -144,3 +144,43 @@ export function equipmentSummary(plan: Plan, day: number): EquipmentSummary {
 
   return { free, mismatch, idle };
 }
+
+/* ---- the planner's decision about what a person holds ---- */
+
+export type EquipmentChoiceKind = 'Stay' | 'HandOver' | 'ToStore';
+
+export interface EquipmentChoiceState {
+  choice: EquipmentChoiceKind;
+  /** Who receives it, for a hand-over. */
+  to: string | null;
+}
+
+/** Someone free that day with the same position as the person, else the first free one: who to suggest as the receiver. */
+export function suggestReceiver(plan: Plan, person: PlanPerson, day: number): PlanPerson | null {
+  const free = plan.people.filter((p) => p.id !== person.id && !p.cells[day]?.project && !p.cells[day]?.away);
+
+  return free.find((p) => p.key === person.key) ?? free[0] ?? null;
+}
+
+/**
+ * What to send for the choices made: only the items that change (a Stay is nothing to do), and whether a hand-over is
+ * missing its receiver, which the dialog refuses to submit.
+ */
+export function choiceRequest(
+  items: EquipmentItem[],
+  choices: Record<string, EquipmentChoiceState>,
+): { items: { kind: 'Vehicle' | 'Tool'; id: string; choice: EquipmentChoiceKind; toEmployeeId: string | null }[]; missingReceiver: boolean } {
+  const chosen = items
+    .map((item) => ({ item, state: choices[item.id] ?? { choice: 'Stay' as const, to: null } }))
+    .filter(({ state }) => state.choice !== 'Stay');
+
+  return {
+    items: chosen.map(({ item, state }) => ({
+      kind: item.kind,
+      id: item.id,
+      choice: state.choice,
+      toEmployeeId: state.choice === 'HandOver' ? state.to : null,
+    })),
+    missingReceiver: chosen.some(({ state }) => state.choice === 'HandOver' && !state.to),
+  };
+}
