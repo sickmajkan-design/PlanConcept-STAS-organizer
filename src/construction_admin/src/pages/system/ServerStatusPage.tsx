@@ -522,6 +522,10 @@ function BackupsSection({ status }: { status: ServerStatus }) {
             </Stack>
           </Stack>
           <Row
+            label={t('serverStatus.backupLastOffsite')}
+            value={items.find((item) => item.offsite)?.takenAtUtc ? formatDateTime(items.find((item) => item.offsite)!.takenAtUtc) : t('serverStatus.backupNever')}
+          />
+          <Row
             label={t('serverStatus.backupRestore')}
             value={restoreCheckedAtUtc ? formatDateTime(restoreCheckedAtUtc) : t('serverStatus.backupNever')}
           />

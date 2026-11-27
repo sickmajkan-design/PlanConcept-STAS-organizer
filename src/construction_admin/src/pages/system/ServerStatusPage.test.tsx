@@ -117,6 +117,27 @@ describe('ServerStatusPage', () => {
     expect(within(summary).getByText('Some messages (e-mail, notifications) were given up on after repeated failures.')).toBeDefined();
   });
 
+  it('says when the last copy off the server was taken, or that there never was one', async () => {
+    const copy = (name: string, offsite: boolean, takenAtUtc: string) => ({ name, takenAtUtc, sizeBytes: 50 * MB, hasDocuments: true, offsite });
+
+    const none = status({ backups: { known: true, items: [copy('b2', false, '2026-11-13T02:00:00Z')], restoreCheckedAtUtc: null } });
+    network.reply('/system/status', 200, none);
+    network.reply('/system/storage', 200, none.storage);
+
+    const first = renderScreen(<ServerStatusPage />);
+    expect(await screen.findByText('Last copy off the server')).toBeDefined();
+    // Nothing off the server in the list: the row, the restore row and no date say "never".
+    expect(screen.getAllByText('never').length).toBeGreaterThanOrEqual(1);
+    first.unmount();
+
+    const some = status({ backups: { known: true, items: [copy('b2', false, '2026-11-13T02:00:00Z'), copy('b1', true, '2026-11-12T02:00:00Z')], restoreCheckedAtUtc: null } });
+    network.reply('/system/status', 200, some);
+
+    renderScreen(<ServerStatusPage />);
+    const row = (await screen.findByText('Last copy off the server')).closest('[data-row]') as HTMLElement;
+    expect(within(row).queryByText('never')).toBeNull();
+  });
+
   it('shows dashes, not zeros, for what the machine does not report', async () => {
     const unknown = status();
     unknown.host = {
