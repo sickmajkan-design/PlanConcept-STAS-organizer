@@ -11,7 +11,7 @@ const KEYWORDS: Record<string, string> = {
     'zahtjev dokument traži novi radnik paket za provjeru prihvati vrati pasoš request document new worker package check accept return passport',
   [paths.audit]: 'revizija trag izmjena ko je otvorio osjetljivo audit trail history who opened sensitive',
   [paths.organization]: 'firma poslovne jedinice filijala predstavništvo organizacija logo glavna jedinica company branch business units logo main unit',
-  [paths.schedule]: 'raspored planiranje smjena zamjena odsutni ekipa potreba schedule planning shift replacement crew',
+  [paths.schedule]: 'raspored planiranje planer smjena zamjena odsutni ekipa potreba kasne nepokriveno kapacitet sedmica schedule planning planner shift replacement crew late uncovered capacity week',
   [paths.bookOverview]: 'knjiga evidencija novac dobit prihod trošak ulaz izlaz book money profit income cost',
   [paths.bookEntries]: 'zapisi unos trošak prihod faktura gorivo izvoz zip knjigovođa entries costs invoice export accountant',
   [paths.bookCategories]: 'kategorije pravila kategorija categories rules',

@@ -1,4 +1,4 @@
-import { CheckCircleOutlineOutlined, CloseOutlined, EuroOutlined, ExpandMoreOutlined, GridViewOutlined, ListOutlined, PersonSearchOutlined, TimelineOutlined } from '@mui/icons-material';
+import { AssignmentTurnedInOutlined, CheckCircleOutlineOutlined, CloseOutlined, EuroOutlined, ExpandMoreOutlined, GridViewOutlined, ListOutlined, PersonSearchOutlined, TimelineOutlined } from '@mui/icons-material';
 import { Alert, Box, Button, ButtonBase, Chip, CircularProgress, Collapse, IconButton, Paper, Snackbar, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material';
 import { useMemo, useState } from 'react';
@@ -32,6 +32,9 @@ import {
   type RangeMode,
 } from '../../features/planning/planningLogic';
 import { awayKey, conflictKey, useHiddenAlerts } from '../../features/planning/useHiddenAlerts';
+import { CAPACITY_WEEKS } from '../../features/planning/planner';
+import { conflictText } from './conflictText';
+import { PlannerView } from './PlannerView';
 import { AttentionCard, type AttentionItem } from './AttentionCard';
 import { equipmentOnDay, equipmentSummary, heldBy, type BoardAlert } from '../../features/planning/equipment';
 import type { NameOrder } from '../../features/planning/planningLogic';
@@ -55,7 +58,21 @@ import { PlanningTour } from './PlanningTour';
 import { fetchWindow, shortDate, WEEKDAYS } from './planningUi';
 import { companyNow } from '../../utils/companyTime';
 
-type View = 'day' | 'timeline' | 'need' | 'list' | 'cost';
+type View = 'planner' | 'day' | 'timeline' | 'need' | 'list' | 'cost';
+
+const VIEWS: readonly View[] = ['planner', 'day', 'timeline', 'need', 'list', 'cost'];
+
+/** A view name read back from this browser's storage, or null when it is missing, unknown or not allowed for the account. */
+function storedView(key: string, allowCost: boolean): View | null {
+  try {
+    const saved = window.localStorage.getItem(key);
+    const found = VIEWS.find((v) => v === saved);
+
+    return found && (found !== 'cost' || allowCost) ? found : null;
+  } catch {
+    return null;
+  }
+}
 
 type Panel =
   | { kind: 'worker'; personId: string; from: string; to: string }
@@ -93,15 +110,19 @@ export function PlanningPage() {
   // phone alike. A view picked by hand is remembered in this browser.
   const { user } = useAuth();
   const viewKey = `planning.view.${user?.id ?? ''}`;
-  const [view, setViewState] = useState<View>(() => {
+  // A tab the person chose to open on always wins; without one the last tab used is opened, and the by-site view for a first visit.
+  const startKey = `planning.startView.${user?.id ?? ''}`;
+  const [startView, setStartViewState] = useState<View | null>(() => storedView(startKey, canSeeLabourCost(user)));
+  const [view, setViewState] = useState<View>(() => storedView(startKey, canSeeLabourCost(user)) ?? storedView(viewKey, canSeeLabourCost(user)) ?? 'day');
+  const setStartView = (next: View | null) => {
+    setStartViewState(next);
     try {
-      const saved = window.localStorage.getItem(viewKey);
-      if (saved === 'day' || saved === 'timeline' || saved === 'need' || saved === 'list' || (saved === 'cost' && canSeeLabourCost(user))) return saved;
+      if (next) window.localStorage.setItem(startKey, next);
+      else window.localStorage.removeItem(startKey);
     } catch {
-      /* falls back to the by-site view */
+      /* the choice simply is not remembered */
     }
-    return 'day';
-  });
+  };
   const setView = (next: View) => {
     setViewState(next);
     try {
@@ -158,7 +179,9 @@ export function PlanningPage() {
     }
   };
 
-  const window_ = fetchWindow(range, focusDay, today, MAX_WINDOW_DAYS);
+  // The Planner looks eight weeks ahead of the week on screen for its capacity table.
+  const plannerRange = { from: mondayOf(focusDay), to: addDays(mondayOf(focusDay), CAPACITY_WEEKS * 7 - 1) };
+  const window_ = fetchWindow(view === 'planner' ? plannerRange : range, focusDay, today, MAX_WINDOW_DAYS);
   const { plan, error, isLoading, refetch } = usePlanningQuery(window_.from, window_.to, nameOrder);
   const mutations = usePlanningActions();
 
@@ -294,7 +317,7 @@ export function PlanningPage() {
   }, [plan, equipmentOn, shownDate]);
 
   // Clock-in and position only mean something for today, so they are asked for only while today is on screen.
-  const showAttendance = view === 'day' && !!plan && dayIndex >= 0 && plan.date(dayIndex) === plan.today;
+  const showAttendance = (view === 'day' || view === 'planner') && !!plan && dayIndex >= 0 && plan.date(dayIndex) === plan.today;
   const attendanceData = usePlanningAttendance(showAttendance).data;
   const attendance = useMemo(
     () => (showAttendance && plan ? attendanceMap(plan, attendanceData, dayIndex) : undefined),
@@ -331,6 +354,10 @@ export function PlanningPage() {
                 ...(readOnly
                   ? []
                   : [{ key: 'tour', label: t('planning.tour.button'), onClick: () => { rememberTour(); setTourOpen(true); } }]),
+                ...(startView !== view
+                  ? [{ key: 'start', label: t('planner.start.set', { view: t(`planning.tab.${view}Short`) }), onClick: () => setStartView(view) }]
+                  : []),
+                ...(startView ? [{ key: 'startClear', label: t('planner.start.clear'), onClick: () => setStartView(null) }] : []),
               ]}
             />
           </Stack>
@@ -374,7 +401,7 @@ export function PlanningPage() {
         onChange={(_, next: View | null) => next && setView(next)}
         sx={{ mb: 2, maxWidth: '100%', '& .MuiToggleButton-root': { textTransform: 'none', whiteSpace: 'nowrap', gap: 0.75, px: { xs: 1.25, md: 2 }, py: 0.75, fontWeight: 600 } }}
       >
-        {(canSeeLabourCost(user) ? (['day', 'timeline', 'need', 'cost', 'list'] as const) : (['day', 'timeline', 'need', 'list'] as const)).map((v) => (
+        {(canSeeLabourCost(user) ? (['planner', 'day', 'timeline', 'need', 'cost', 'list'] as const) : (['planner', 'day', 'timeline', 'need', 'list'] as const)).map((v) => (
           <Tooltip key={v} title={`${t(`planning.tab.${v}`)}: ${t(`planning.tab.${v}Hint`)}`} enterDelay={400}>
             <ToggleButton value={v} aria-label={t(`planning.tab.${v}`)}>
               {VIEW_ICONS[v]}
@@ -473,6 +500,23 @@ export function PlanningPage() {
           enabled={!readOnly && (view === 'day' || view === 'timeline')}
           onDrop={(payload, target) => !readOnly && setPanel({ kind: 'move', personId: payload.personId, target, from: payload.from, to: payload.to })}
         >
+          {view === 'planner' && dayIndex >= 0 && (
+            <PlannerView
+              plan={dayPlan ?? plan}
+              day={dayIndex}
+              focusDay={focusDay}
+              setFocusDay={setFocusDay}
+              readOnly={readOnly}
+              attendance={attendance}
+              openWorker={openWorker}
+              openSite={openSite}
+              onFind={(item) => setPanel({ kind: 'replace', item })}
+              onPickAlert={(alert) => {
+                setEqAlert(alert);
+                setView('day');
+              }}
+            />
+          )}
           {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} eqAlert={eqAlert} attendance={attendance} onDecideEquipment={setEquipmentFor} plan={dayPlan ?? plan} planned={equipmentOn?.planned} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
@@ -534,7 +578,8 @@ export function PlanningPage() {
   );
 }
 
-const VIEW_ICONS: Record<'day' | 'timeline' | 'need' | 'cost' | 'list', React.ReactElement> = {
+const VIEW_ICONS: Record<View, React.ReactElement> = {
+  planner: <AssignmentTurnedInOutlined fontSize="small" />,
   day: <GridViewOutlined fontSize="small" />,
   timeline: <TimelineOutlined fontSize="small" />,
   need: <PersonSearchOutlined fontSize="small" />,
@@ -574,6 +619,9 @@ function Summary({
   range: { from: string; to: string };
 }) {
   const t = useT();
+
+  // The Planner shows its own figures.
+  if (view === 'planner') return null;
 
   if (view === 'day' || view === 'list') {
     if (day < 0) return null;
@@ -647,18 +695,7 @@ function AlertsBar({
   const hiddenCount = allAway.length - away.length + allFound.length - found.length;
   const count = away.length + found.length;
 
-  const name = (id: string | undefined) => plan.projectById.get(id ?? '')?.name ?? '?';
-
-  const text = (c: Conflict): string => {
-    const base = { name: c.person.name, from: formatDate(c.from), to: formatDate(c.to) };
-    const site = plan.projectById.get(c.projectId);
-
-    if (c.kind === 'double') return t('planning.conflict.double', { ...base, a: name(c.projectId), b: name(c.otherProjectId) });
-    if (c.kind === 'housedIdle') return t('planning.conflict.housedIdle', { ...base, place: c.place ?? '' });
-    if (c.kind === 'certificate') return t('planning.conflict.certificate', { ...base, site: name(c.projectId), certificate: c.certificate ?? '' });
-    if (c.kind === 'afterEnd') return t('planning.conflict.afterEnd', { ...base, site: name(c.projectId), date: formatDate(site?.endDate) });
-    return t('planning.conflict.beforeStart', { ...base, site: name(c.projectId), date: formatDate(site?.startDate) });
-  };
+  const text = (c: Conflict): string => conflictText(plan, c, t);
 
   const dot = (color: string) => <Box component="span" aria-hidden sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />;
 

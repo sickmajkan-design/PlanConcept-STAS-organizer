@@ -15,6 +15,20 @@ Stavka **Vodič kroz Raspored** (gore desno, pod **Više**) pokreće interaktivn
 | **Potreba po projektima** | Svaki projekat naspram onoga što treba, po periodima. Strelica ▸ otvara vještine projekta. Ispod je tabela po vještinama: najveći manjak, slobodnih i stanje |
 | **Lista** | Jedan dan, jedan red po radniku, gradilište kao padajući izbor. Najbrže za sređivanje |
 
+## 1a. Planer
+
+Prva kartica Rasporeda (Voditelj i iznad). Ne mijenja ništa u ostalim karticama, a Raspored se i dalje otvara na **Gradilištima** dok neko ne izabere drugačije (meni **Više**, *Uvijek otvori Raspored na kartici „Planer“*; izbor je u pregledniku, a poništava se istim menijem).
+
+| Dio | Šta pokazuje |
+|---|---|
+| **Danas** | Četiri brojke (na poslu i kasne ili raspoređeno i slobodni, nepokriveno, čeka potvrdu ili odsutni), lista **Treba odluku** i gradilišta s ljudima. Stavke: nepokriveno mjesto (uz imena odsutnih), ko kasni ili nije na gradilištu (samo danas), sukobi iz Provjere, oprema i nepotvrđeno (vode na tablu Gradilišta s istaknutom stavkom) i odsustva koja počinju u narednih 7 dana. Dugme otvara dijalog koji Raspored već ima, pa se sve što se mijenja može poništiti kao i inače |
+| **Sedmica** | Ljudi naspram potreba po gradilištu i danu (ponedjeljak do petak), te redovi Slobodni i Odsutni. Klik na dan otvara taj dan u Danas |
+| **Kapacitet** | Potrebe projekata naspram ljudi koji nisu na odsustvu, 8 sedmica unaprijed, kao prosjek radnog dana. Do 85% zeleno, do 100% žuto, preko 100% crveno. Ispod je računica **Šta ako dobijemo novi projekat** (vještina, broj ljudi, od kada, koliko sedmica); ništa se ne snima |
+
+**Kako je rađeno:** sve se računa na klijentu iz istog plana koji učitava Raspored (`features/planning/planner.ts`), bez novih zahtjeva prema serveru, pa se brojke uvijek slažu s ostalim karticama. Za Kapacitet se prozor plana proširi na 8 sedmica od ponedjeljka prikazane sedmice. Testovi: `planner.test.ts`, `PlanningPage.test.tsx` (Planner tab).
+
+**Ograničenja:** kapacitet računa samo potrebe po vještini koje su unesene u kartici Potreba i broji svakog radnika s tom vještinom (jedna vještina po osobi). Ne uključuje godišnje planove ni zapošljavanje. Ekipe, kopiranje sedmice, šabloni, objava s potvrdom radnika i poređenje planiranih i prijavljenih sati nisu u ovoj verziji.
+
 ## 2. Razdoblje
 
 Prikazi Vremenska traka i Potreba imaju izbor: **Sedmica**, **2 sedmice**, **Mjesec**, **Kvartal**, **Prilagođeno** (od–do). Mjesec i kvartal su **kalendarski** (cijeli oktobar; 4. kvartal je oktobar–decembar). Strelice prelaze na prethodno ili sljedeće razdoblje. Do mjesec dana kolone su dani, a duže od toga sedmice.

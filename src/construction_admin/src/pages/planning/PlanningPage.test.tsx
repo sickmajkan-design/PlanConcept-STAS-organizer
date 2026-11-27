@@ -372,3 +372,42 @@ describe('PlanningPage', () => {
     }, SCREEN_TIMEOUT);
   });
 });
+
+describe('Planner tab', () => {
+  it('opens on the by-site board as before, and lists what needs a decision when the Planner is chosen', async () => {
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+
+    // Nobody chose anything: the board the customer asked for opens first.
+    expect(await screen.findByRole('button', { name: /By site/, pressed: true })).toBeDefined();
+
+    await userEvent.click(screen.getByRole('button', { name: /Planner/ }));
+
+    expect(await screen.findByText('Needs a decision')).toBeDefined();
+    // Marko's leave a few days ahead leaves the hall short, so it is listed under what is coming up.
+    expect(await screen.findByText(/Marko Horvat: leave/)).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Find a stand-in' })).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('shows capacity for eight weeks, with the what-if calculation', async () => {
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Capacity' }));
+
+    expect(await screen.findByText('Capacity for the next 8 weeks')).toBeDefined();
+    expect(screen.getByText('What if we take a new project?')).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('opens on the tab the person chose to start on', async () => {
+    window.localStorage.setItem(`planning.startView.${signedIn().id}`, 'planner');
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+
+    expect(await screen.findByRole('button', { name: /Planner/, pressed: true })).toBeDefined();
+  }, SCREEN_TIMEOUT);
+});

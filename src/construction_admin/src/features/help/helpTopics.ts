@@ -252,6 +252,52 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'raspored-planer',
+    group: 'work',
+    path: paths.schedule,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Planer: šta traži odluku, sedmica i kapacitet',
+        summary:
+          'Planer je prva kartica Rasporeda. Na jednom mjestu pokazuje šta danas traži odluku, kako stoji sedmica po gradilištima i hoće li ljudi biti dovoljni za sljedećih osam sedmica.',
+        steps: [
+          'Otvorite Planiranje, Raspored, karticu Planer.',
+          'Danas: brojke na vrhu, lista Treba odluku i gradilišta s ljudima. Dugme uz stavku otvara isti prozor koji Raspored već ima: Nađi zamjenu, Otvori radnika, Pogledaj na tabli.',
+          'Sedmica: ljudi naspram potreba po gradilištu i danu. Pritisnite dan da ga otvorite u kartici Danas.',
+          'Kapacitet: potrebe projekata naspram ljudi koji nisu na odsustvu, osam sedmica unaprijed. Ispod je računica Šta ako dobijemo novi projekat.',
+        ],
+        example:
+          'Dobijete upit za montažu s 6 električara od 15. decembra. U Kapacitetu izaberete Električar, 6 ljudi, od 15.12., 12 sedmica, i vidite da fale najviše 2, u sedmici od 15.12. Ništa se ne snima u raspored.',
+        tips: [
+          'Raspored se i dalje otvara na kartici Gradilišta. Ako želite da se otvara na Planeru, u meniju Više izaberite Uvijek otvori Raspored na kartici „Planer“. Izbor važi samo u ovom pregledniku i može se poništiti istim menijem.',
+          'U Kapacitetu odsustva ljudi smanjuju broj dostupnih, a projekti bez unesenih potreba se ne računaju. Zato prvo unesite potrebe po vještinama u kartici Potreba.',
+          'Planer ništa ne mijenja sam: svaka izmjena ide kroz prozore Rasporeda, s opcijom Poništi.',
+        ],
+        keywords: ['planer', 'raspored', 'danas', 'kasne', 'nepokriveno', 'zamjena', 'kapacitet', 'sedmica', 'šta ako', 'novi projekat'],
+      },
+      en: {
+        title: 'Planner: what needs a decision, the week and capacity',
+        summary:
+          'The Planner is the first tab of the Schedule. In one place it shows what needs a decision today, how the week stands per site, and whether the people will last for the next eight weeks.',
+        steps: [
+          'Open Planning, Schedule, the Planner tab.',
+          'Today: the figures at the top, the list Needs a decision and the sites with their people. The button beside an item opens a dialog the Schedule already has: Find a stand-in, open the worker, look on the board.',
+          'Week: people against needs per site and day. Press a day to open it in Today.',
+          'Capacity: the needs of the projects against the people who are not on leave, eight weeks ahead. Below it is the calculation What if we take a new project.',
+        ],
+        example:
+          'You get an enquiry for an installation with 6 electricians from 15 December. In Capacity you pick Electrician, 6 people, from 15.12., 12 weeks, and see that up to 2 are missing, worst in the week of 15.12. Nothing is saved in the schedule.',
+        tips: [
+          'The Schedule still opens on the Sites tab. If you want it to open on the Planner, choose Always open the Schedule on “Planner” in the More menu. The choice applies to this browser only and can be undone from the same menu.',
+          'In Capacity, people on leave reduce who is available, and projects without needs entered are not counted. Enter the needs per skill in the Needs tab first.',
+          'The Planner never changes anything by itself: every change goes through the Schedule dialogs, with Undo.',
+        ],
+        keywords: ['planner', 'schedule', 'today', 'late', 'uncovered', 'stand-in', 'capacity', 'week', 'what if', 'new project'],
+      },
+    },
+  },
+  {
     id: 'kooperanti',
     group: 'work',
     path: paths.employeeNew,
