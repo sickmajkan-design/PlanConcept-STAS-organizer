@@ -218,6 +218,26 @@ public class PlanningController : ApiControllerBase
         return Ok(await Mediator.Send(command, cancellationToken));
     }
 
+    /// <summary>Publishes a day: everybody posted that day is told where they go. The schedule itself does not change.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/publish")]
+    [HttpPost("/api/planning/publish")]
+    [ProducesResponseType(typeof(SchedulePublicationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<SchedulePublicationDto>> Publish(PublishScheduleDayCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>When each day of a period was last published.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/publications")]
+    [HttpGet("/api/planning/publications")]
+    [ProducesResponseType(typeof(IReadOnlyList<SchedulePublicationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<SchedulePublicationDto>>> Publications([FromQuery] GetSchedulePublicationsQuery query, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Reminds the people posted on a day who have not yet confirmed it.</summary>
     [HttpPost("/api/v{version:apiVersion}/planning/remind")]
     [HttpPost("/api/planning/remind")]

@@ -285,7 +285,20 @@ export interface PlannedHours {
   projects: PlannedHoursProject[];
 }
 
+/** A day of the schedule that was published: the people posted that day were told where they go. */
+export interface SchedulePublication {
+  date: string;
+  publishedAt: string;
+  people: number;
+}
+
 export const planningApi = {
+  /** Tells everybody posted on a day where they go. The schedule itself does not change. */
+  publish: (date: string) => request<SchedulePublication>({ method: 'POST', url: '/api/v1/planning/publish', data: { date } }),
+
+  publications: (query: { from: string; to: string }) =>
+    request<SchedulePublication[]>({ method: 'GET', url: '/api/v1/planning/publications', params: { from: query.from, to: query.to } }),
+
   hours: (query: { from: string; to: string; branchId?: string }) =>
     request<PlannedHours>({ method: 'GET', url: '/api/v1/planning/hours', params: { from: query.from, to: query.to, branchId: query.branchId } }),
 

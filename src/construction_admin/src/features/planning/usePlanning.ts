@@ -76,6 +76,16 @@ export function usePlanningTemplates(enabled: boolean) {
   return useQuery({ queryKey: [...planningKeys.all, 'templates'], queryFn: () => planningApi.templates(), enabled, staleTime: 30_000 });
 }
 
+/** When a day was last published, if it was. */
+export function usePlanningPublication(date: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...planningKeys.all, 'publications', date],
+    queryFn: async () => (await planningApi.publications({ from: date, to: date }))[0] ?? null,
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
 /** Planned against reported hours per site for a period. */
 export function usePlannedHours(from: string, to: string, enabled: boolean) {
   const { branchId } = useBranchFilter();
@@ -120,6 +130,7 @@ export function usePlanningActions() {
   const deleteCrew = useMutation({ mutationFn: (id: string) => planningApi.deleteCrew(id), onSuccess: refresh });
   const assignCrew = useMutation({ mutationFn: (input: { crewId: string; projectId: string | null; from: string; to: string; onlyFreeDays?: boolean }) => planningApi.assignCrew(input), onSuccess: refresh });
   const remind = useMutation({ mutationFn: (date: string) => planningApi.remind(date) });
+  const publish = useMutation({ mutationFn: (date: string) => planningApi.publish(date), onSuccess: () => void queryClient.invalidateQueries({ queryKey: [...planningKeys.all, 'publications'] }) });
 
-  return { assign, swap, setNeeds, decideEquipment, cancelPlanned, copyWeek, saveTemplate, applyTemplate, deleteTemplate, saveCrew, deleteCrew, assignCrew, remind };
+  return { assign, swap, setNeeds, decideEquipment, cancelPlanned, copyWeek, saveTemplate, applyTemplate, deleteTemplate, saveCrew, deleteCrew, assignCrew, remind, publish };
 }

@@ -27,11 +27,13 @@ Prva kartica Rasporeda (Voditelj i iznad). Ne mijenja ništa u ostalim karticama
 | **Sati** | Planirani sati svakog gradilišta (radni dani u kojima je osoba raspoređena, bez odsustva i praznika, po 8 sati, do danas) naspram prijavljenih (završeni zapisi koji nisu odbijeni), za sedmicu ili mjesec. Gradilište preko plana za više od 10% je crveno, ispod za više od 20% žuto |
 | **Kapacitet** | Potrebe projekata naspram ljudi koji nisu na odsustvu, 8 sedmica unaprijed, kao prosjek radnog dana. Do 85% zeleno, do 100% žuto, preko 100% crveno. Ispod je računica **Šta ako dobijemo novi projekat** (vještina, broj ljudi, od kada, koliko sedmica); ništa se ne snima |
 
+**Objavi raspored:** traka iznad brojki u *Danas*. Dijalog prije objave provjerava dan (dvostruko raspoređena osoba zaustavlja objavu; nepokrivena mjesta, ostali sukobi i oprema su upozorenja), pa svakom ko je tog dana raspoređen (bez odobrenog odsustva i završenih gradilišta) šalje jednu obavijest: gradilište, adresa i početak smjene u vremenu firme. Objaviti se može od danas do 60 dana unaprijed, ponovo se smije, a zadnja objava je zapisana u `schedule_publications`.
+
 **Podsjeti:** uz stavku *Čeka potvrdu* na listi *Treba odluku* dugme šalje obavijest radnicima koji nisu potvrdili raspoređivanje za prikazani dan (jedna obavijest po radniku, bez onih na odobrenom odsustvu).
 
 **Kako je rađeno:** Danas, Sedmica i Kapacitet se računaju na klijentu iz istog plana koji učitava Raspored (`features/planning/planner.ts`), pa se brojke uvijek slažu s ostalim karticama. Za Kapacitet se prozor plana proširi na 8 sedmica od ponedjeljka prikazane sedmice. Kopiranje sedmice, šabloni i ekipe pišu kroz isti `SetEmployeeScheduleCommand` kao pojedinačno premještanje (istorija, obavijesti i oprema su isti), a tabele su `crews`, `crew_members` i `schedule_templates`. Testovi: `planner.test.ts`, `PlanningPage.test.tsx` (Planner tab), `PlanningWeekToolsTests` (integracijski).
 
-**Ograničenja:** kapacitet računa samo potrebe po vještini koje su unesene u kartici Potreba i broji svakog radnika s tom vještinom (jedna vještina po osobi). Ne uključuje godišnje planove ni zapošljavanje. Šablon pamti ljude i gradilišta, ne ekipe: ko je u međuvremenu na odsustvu, otišao ili je zauzet, preskače se. Raspored se i dalje upisuje odmah; nema stanja „nacrt“ koje se posebno objavljuje, a radnik raspoređivanje potvrđuje kao i prije (to prikazuje *Čeka potvrdu*).
+**Ograničenja:** kapacitet računa samo potrebe po vještini koje su unesene u kartici Potreba i broji svakog radnika s tom vještinom (jedna vještina po osobi). Ne uključuje godišnje planove ni zapošljavanje. Šablon pamti ljude i gradilišta, ne ekipe: ko je u međuvremenu na odsustvu, otišao ili je zauzet, preskače se. Raspored se i dalje upisuje odmah i nema stanja „nacrt“: *Objavi raspored* samo obavještava ljude, a radnik raspoređivanje potvrđuje kao i prije (to prikazuje *Čeka potvrdu*).
 
 ## 2. Razdoblje
 
@@ -192,6 +194,7 @@ Pretraga: **Ctrl+K**, „raspored“ otvara ovu stranicu, a uputstvo „Raspored
 | `POST /api/v1/planning/copy-week` | Pravo planiranja | `{ fromWeek, toWeek, dryRun }`: prepisuje raspored sedmice na drugu, samo slobodne dane; vraća broj dana, ljudi, preskočeno i raspone (da se mogu poništiti) |
 | `GET, POST /api/v1/planning/templates`, `POST .../templates/apply`, `DELETE .../templates/{id}` | Voditelj projekta+ | Šabloni sedmice: lista, čuvanje sedmice, stavljanje na sedmicu (`dryRun`), brisanje |
 | `GET, POST /api/v1/planning/crews`, `DELETE .../crews/{id}`, `POST .../crews/assign` | Voditelj projekta+ | Ekipe: lista, napravi ili izmijeni (naziv, voditelj, članovi), obriši, stavi na gradilište za razdoblje |
+| `POST /api/v1/planning/publish`, `GET .../publications?from&to` | Pravo planiranja (objava), Predradnik+ (čitanje) | `{ date }`: obavještava raspoređene za dan i bilježi objavu; lista zadnjih objava po danu |
 | `POST /api/v1/planning/remind` | Pravo planiranja | `{ date }`: podsjeća radnike koji nisu potvrdili raspoređivanje na dan |
 | `GET /api/v1/exports/schedule?from&to&language&branchId` | Predradnik+ | Excel: raspored po radniku i po gradilištu, najviše 62 dana |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |

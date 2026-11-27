@@ -28,10 +28,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import type { Crew, PlannedHoursProject, WeekApplyResult } from '../../api/planning';
+import type { Decision } from '../../features/planning/planner';
 import { addDays, diffDays, mondayOf, periodBounds, segmentsOf, type Plan } from '../../features/planning/planningLogic';
-import { usePlannedHours, usePlanningActions, usePlanningCrews, usePlanningTemplates } from '../../features/planning/usePlanning';
+import { usePlannedHours, usePlanningActions, usePlanningCrews, usePlanningPublication, usePlanningTemplates } from '../../features/planning/usePlanning';
 import { useT } from '../../i18n/useI18n';
-import { formatDate } from '../../utils/formatting';
+import { formatDate, formatDateTime } from '../../utils/formatting';
+import { conflictText } from './conflictText';
 import { siteColor } from './planningUi';
 
 /** A message with, when there is one, how to take the action back. */
@@ -562,6 +564,101 @@ function AssignCrewDialog({ plan, crew, focusDay, onClose, onDone }: { plan: Pla
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+/* ---------------------------------------------------------------------------------------------------- publish */
+
+/**
+ * "Publish the day": everybody posted that day is told where they go. The schedule is live all the time; publishing is telling
+ * people. Before it, the day is checked: a person posted to two sites at once stops it, the rest is listed as warnings.
+ */
+export function PublishBar({ plan, date, decisions }: { plan: Plan; date: string; decisions: Decision[] }) {
+  const t = useT();
+  const actions = usePlanningActions();
+  const { data: last } = usePlanningPublication(date, true);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
+
+  const doubles = decisions.filter((d): d is Extract<Decision, { kind: 'conflict' }> => d.kind === 'conflict' && d.conflict.kind === 'double');
+  const shortPlaces = decisions.filter((d) => d.kind === 'short').length;
+  const otherConflicts = decisions.filter((d) => d.kind === 'conflict' && d.conflict.kind !== 'double').length;
+  const equipment = decisions.filter((d) => d.kind === 'equipment').length;
+
+  const publish = async () => {
+    setError(null);
+    try {
+      const result = await actions.publish.mutateAsync(date);
+      setNotice({ message: t('planner.pub.done', { count: result.people }) });
+      setOpen(false);
+    } catch (e) {
+      setError(toApiError(e).message);
+    }
+  };
+
+  return (
+    <>
+      <Paper variant="outlined" sx={{ borderRadius: 2.5, px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 220 }}>
+          {last ? t('planner.pub.status', { when: formatDateTime(last.publishedAt), count: last.people }) : t('planner.pub.never')}
+        </Typography>
+        <Button size="small" variant={last ? 'outlined' : 'contained'} color={last ? 'inherit' : 'primary'} onClick={() => { setError(null); setOpen(true); }} sx={{ textTransform: 'none' }}>
+          {last ? t('planner.pub.again') : t('planner.pub.button')}
+        </Button>
+      </Paper>
+
+      {open && (
+        <Dialog open onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>{t('planner.pub.title', { date: formatDate(date) })}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={1.5} sx={{ pt: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('planner.pub.intro')}
+              </Typography>
+              {error && <Alert severity="error">{error}</Alert>}
+
+              {doubles.length > 0 && (
+                <Alert severity="error">
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    {t('planner.pub.blocking')}
+                  </Typography>
+                  {doubles.map((d) => (
+                    <Typography key={d.key} variant="body2">
+                      {conflictText(plan, d.conflict, t)}
+                    </Typography>
+                  ))}
+                  <Typography variant="caption">{t('planner.pub.blockingNote')}</Typography>
+                </Alert>
+              )}
+
+              {(shortPlaces > 0 || otherConflicts > 0 || equipment > 0) && (
+                <Alert severity="warning">
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    {t('planner.pub.warnings')}
+                  </Typography>
+                  {shortPlaces > 0 && <Typography variant="body2">{t('planner.pub.w.short', { count: shortPlaces })}</Typography>}
+                  {otherConflicts > 0 && <Typography variant="body2">{t('planner.pub.w.conflict', { count: otherConflicts })}</Typography>}
+                  {equipment > 0 && <Typography variant="body2">{t('planner.pub.w.equipment', { count: equipment })}</Typography>}
+                </Alert>
+              )}
+
+              {doubles.length === 0 && shortPlaces + otherConflicts + equipment === 0 && <Alert severity="success">{t('planner.pub.clean')}</Alert>}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)} color="inherit">
+              {t('common.cancel')}
+            </Button>
+            <Button variant="contained" onClick={() => void publish()} disabled={doubles.length > 0 || actions.publish.isPending}>
+              {t('planner.pub.confirm')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      <NoticeBar notice={notice} onClose={() => setNotice(null)} />
+    </>
   );
 }
 

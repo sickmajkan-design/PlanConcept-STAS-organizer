@@ -4136,6 +4136,34 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.SchedulePublication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("People")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PublishedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("schedule_publications", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.ScheduleTemplate", b =>
                 {
                     b.Property<Guid>("Id")

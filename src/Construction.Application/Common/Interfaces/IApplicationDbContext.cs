@@ -159,6 +159,8 @@ public interface IApplicationDbContext
 
     DbSet<ScheduleTemplate> ScheduleTemplates { get; }
 
+    DbSet<SchedulePublication> SchedulePublications { get; }
+
     DbSet<ToolRentalRate> ToolRentalRates { get; }
 
     DbSet<ToolRentalOut> ToolRentalsOut { get; }

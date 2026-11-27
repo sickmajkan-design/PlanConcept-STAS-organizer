@@ -31,6 +31,17 @@ public class CrewMemberConfiguration : IEntityTypeConfiguration<CrewMember>
     }
 }
 
+public class SchedulePublicationConfiguration : IEntityTypeConfiguration<SchedulePublication>
+{
+    public void Configure(EntityTypeBuilder<SchedulePublication> builder)
+    {
+        builder.ToTable("schedule_publications");
+        builder.HasKey(p => p.Id);
+
+        builder.HasIndex(p => p.Date);
+    }
+}
+
 public class ScheduleTemplateConfiguration : IEntityTypeConfiguration<ScheduleTemplate>
 {
     public void Configure(EntityTypeBuilder<ScheduleTemplate> builder)

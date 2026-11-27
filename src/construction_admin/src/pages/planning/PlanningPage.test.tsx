@@ -438,6 +438,24 @@ describe('Planner tab', () => {
     await waitFor(() => expect(network.calls.filter((c) => c.url.includes('/planning/copy-week')).map((c) => (c.body as { dryRun?: boolean }).dryRun)).toEqual([true, undefined]));
   }, SCREEN_TIMEOUT);
 
+  it('publishes the day after the check, and says how many people were told', async () => {
+    network.reply('/planning', 200, plan());
+    network.reply('/planning/publications', 200, []);
+    network.reply('/planning/publish', 200, { date: today, publishedAt: '2026-10-14T08:00:00Z', people: 2 });
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    expect(await screen.findByText(/Not published yet/)).toBeDefined();
+    await userEvent.click(screen.getByRole('button', { name: 'Publish the schedule' }));
+
+    expect(await screen.findByText(/Publish the schedule for/)).toBeDefined();
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }));
+
+    expect(await screen.findByText('Published: people told 2.')).toBeDefined();
+    expect(network.calls.some((c) => c.url.includes('/planning/publish') && c.method === 'POST' && (c.body as { date?: string }).date === today)).toBe(true);
+  }, SCREEN_TIMEOUT);
+
   it('compares planned and reported hours per site', async () => {
     network.reply('/planning', 200, plan());
     network.reply('/planning/hours', 200, {

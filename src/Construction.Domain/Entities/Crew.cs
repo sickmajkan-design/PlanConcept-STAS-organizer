@@ -31,6 +31,20 @@ public class CrewMember : BaseEntity
 }
 
 /// <summary>
+/// A day of the schedule that a planner published: everybody posted that day was sent a notice of where they go. Kept so the
+/// Planner can say "published at 15:30" and how many people were told. Publishing again is allowed and adds a row.
+/// </summary>
+public class SchedulePublication : BaseEntity
+{
+    public DateOnly Date { get; set; }
+
+    public Guid? PublishedByUserId { get; set; }
+
+    /// <summary>How many people were sent a notice.</summary>
+    public int People { get; set; }
+}
+
+/// <summary>
 /// A week of the schedule saved to be put on another week ("Standardna sedmica Doboj"): who is on which site on which
 /// weekday. Rows are kept as one JSON text, since a template is only ever read and written whole.
 /// </summary>

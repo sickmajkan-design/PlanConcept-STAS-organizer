@@ -185,6 +185,52 @@ public class PlanningWeekToolsTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Publishing_a_day_tells_each_posted_worker_where_they_go_and_is_recorded()
+    {
+        var posted = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var onLeave = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var free = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope, "Hala Brod"));
+        var day = Today.AddDays(20);
+        var postedUser = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, posted.Id));
+        await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, onLeave.Id));
+        await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, free.Id));
+
+        await PostAsync(posted.Id, site.Id, day, day);
+        await PostAsync(onLeave.Id, site.Id, day, day);
+        await InScope(async scope =>
+        {
+            scope.Db.Absences.Add(new Absence { EmployeeId = onLeave.Id, Type = AbsenceType.AnnualLeave, Status = AbsenceStatus.Approved, StartDate = day, EndDate = day });
+            await scope.Db.SaveChangesAsync();
+            return 0;
+        });
+
+        var result = await InScopeAs(UserRole.Admin, scope => scope.Send(new PublishScheduleDayCommand { Date = day }));
+        Assert.True(result.People >= 1);
+
+        var notices = await InScope(scope => scope.Db.Notifications.AsNoTracking().Where(n => n.UserId == postedUser.Id && n.Title.StartsWith("Your schedule for")).ToListAsync());
+        var notice = Assert.Single(notices);
+        Assert.Contains("Hala Brod", notice.Body);
+        Assert.Contains("\"published\"", notice.DataJson);
+
+        // The one on leave and the one posted nowhere hear nothing.
+        Assert.Empty(await InScope(scope => scope.Db.Notifications.AsNoTracking().Where(n => n.UserId != postedUser.Id && n.Title.StartsWith("Your schedule for") && (n.Body.Contains("Hala Brod") && n.Body.Contains(day.ToString("dd.MM.yyyy")))).Join(scope.Db.Users, n => n.UserId, u => u.Id, (n, u) => u).Where(u => u.EmployeeId == onLeave.Id || u.EmployeeId == free.Id).ToListAsync()));
+
+        var listed = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetSchedulePublicationsQuery { From = day, To = day }));
+        Assert.Equal(result.People, Assert.Single(listed).People);
+    }
+
+    [Fact]
+    public async Task A_day_that_has_passed_cannot_be_published_and_a_foreman_without_the_right_may_not()
+    {
+        await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() =>
+            InScopeAs(UserRole.Admin, scope => scope.Send(new PublishScheduleDayCommand { Date = Today.AddDays(-1) })));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            InScopeAs(UserRole.Foreman, scope => scope.Send(new PublishScheduleDayCommand { Date = Today.AddDays(1) })));
+    }
+
+    [Fact]
     public async Task Everybody_who_has_not_confirmed_is_reminded_once()
     {
         var worker = await InScope(scope => TestData.SeedEmployeeAsync(scope));

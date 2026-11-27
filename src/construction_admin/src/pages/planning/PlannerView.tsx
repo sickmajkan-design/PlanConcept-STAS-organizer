@@ -29,7 +29,7 @@ import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { durationText } from './attendanceUi';
 import { conflictText } from './conflictText';
-import { CrewsSection, HoursSection, WeekTools } from './PlannerTools';
+import { CrewsSection, HoursSection, PublishBar, WeekTools } from './PlannerTools';
 import { shortDate, siteColor, WEEKDAYS } from './planningUi';
 import type { PlanningHandlers } from './planningTypes';
 
@@ -154,6 +154,8 @@ function TodaySection({ plan, day, readOnly, attendance, openWorker, openSite, o
         <Kpi label={t('planner.kpi.short')} value={String(counts.short)} tone={counts.short ? 'error' : 'success'} />
         {upcoming ? <Kpi label={t('planner.kpi.unconfirmed')} value={String(counts.unconfirmed)} tone={counts.unconfirmed ? 'warning' : 'neutral'} /> : <Kpi label={t('planner.kpi.away')} value={String(counts.away)} />}
       </Box>
+
+      {canRemind && <PublishBar plan={plan} date={date} decisions={decisions} />}
 
       <Box sx={{ display: 'grid', gap: 2, alignItems: 'start', gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 5fr) minmax(0, 7fr)' } }}>
         <Paper variant="outlined" component="section" aria-label={t('planner.decide.title')} sx={paperSx}>

@@ -156,6 +156,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<ScheduleTemplate> ScheduleTemplates => Set<ScheduleTemplate>();
 
+    public DbSet<SchedulePublication> SchedulePublications => Set<SchedulePublication>();
+
     public DbSet<ToolRentalRate> ToolRentalRates => Set<ToolRentalRate>();
 
     public DbSet<ToolRentalOut> ToolRentalsOut => Set<ToolRentalOut>();
