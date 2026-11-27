@@ -902,6 +902,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String notificationScheduleTitle(String date) {
+    return 'Schedule for $date';
+  }
+
+  @override
+  String notificationScheduleBody(String date, String projectName) {
+    return 'On $date you are posted to \"$projectName\".';
+  }
+
+  @override
+  String get notificationScheduleReminderTitle =>
+      'Please confirm your schedule';
+
+  @override
+  String notificationScheduleReminderBody(String date, String projectName) {
+    return 'Your schedule for $date is waiting for you to confirm it: \"$projectName\".';
+  }
+
+  @override
+  String notificationScheduleAddress(String address) {
+    return ' At $address.';
+  }
+
+  @override
+  String notificationScheduleShift(String shiftStartTime) {
+    return ' Shift starts at $shiftStartTime.';
+  }
+
+  @override
   String get notificationEmployeeAssignedTitle =>
       'Employee assigned to your project';
 

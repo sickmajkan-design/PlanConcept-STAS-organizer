@@ -469,6 +469,53 @@
       }
     }
   },
+  "notificationScheduleTitle": "Schedule for {date}",
+  "@notificationScheduleTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationScheduleBody": "On {date} you are posted to \"{projectName}\".",
+  "@notificationScheduleBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "projectName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationScheduleReminderTitle": "Please confirm your schedule",
+  "notificationScheduleReminderBody": "Your schedule for {date} is waiting for you to confirm it: \"{projectName}\".",
+  "@notificationScheduleReminderBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "projectName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationScheduleAddress": " At {address}.",
+  "@notificationScheduleAddress": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationScheduleShift": " Shift starts at {shiftStartTime}.",
+  "@notificationScheduleShift": {
+    "placeholders": {
+      "shiftStartTime": {
+        "type": "String"
+      }
+    }
+  },
   "notificationEmployeeAssignedTitle": "Employee assigned to your project",
   "notificationEmployeeAssignedBody": "{employeeName} has been assigned to project \"{projectName}\".",
   "@notificationEmployeeAssignedBody": {

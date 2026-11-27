@@ -1737,6 +1737,42 @@ abstract class AppLocalizations {
     String shiftStartTime,
   );
 
+  /// No description provided for @notificationScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule for {date}'**
+  String notificationScheduleTitle(String date);
+
+  /// No description provided for @notificationScheduleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On {date} you are posted to \"{projectName}\".'**
+  String notificationScheduleBody(String date, String projectName);
+
+  /// No description provided for @notificationScheduleReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your schedule'**
+  String get notificationScheduleReminderTitle;
+
+  /// No description provided for @notificationScheduleReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your schedule for {date} is waiting for you to confirm it: \"{projectName}\".'**
+  String notificationScheduleReminderBody(String date, String projectName);
+
+  /// No description provided for @notificationScheduleAddress.
+  ///
+  /// In en, this message translates to:
+  /// **' At {address}.'**
+  String notificationScheduleAddress(String address);
+
+  /// No description provided for @notificationScheduleShift.
+  ///
+  /// In en, this message translates to:
+  /// **' Shift starts at {shiftStartTime}.'**
+  String notificationScheduleShift(String shiftStartTime);
+
   /// No description provided for @notificationEmployeeAssignedTitle.
   ///
   /// In en, this message translates to:

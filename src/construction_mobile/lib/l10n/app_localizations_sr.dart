@@ -898,6 +898,34 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String notificationScheduleTitle(String date) {
+    return 'Raspored za $date';
+  }
+
+  @override
+  String notificationScheduleBody(String date, String projectName) {
+    return 'Za $date ste raspoređeni na gradilište \"$projectName\".';
+  }
+
+  @override
+  String get notificationScheduleReminderTitle => 'Potvrdite raspored';
+
+  @override
+  String notificationScheduleReminderBody(String date, String projectName) {
+    return 'Raspored za $date čeka vašu potvrdu: gradilište \"$projectName\".';
+  }
+
+  @override
+  String notificationScheduleAddress(String address) {
+    return ' Na adresi $address.';
+  }
+
+  @override
+  String notificationScheduleShift(String shiftStartTime) {
+    return ' Smjena počinje u $shiftStartTime.';
+  }
+
+  @override
   String get notificationEmployeeAssignedTitle =>
       'Radnik dodijeljen na vaše gradilište';
 

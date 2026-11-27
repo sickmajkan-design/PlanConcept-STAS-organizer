@@ -50,6 +50,26 @@ LocalizedNotificationText resolveNotificationText(
         final address = str('projectAddress');
         final shiftStartTime = str('projectShiftStartTime');
 
+        // A planner published a day, or reminded somebody to confirm it: the same facts as a new posting, but the
+        // sentence is about that day, not about a new project.
+        final published = str('published') != null;
+        final reminder = str('reminder') != null;
+        final isoDay = str('date');
+        final day = isoDay == null ? null : _isoDate(isoDay);
+
+        if ((published || reminder) && day != null) {
+          final head = reminder
+              ? l10n.notificationScheduleReminderBody(day, projectName)
+              : l10n.notificationScheduleBody(day, projectName);
+          final where = address == null ? '' : l10n.notificationScheduleAddress(address);
+          final shift = shiftStartTime == null ? '' : l10n.notificationScheduleShift(shiftStartTime);
+
+          return LocalizedNotificationText(
+            title: reminder ? l10n.notificationScheduleReminderTitle : l10n.notificationScheduleTitle(day),
+            body: '$head$where$shift',
+          );
+        }
+
         final String body;
         if (address == null) {
           body = l10n.notificationProjectAssignedBody(projectName);
