@@ -153,6 +153,12 @@ public interface IApplicationDbContext
 
     DbSet<PlannedEquipmentChange> PlannedEquipmentChanges { get; }
 
+    DbSet<Crew> Crews { get; }
+
+    DbSet<CrewMember> CrewMembers { get; }
+
+    DbSet<ScheduleTemplate> ScheduleTemplates { get; }
+
     DbSet<ToolRentalRate> ToolRentalRates { get; }
 
     DbSet<ToolRentalOut> ToolRentalsOut { get; }

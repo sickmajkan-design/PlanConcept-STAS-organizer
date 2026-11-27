@@ -402,6 +402,74 @@ describe('Planner tab', () => {
     expect(screen.getByText('What if we take a new project?')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
+  it('lists the crews with where their members are, and offers to put one on a site', async () => {
+    network.reply('/planning', 200, plan());
+    network.reply('/planning/crews', 200, [{ id: 'c1', name: 'Ekipa A', leaderEmployeeId: 'e1', members: [{ employeeId: 'e1', fullName: 'Ana Novak', position: 'Zidar' }, { employeeId: 'e3', fullName: 'Ivo Babić', position: 'Zidar' }] }]);
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Crews' }));
+
+    expect(await screen.findByText('Ekipa A')).toBeDefined();
+    expect(screen.getByText('Leader: Ana Novak')).toBeDefined();
+    // Ana is on the hall, Ivo is free.
+    expect(screen.getByText(/Aldi Hall \(1\), free \(1\)/)).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Put on a site' })).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('shows what copying a week would do and writes it only when confirmed', async () => {
+    network.reply('/planning', 200, plan());
+    network.reply('/planning/copy-week', 200, { days: 5, people: 2, skippedOnLeave: 1, skippedTaken: 0, skippedSite: 0, ranges: [] });
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Week' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Copy another week' }));
+
+    expect(await screen.findByText('Days to fill: 5, people: 2.')).toBeDefined();
+    expect(screen.getByText('Left out because of approved leave: 1.')).toBeDefined();
+    // The preview is a dry run: nothing is written yet.
+    expect(network.calls.filter((c) => c.url.includes('/planning/copy-week')).map((c) => (c.body as { dryRun?: boolean }).dryRun)).toEqual([true]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fill the week' }));
+
+    await waitFor(() => expect(network.calls.filter((c) => c.url.includes('/planning/copy-week')).map((c) => (c.body as { dryRun?: boolean }).dryRun)).toEqual([true, undefined]));
+  }, SCREEN_TIMEOUT);
+
+  it('compares planned and reported hours per site', async () => {
+    network.reply('/planning', 200, plan());
+    network.reply('/planning/hours', 200, {
+      from: '2026-10-12',
+      to: '2026-10-18',
+      hoursPerDay: 8,
+      projects: [{ projectId: HALL, name: 'Aldi Hall', plannedDays: 10, plannedHours: 80, plannedHoursSoFar: 24, reportedHours: 40 }],
+    });
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Hours' }));
+
+    expect(await screen.findByText('Aldi Hall: 16 h over the plan. Look at the hours, or raise the need of the site.')).toBeDefined();
+    // The site row and the total row.
+    expect(screen.getAllByText('+16 h')).toHaveLength(2);
+  }, SCREEN_TIMEOUT);
+
+  it('reminds the people who have not confirmed, from the decision list', async () => {
+    network.reply('/planning', 200, plan());
+    network.reply('/planning/remind', 200, 3);
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: /Planner/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Remind' }));
+
+    expect(await screen.findByText('3 people were reminded to confirm their schedule.')).toBeDefined();
+    expect(network.calls.some((c) => c.url.includes('/planning/remind') && c.method === 'POST')).toBe(true);
+  }, SCREEN_TIMEOUT);
+
   it('opens on the tab the person chose to start on', async () => {
     window.localStorage.setItem(`planning.startView.${signedIn().id}`, 'planner');
     network.reply('/planning', 200, plan());

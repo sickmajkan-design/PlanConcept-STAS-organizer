@@ -150,6 +150,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<PlannedEquipmentChange> PlannedEquipmentChanges => Set<PlannedEquipmentChange>();
 
+    public DbSet<Crew> Crews => Set<Crew>();
+
+    public DbSet<CrewMember> CrewMembers => Set<CrewMember>();
+
+    public DbSet<ScheduleTemplate> ScheduleTemplates => Set<ScheduleTemplate>();
+
     public DbSet<ToolRentalRate> ToolRentalRates => Set<ToolRentalRate>();
 
     public DbSet<ToolRentalOut> ToolRentalsOut => Set<ToolRentalOut>();

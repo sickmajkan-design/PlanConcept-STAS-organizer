@@ -37,6 +37,7 @@ public class SiteScopeCoverageTests
         ["CreateWeeklySiteReportCommand"] = "the handler refuses a site the author is not posted to",
         ["SetEmployeeScheduleCommand"] = "planning is company-wide for whoever holds the planner grant; decision pending, see open questions",
         ["SetProjectStaffingNeedsCommand"] = "planning is company-wide for whoever holds the planner grant; decision pending, see open questions",
+        ["AssignCrewCommand"] = "moves each member through SetEmployeeScheduleCommand, so the same planning rule; crews are kept only by planners not limited to a unit",
     };
 
     private static IEnumerable<Type> CommandsNamingAProject() =>

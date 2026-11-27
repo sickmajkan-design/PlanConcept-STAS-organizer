@@ -22,12 +22,16 @@ Prva kartica Rasporeda (Voditelj i iznad). Ne mijenja ništa u ostalim karticama
 | Dio | Šta pokazuje |
 |---|---|
 | **Danas** | Četiri brojke (na poslu i kasne ili raspoređeno i slobodni, nepokriveno, čeka potvrdu ili odsutni), lista **Treba odluku** i gradilišta s ljudima. Stavke: nepokriveno mjesto (uz imena odsutnih), ko kasni ili nije na gradilištu (samo danas), sukobi iz Provjere, oprema i nepotvrđeno (vode na tablu Gradilišta s istaknutom stavkom) i odsustva koja počinju u narednih 7 dana. Dugme otvara dijalog koji Raspored već ima, pa se sve što se mijenja može poništiti kao i inače |
-| **Sedmica** | Ljudi naspram potreba po gradilištu i danu (ponedjeljak do petak), te redovi Slobodni i Odsutni. Klik na dan otvara taj dan u Danas |
+| **Sedmica** | Ljudi naspram potreba po gradilištu i danu (ponedjeljak do petak), te redovi Slobodni i Odsutni. Klik na dan otvara taj dan u Danas. Dugmad: **Kopiraj drugu sedmicu** (prepisuje raspored druge sedmice na prikazanu) i **Šabloni** (sačuvaj prikazanu sedmicu pod imenom, stavi šablon na prikazanu sedmicu, obriši). Prije upisa dijalog kaže koliko će dana biti upisano i koliko je preskočeno (već zauzeto, odsustvo, gradilište završeno ili još nije počelo). Upisuju se samo slobodni dani, vikendi nisu dio sedmice, a upis se odmah može poništiti |
+| **Ekipe** | Imenovane grupe radnika (voditelj ekipe nije obavezan). **Stavi na gradilište** rasporedi sve članove za izabrane dane (opcija *samo kad su slobodni*), uz poništavanje. Radnik je u najviše jednoj ekipi; vozila i alat idu uz radnika kao pri svakom premještanju. Vide ih samo voditelji projekata i iznad |
+| **Sati** | Planirani sati svakog gradilišta (radni dani u kojima je osoba raspoređena, bez odsustva i praznika, po 8 sati, do danas) naspram prijavljenih (završeni zapisi koji nisu odbijeni), za sedmicu ili mjesec. Gradilište preko plana za više od 10% je crveno, ispod za više od 20% žuto |
 | **Kapacitet** | Potrebe projekata naspram ljudi koji nisu na odsustvu, 8 sedmica unaprijed, kao prosjek radnog dana. Do 85% zeleno, do 100% žuto, preko 100% crveno. Ispod je računica **Šta ako dobijemo novi projekat** (vještina, broj ljudi, od kada, koliko sedmica); ništa se ne snima |
 
-**Kako je rađeno:** sve se računa na klijentu iz istog plana koji učitava Raspored (`features/planning/planner.ts`), bez novih zahtjeva prema serveru, pa se brojke uvijek slažu s ostalim karticama. Za Kapacitet se prozor plana proširi na 8 sedmica od ponedjeljka prikazane sedmice. Testovi: `planner.test.ts`, `PlanningPage.test.tsx` (Planner tab).
+**Podsjeti:** uz stavku *Čeka potvrdu* na listi *Treba odluku* dugme šalje obavijest radnicima koji nisu potvrdili raspoređivanje za prikazani dan (jedna obavijest po radniku, bez onih na odobrenom odsustvu).
 
-**Ograničenja:** kapacitet računa samo potrebe po vještini koje su unesene u kartici Potreba i broji svakog radnika s tom vještinom (jedna vještina po osobi). Ne uključuje godišnje planove ni zapošljavanje. Ekipe, kopiranje sedmice, šabloni, objava s potvrdom radnika i poređenje planiranih i prijavljenih sati nisu u ovoj verziji.
+**Kako je rađeno:** Danas, Sedmica i Kapacitet se računaju na klijentu iz istog plana koji učitava Raspored (`features/planning/planner.ts`), pa se brojke uvijek slažu s ostalim karticama. Za Kapacitet se prozor plana proširi na 8 sedmica od ponedjeljka prikazane sedmice. Kopiranje sedmice, šabloni i ekipe pišu kroz isti `SetEmployeeScheduleCommand` kao pojedinačno premještanje (istorija, obavijesti i oprema su isti), a tabele su `crews`, `crew_members` i `schedule_templates`. Testovi: `planner.test.ts`, `PlanningPage.test.tsx` (Planner tab), `PlanningWeekToolsTests` (integracijski).
+
+**Ograničenja:** kapacitet računa samo potrebe po vještini koje su unesene u kartici Potreba i broji svakog radnika s tom vještinom (jedna vještina po osobi). Ne uključuje godišnje planove ni zapošljavanje. Šablon pamti ljude i gradilišta, ne ekipe: ko je u međuvremenu na odsustvu, otišao ili je zauzet, preskače se. Raspored se i dalje upisuje odmah; nema stanja „nacrt“ koje se posebno objavljuje, a radnik raspoređivanje potvrđuje kao i prije (to prikazuje *Čeka potvrdu*).
 
 ## 2. Razdoblje
 
@@ -184,6 +188,11 @@ Pretraga: **Ctrl+K**, „raspored“ otvara ovu stranicu, a uputstvo „Raspored
 | `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}], requiredCertificates?: string[]}`: zamjenjuje potrebu projekta; bez `requiredCertificates` ostavlja tražena uvjerenja kakva jesu |
 | `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
 | `GET /api/v1/planning/labour-cost?from&to&hoursPerDay&branchId` | Samo uz pravo da se vide plate | Planirani trošak rada po gradilištu i mjesecu, uz evidentirani |
+| `GET /api/v1/planning/hours?from&to&branchId` | Predradnik+ | Planirani sati po gradilištu naspram prijavljenih (bez plata), najviše 100 dana |
+| `POST /api/v1/planning/copy-week` | Pravo planiranja | `{ fromWeek, toWeek, dryRun }`: prepisuje raspored sedmice na drugu, samo slobodne dane; vraća broj dana, ljudi, preskočeno i raspone (da se mogu poništiti) |
+| `GET, POST /api/v1/planning/templates`, `POST .../templates/apply`, `DELETE .../templates/{id}` | Voditelj projekta+ | Šabloni sedmice: lista, čuvanje sedmice, stavljanje na sedmicu (`dryRun`), brisanje |
+| `GET, POST /api/v1/planning/crews`, `DELETE .../crews/{id}`, `POST .../crews/assign` | Voditelj projekta+ | Ekipe: lista, napravi ili izmijeni (naziv, voditelj, članovi), obriši, stavi na gradilište za razdoblje |
+| `POST /api/v1/planning/remind` | Pravo planiranja | `{ date }`: podsjeća radnike koji nisu potvrdili raspoređivanje na dan |
 | `GET /api/v1/exports/schedule?from&to&language&branchId` | Predradnik+ | Excel: raspored po radniku i po gradilištu, najviše 62 dana |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |
 | `GET /api/v1/attention` | svi zaposleni | Šta čeka pozivaoca, ograničeno na ono što uloga može riješiti |

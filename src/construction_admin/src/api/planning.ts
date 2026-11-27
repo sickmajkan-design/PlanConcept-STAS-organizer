@@ -222,7 +222,98 @@ export interface PlanningEquipmentOn {
   planned: PlannedEquipmentChange[];
 }
 
+/** A stretch of days one person was put on one site. */
+export interface WeekRange {
+  employeeId: string;
+  projectId: string;
+  from: string;
+  to: string;
+}
+
+/** What putting a week on another week did, or in a preview would do. */
+export interface WeekApplyResult {
+  days: number;
+  people: number;
+  skippedOnLeave: number;
+  skippedTaken: number;
+  skippedSite: number;
+  /** The days written. All of them were free before, so freeing them takes the copy back. */
+  ranges: WeekRange[];
+}
+
+export interface ScheduleTemplate {
+  id: string;
+  name: string;
+  people: number;
+  days: number;
+  createdAt: string;
+}
+
+export interface CrewMember {
+  employeeId: string;
+  fullName: string;
+  position: string;
+}
+
+export interface Crew {
+  id: string;
+  name: string;
+  leaderEmployeeId: string | null;
+  members: CrewMember[];
+}
+
+export interface SaveCrewInput {
+  id?: string;
+  name: string;
+  leaderEmployeeId: string | null;
+  employeeIds: string[];
+}
+
+export interface PlannedHoursProject {
+  projectId: string;
+  name: string;
+  plannedDays: number;
+  plannedHours: number;
+  reportedHours: number;
+  plannedHoursSoFar: number;
+}
+
+export interface PlannedHours {
+  from: string;
+  to: string;
+  hoursPerDay: number;
+  projects: PlannedHoursProject[];
+}
+
 export const planningApi = {
+  hours: (query: { from: string; to: string; branchId?: string }) =>
+    request<PlannedHours>({ method: 'GET', url: '/api/v1/planning/hours', params: { from: query.from, to: query.to, branchId: query.branchId } }),
+
+  copyWeek: (input: { fromWeek: string; toWeek: string; dryRun?: boolean }) =>
+    request<WeekApplyResult>({ method: 'POST', url: '/api/v1/planning/copy-week', data: input }),
+
+  templates: () => request<ScheduleTemplate[]>({ method: 'GET', url: '/api/v1/planning/templates' }),
+
+  saveTemplate: (input: { name: string; week: string }) => request<string>({ method: 'POST', url: '/api/v1/planning/templates', data: input }),
+
+  applyTemplate: (input: { templateId: string; week: string; dryRun?: boolean }) =>
+    request<WeekApplyResult>({ method: 'POST', url: '/api/v1/planning/templates/apply', data: input }),
+
+  deleteTemplate: (id: string) => request<void>({ method: 'DELETE', url: `/api/v1/planning/templates/${id}` }),
+
+  crews: () => request<Crew[]>({ method: 'GET', url: '/api/v1/planning/crews' }),
+
+  saveCrew: (input: SaveCrewInput) => request<string>({ method: 'POST', url: '/api/v1/planning/crews', data: input }),
+
+  deleteCrew: (id: string) => request<void>({ method: 'DELETE', url: `/api/v1/planning/crews/${id}` }),
+
+  /** Returns how many members were moved. */
+  assignCrew: (input: { crewId: string; projectId: string | null; from: string; to: string; onlyFreeDays?: boolean }) =>
+    request<number>({ method: 'POST', url: '/api/v1/planning/crews/assign', data: input }),
+
+  /** Returns how many people were reminded. */
+  remind: (date: string) => request<number>({ method: 'POST', url: '/api/v1/planning/remind', data: { date } }),
+
   history: (query: { employeeId?: string; projectId?: string; take?: number } = {}) =>
     request<PlanningHistoryEntry[]>({ method: 'GET', url: '/api/v1/planning/history', params: query }),
 

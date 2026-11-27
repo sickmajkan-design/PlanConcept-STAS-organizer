@@ -1,6 +1,6 @@
 import { CheckCircleOutlineOutlined } from '@mui/icons-material';
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material';
-import { Box, Button, ButtonBase, Chip, LinearProgress, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, ButtonBase, Chip, LinearProgress, MenuItem, Paper, Snackbar, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo, useState } from 'react';
 
@@ -23,14 +23,17 @@ import {
   type SiteLine,
 } from '../../features/planning/planner';
 import { addDays, mondayOf, type AwayItem, type Plan, type PlanPerson } from '../../features/planning/planningLogic';
+import { toApiError } from '../../api/apiError';
+import { usePlanningActions } from '../../features/planning/usePlanning';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { durationText } from './attendanceUi';
 import { conflictText } from './conflictText';
+import { CrewsSection, HoursSection, WeekTools } from './PlannerTools';
 import { shortDate, siteColor, WEEKDAYS } from './planningUi';
 import type { PlanningHandlers } from './planningTypes';
 
-type Section = 'today' | 'week' | 'capacity';
+type Section = 'today' | 'week' | 'crews' | 'capacity' | 'hours';
 type Tone = 'error' | 'warning' | 'success' | 'info' | 'neutral';
 
 export interface PlannerViewProps extends Pick<PlanningHandlers, 'openWorker' | 'openSite'> {
@@ -73,12 +76,16 @@ export function PlannerView(props: PlannerViewProps) {
       >
         <ToggleButton value="today">{t('planner.section.today')}</ToggleButton>
         <ToggleButton value="week">{t('planner.section.week')}</ToggleButton>
+        {!props.plan.isScoped && <ToggleButton value="crews">{t('planner.section.crews')}</ToggleButton>}
         <ToggleButton value="capacity">{t('planner.section.capacity')}</ToggleButton>
+        <ToggleButton value="hours">{t('planner.section.hours')}</ToggleButton>
       </ToggleButtonGroup>
 
       {section === 'today' && <TodaySection {...props} />}
       {section === 'week' && <WeekSection {...props} open={(date) => { props.setFocusDay(date); setSection('today'); }} />}
+      {section === 'crews' && !props.plan.isScoped && <CrewsSection plan={props.plan} day={props.day} focusDay={props.focusDay} />}
       {section === 'capacity' && <CapacitySection plan={props.plan} focusDay={props.focusDay} />}
+      {section === 'hours' && <HoursSection focusDay={props.focusDay} />}
     </Stack>
   );
 }
@@ -110,6 +117,14 @@ function TodaySection({ plan, day, readOnly, attendance, openWorker, openSite, o
   const decisions = useMemo(() => decisionsFor(plan, day, attendance), [plan, day, attendance]);
   const lines = useMemo(() => siteLines(plan, day), [plan, day]);
   const [allDecisions, setAllDecisions] = useState(false);
+  const { remind: remindMutation } = usePlanningActions();
+  const [reminded, setReminded] = useState<{ ok: boolean; text: string } | null>(null);
+  const canRemind = !readOnly && date >= plan.today;
+  const remind = () =>
+    remindMutation.mutate(date, {
+      onSuccess: (count) => setReminded({ ok: true, text: t('planner.remind.done', { count }) }),
+      onError: (e) => setReminded({ ok: false, text: toApiError(e).message }),
+    });
 
   if (!plan.isWork[day]) {
     return (
@@ -157,7 +172,7 @@ function TodaySection({ plan, day, readOnly, attendance, openWorker, openSite, o
           )}
 
           {(allDecisions ? urgent : urgent.slice(0, DECISIONS_SHOWN)).map((d, i) => (
-            <DecisionRow key={d.key} first={i === 0} decision={d} date={date} readOnly={readOnly} plan={plan} openWorker={openWorker} openSite={openSite} onFind={onFind} onPickAlert={onPickAlert} />
+            <DecisionRow key={d.key} first={i === 0} decision={d} date={date} readOnly={readOnly} plan={plan} openWorker={openWorker} openSite={openSite} onFind={onFind} onPickAlert={onPickAlert} onRemind={canRemind ? remind : undefined} />
           ))}
           {!allDecisions && urgent.length > DECISIONS_SHOWN && (
             <Button size="small" variant="outlined" color="inherit" onClick={() => setAllDecisions(true)} sx={{ mt: 1, textTransform: 'none' }}>
@@ -171,7 +186,7 @@ function TodaySection({ plan, day, readOnly, attendance, openWorker, openSite, o
                 {t('planner.decide.soon', { days: SOON_DAYS })}
               </Typography>
               {soon.map((d, i) => (
-                <DecisionRow key={d.key} first={i === 0} decision={d} date={date} readOnly={readOnly} plan={plan} openWorker={openWorker} openSite={openSite} onFind={onFind} onPickAlert={onPickAlert} />
+                <DecisionRow key={d.key} first={i === 0} decision={d} date={date} readOnly={readOnly} plan={plan} openWorker={openWorker} openSite={openSite} onFind={onFind} onPickAlert={onPickAlert} onRemind={canRemind ? remind : undefined} />
               ))}
             </>
           )}
@@ -179,6 +194,12 @@ function TodaySection({ plan, day, readOnly, attendance, openWorker, openSite, o
 
         <SitesPanel key={date} lines={lines} date={date} attendance={attendance} readOnly={readOnly} openWorker={openWorker} openSite={openSite} />
       </Box>
+
+      <Snackbar open={!!reminded} autoHideDuration={7000} onClose={() => setReminded(null)}>
+        <Alert severity={reminded?.ok ? 'success' : 'error'} onClose={() => setReminded(null)}>
+          {reminded?.text}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }
@@ -193,13 +214,15 @@ function DecisionRow({
   openSite,
   onFind,
   onPickAlert,
-}: Pick<PlannerViewProps, 'plan' | 'readOnly' | 'openWorker' | 'openSite' | 'onFind' | 'onPickAlert'> & { decision: Decision; first: boolean; date: string }) {
+  onRemind,
+}: Pick<PlannerViewProps, 'plan' | 'readOnly' | 'openWorker' | 'openSite' | 'onFind' | 'onPickAlert'> & { decision: Decision; first: boolean; date: string; onRemind?: () => void }) {
   const t = useT();
 
   let tone: Tone = 'warning';
   let title = '';
   let sub: string | undefined;
   let action: { label: string; run: () => void; primary?: boolean } | undefined;
+  let secondary: { label: string; run: () => void } | undefined;
 
   switch (decision.kind) {
     case 'short':
@@ -230,6 +253,7 @@ function DecisionRow({
     case 'unconfirmed':
       title = `${t('planning.attn.unconfirmed')}: ${decision.count}`;
       action = { label: t('planner.act.look'), run: () => onPickAlert('unconfirmed') };
+      secondary = onRemind ? { label: t('planner.act.remind'), run: onRemind } : undefined;
       break;
     case 'soon':
       tone = 'info';
@@ -255,11 +279,18 @@ function DecisionRow({
           </Typography>
         )}
       </Box>
-      {canPress && action && (
-        <Button size="small" variant={action.primary ? 'contained' : 'outlined'} color={action.primary ? 'primary' : 'inherit'} onClick={action.run} sx={{ flexShrink: 0, textTransform: 'none', '&:active': { transform: 'scale(0.97)' } }}>
-          {action.label}
-        </Button>
-      )}
+      <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {secondary && (
+          <Button size="small" variant="outlined" color="inherit" onClick={secondary.run} sx={{ textTransform: 'none', '&:active': { transform: 'scale(0.97)' } }}>
+            {secondary.label}
+          </Button>
+        )}
+        {canPress && action && (
+          <Button size="small" variant={action.primary ? 'contained' : 'outlined'} color={action.primary ? 'primary' : 'inherit'} onClick={action.run} sx={{ textTransform: 'none', '&:active': { transform: 'scale(0.97)' } }}>
+            {action.label}
+          </Button>
+        )}
+      </Stack>
     </Stack>
   );
 }
@@ -444,7 +475,7 @@ function cellTone(need: number, people: number, short: number): Tone {
   return short > 0 ? (people === 0 ? 'error' : 'warning') : 'success';
 }
 
-function WeekSection({ plan, focusDay, setFocusDay, open }: PlannerViewProps & { open: (date: string) => void }) {
+function WeekSection({ plan, focusDay, setFocusDay, readOnly, open }: PlannerViewProps & { open: (date: string) => void }) {
   const t = useT();
   const monday = mondayOf(focusDay);
   const matrix = useMemo(() => weekMatrix(plan, monday), [plan, monday]);
@@ -467,6 +498,7 @@ function WeekSection({ plan, focusDay, setFocusDay, open }: PlannerViewProps & {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
         {t('planner.week.hint')}
       </Typography>
+      {!readOnly && <WeekTools monday={monday} canTemplates={!plan.isScoped} />}
 
       {matrix.rows.length === 0 ? (
         <Typography variant="body2" color="text.secondary">

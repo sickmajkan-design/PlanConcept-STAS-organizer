@@ -6,6 +6,7 @@ import {
   type AssignInput,
   type EquipmentChoiceInput,
   type PlanningNeed,
+  type SaveCrewInput,
   type SwapInput,
 } from '../../api/planning';
 import { useBranchFilter } from '../branches/BranchContext';
@@ -65,6 +66,29 @@ export function usePlanningAttendance(enabled: boolean) {
   });
 }
 
+/** The crews (named groups moved together). Asked for only where the Planner shows them. */
+export function usePlanningCrews(enabled: boolean) {
+  return useQuery({ queryKey: [...planningKeys.all, 'crews'], queryFn: () => planningApi.crews(), enabled, staleTime: 30_000 });
+}
+
+/** The saved week templates. */
+export function usePlanningTemplates(enabled: boolean) {
+  return useQuery({ queryKey: [...planningKeys.all, 'templates'], queryFn: () => planningApi.templates(), enabled, staleTime: 30_000 });
+}
+
+/** Planned against reported hours per site for a period. */
+export function usePlannedHours(from: string, to: string, enabled: boolean) {
+  const { branchId } = useBranchFilter();
+
+  return useQuery({
+    queryKey: [...planningKeys.all, 'hours', branchId ?? null, from, to],
+    queryFn: () => planningApi.hours({ from, to, branchId }),
+    enabled,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  });
+}
+
 /**
  * The actions behind the screen. A posting also moves the person's tools and vehicles to their new
  * site, and shows on the employee and project pages, so those caches are refreshed along with the plan.
@@ -88,5 +112,14 @@ export function usePlanningActions() {
     onSuccess: refresh,
   });
 
-  return { assign, swap, setNeeds, decideEquipment, cancelPlanned };
+  const copyWeek = useMutation({ mutationFn: (input: { fromWeek: string; toWeek: string; dryRun?: boolean }) => planningApi.copyWeek(input), onSuccess: (_, input) => { if (!input.dryRun) refresh(); } });
+  const saveTemplate = useMutation({ mutationFn: (input: { name: string; week: string }) => planningApi.saveTemplate(input), onSuccess: refresh });
+  const applyTemplate = useMutation({ mutationFn: (input: { templateId: string; week: string; dryRun?: boolean }) => planningApi.applyTemplate(input), onSuccess: (_, input) => { if (!input.dryRun) refresh(); } });
+  const deleteTemplate = useMutation({ mutationFn: (id: string) => planningApi.deleteTemplate(id), onSuccess: refresh });
+  const saveCrew = useMutation({ mutationFn: (input: SaveCrewInput) => planningApi.saveCrew(input), onSuccess: refresh });
+  const deleteCrew = useMutation({ mutationFn: (id: string) => planningApi.deleteCrew(id), onSuccess: refresh });
+  const assignCrew = useMutation({ mutationFn: (input: { crewId: string; projectId: string | null; from: string; to: string; onlyFreeDays?: boolean }) => planningApi.assignCrew(input), onSuccess: refresh });
+  const remind = useMutation({ mutationFn: (date: string) => planningApi.remind(date) });
+
+  return { assign, swap, setNeeds, decideEquipment, cancelPlanned, copyWeek, saveTemplate, applyTemplate, deleteTemplate, saveCrew, deleteCrew, assignCrew, remind };
 }

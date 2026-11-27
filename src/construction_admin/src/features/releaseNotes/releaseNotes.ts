@@ -52,7 +52,7 @@ export const releaseSections: ReleaseSection[] = [
   {
     id: 'planner1127',
     titleKey: 'releaseNotes.planner1127.title',
-    itemKeys: ['releaseNotes.planner1127.tab', 'releaseNotes.planner1127.more', 'releaseNotes.planner1127.start'],
+    itemKeys: ['releaseNotes.planner1127.tab', 'releaseNotes.planner1127.more', 'releaseNotes.planner1127.tools', 'releaseNotes.planner1127.start'],
     audience: (user) => canManageAssignments(user),
   },
 ];

@@ -1470,6 +1470,62 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("company_settings", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.Crew", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("LeaderEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("crews", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.CrewMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CrewId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CrewId");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique();
+
+                    b.ToTable("crew_members", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4080,6 +4136,35 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ScheduleTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Rows")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("schedule_templates", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.ScheduledReportSubscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6293,6 +6378,25 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.CrewMember", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Crew", "Crew")
+                        .WithMany("Members")
+                        .HasForeignKey("CrewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Crew");
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.CustomerCompany", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Customer", "Customer")
@@ -7607,6 +7711,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.BulletinPost", b =>
                 {
                     b.Navigation("Views");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.Crew", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Customer", b =>

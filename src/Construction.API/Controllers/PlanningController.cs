@@ -119,6 +119,114 @@ public class PlanningController : ApiControllerBase
         return NoContent();
     }
 
+    /// <summary>Hours the schedule planned for each site against the hours people reported, for a period.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/hours")]
+    [HttpGet("/api/planning/hours")]
+    [ProducesResponseType(typeof(PlannedHoursDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PlannedHoursDto>> Hours([FromQuery] GetPlannedHoursQuery query, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Puts one week of the schedule on another: the free people go where they were. With <c>dryRun</c> it only says what would happen.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/copy-week")]
+    [HttpPost("/api/planning/copy-week")]
+    [ProducesResponseType(typeof(WeekApplyResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<WeekApplyResultDto>> CopyWeek(CopyScheduleWeekCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>The saved week templates.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/templates")]
+    [HttpGet("/api/planning/templates")]
+    [ProducesResponseType(typeof(IReadOnlyList<ScheduleTemplateDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ScheduleTemplateDto>>> Templates(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetScheduleTemplatesQuery(), cancellationToken));
+    }
+
+    /// <summary>Saves a week of the schedule as a template.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/templates")]
+    [HttpPost("/api/planning/templates")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Guid>> SaveTemplate(SaveScheduleTemplateCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>Puts a saved template on a week. With <c>dryRun</c> it only says what would happen.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/templates/apply")]
+    [HttpPost("/api/planning/templates/apply")]
+    [ProducesResponseType(typeof(WeekApplyResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WeekApplyResultDto>> ApplyTemplate(ApplyScheduleTemplateCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    [HttpDelete("/api/v{version:apiVersion}/planning/templates/{id:guid}")]
+    [HttpDelete("/api/planning/templates/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteTemplate(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteScheduleTemplateCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>The crews: named groups of workers that are moved together.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/crews")]
+    [HttpGet("/api/planning/crews")]
+    [ProducesResponseType(typeof(IReadOnlyList<CrewDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<CrewDto>>> Crews(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetCrewsQuery(), cancellationToken));
+    }
+
+    /// <summary>Creates a crew, or replaces the name, leader and members of one.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/crews")]
+    [HttpPost("/api/planning/crews")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Guid>> SaveCrew(SaveCrewCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    [HttpDelete("/api/v{version:apiVersion}/planning/crews/{id:guid}")]
+    [HttpDelete("/api/planning/crews/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteCrew(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteCrewCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Puts every member of a crew on a site for a range of days.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/crews/assign")]
+    [HttpPost("/api/planning/crews/assign")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<int>> AssignCrew(AssignCrewCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>Reminds the people posted on a day who have not yet confirmed it.</summary>
+    [HttpPost("/api/v{version:apiVersion}/planning/remind")]
+    [HttpPost("/api/planning/remind")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<ActionResult<int>> Remind(RemindUnconfirmedPostingsCommand command, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
     /// <summary>Sets how many people of each position a project needs.</summary>
     [HttpPut("/api/v{version:apiVersion}/planning/projects/{projectId:guid}/needs")]
     [HttpPut("/api/planning/projects/{projectId:guid}/needs")]
