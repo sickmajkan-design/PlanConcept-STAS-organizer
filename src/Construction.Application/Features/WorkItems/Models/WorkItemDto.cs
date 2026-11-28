@@ -82,8 +82,16 @@ public static class WorkItemMapping
             Latitude = item.Latitude,
             Longitude = item.Longitude,
             RequiresAcknowledgment = item.RequiresAcknowledgment,
-            CreatedByName = item.CreatedByUser != null ? item.CreatedByUser.Email : null,
-            ResolvedByName = item.ResolvedByUser != null ? item.ResolvedByUser.Email : null,
+            // A worker's name reads better than a login e-mail; the e-mail is the
+            // fallback for accounts with no employee record (admins).
+            CreatedByName = item.CreatedByUser == null ? null
+                : item.CreatedByUser.Employee != null
+                    ? item.CreatedByUser.Employee.FirstName + " " + item.CreatedByUser.Employee.LastName
+                    : item.CreatedByUser.Email,
+            ResolvedByName = item.ResolvedByUser == null ? null
+                : item.ResolvedByUser.Employee != null
+                    ? item.ResolvedByUser.Employee.FirstName + " " + item.ResolvedByUser.Employee.LastName
+                    : item.ResolvedByUser.Email,
             ResolvedAt = item.ResolvedAt,
             // Counted in the same query rather than loading the rows: a board
             // showing fifty items would otherwise make fifty-one round trips.

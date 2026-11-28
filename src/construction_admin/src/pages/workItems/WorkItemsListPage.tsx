@@ -164,6 +164,13 @@ export function WorkItemsListPage() {
         valueGetter: (v) => v || t('workItems.unassigned'),
       },
       {
+        field: 'createdByName',
+        headerName: t('workItems.reportedBy'),
+        flex: 1,
+        minWidth: 150,
+        valueGetter: (v) => v || '—',
+      },
+      {
         field: 'dueDate',
         headerName: t('workItems.dueDate'),
         width: 140,
